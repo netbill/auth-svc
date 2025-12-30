@@ -1,11 +1,12 @@
 package responses
 
 import (
-	"github.com/umisto/sso-svc/internal/domain/entity"
+	"github.com/umisto/pagi"
+	"github.com/umisto/sso-svc/internal/domain/models"
 	"github.com/umisto/sso-svc/resources"
 )
 
-func AccountSession(m entity.Session) resources.AccountSession {
+func AccountSession(m models.Session) resources.AccountSession {
 	resp := resources.AccountSession{
 		Data: resources.AccountSessionData{
 			Id:   m.ID,
@@ -21,7 +22,7 @@ func AccountSession(m entity.Session) resources.AccountSession {
 	return resp
 }
 
-func AccountSessionsCollection(ms entity.SessionsCollection) resources.AccountSessionsCollection {
+func AccountSessionsCollection(ms pagi.Page[[]models.Session]) resources.AccountSessionsCollection {
 	items := make([]resources.AccountSessionData, 0, len(ms.Data))
 
 	for _, s := range ms.Data {

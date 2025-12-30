@@ -5,10 +5,10 @@ import (
 	"testing"
 
 	"github.com/google/uuid"
-	"github.com/umisto/sso-svc/internal/domain/entity"
+	"github.com/umisto/sso-svc/internal/domain/models"
 )
 
-func CreateUser(s Setup, t *testing.T, email, password, role string) entity.User {
+func CreateUser(s Setup, t *testing.T, email, password, role string) models.User {
 	t.Helper()
 	ctx := context.Background()
 
@@ -20,7 +20,7 @@ func CreateUser(s Setup, t *testing.T, email, password, role string) entity.User
 	return u
 }
 
-func CreateSession(s Setup, t *testing.T, userID uuid.UUID) entity.Session {
+func CreateSession(s Setup, t *testing.T, userID uuid.UUID) models.Session {
 	t.Helper()
 	ctx := context.Background()
 

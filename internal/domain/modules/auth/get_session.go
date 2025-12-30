@@ -5,25 +5,26 @@ import (
 	"fmt"
 
 	"github.com/google/uuid"
-	"github.com/umisto/sso-svc/internal/domain/entity"
+	"github.com/umisto/pagi"
 	"github.com/umisto/sso-svc/internal/domain/errx"
+	"github.com/umisto/sso-svc/internal/domain/models"
 )
 
-func (s Service) GetOwnSession(ctx context.Context, initiator InitiatorData, sessionID uuid.UUID) (entity.Session, error) {
+func (s Service) GetOwnSession(ctx context.Context, initiator InitiatorData, sessionID uuid.UUID) (models.Session, error) {
 	_, _, err := s.ValidateSession(ctx, initiator)
 	if err != nil {
-		return entity.Session{}, err
+		return models.Session{}, err
 	}
 
 	session, err := s.db.GetAccountSession(ctx, initiator.AccountID, sessionID)
 	if err != nil {
-		return entity.Session{}, errx.ErrorInternal.Raise(
+		return models.Session{}, errx.ErrorInternal.Raise(
 			fmt.Errorf("failed to get session with id: %s for account %s, cause: %w", sessionID, initiator.AccountID, err),
 		)
 	}
 
 	if session.IsNil() {
-		return entity.Session{}, errx.ErrorSessionNotFound.Raise(
+		return models.Session{}, errx.ErrorSessionNotFound.Raise(
 			fmt.Errorf("session with id: %s for account %s not found", sessionID, initiator.AccountID),
 		)
 	}
@@ -34,17 +35,16 @@ func (s Service) GetOwnSession(ctx context.Context, initiator InitiatorData, ses
 func (s Service) GetOwnSessions(
 	ctx context.Context,
 	initiator InitiatorData,
-	page int32,
-	size int32,
-) (entity.SessionsCollection, error) {
+	limit, offset uint,
+) (pagi.Page[[]models.Session], error) {
 	_, _, err := s.ValidateSession(ctx, initiator)
 	if err != nil {
-		return entity.SessionsCollection{}, err
+		return pagi.Page[[]models.Session]{}, err
 	}
 
-	sessions, err := s.db.GetSessionsForAccount(ctx, initiator.AccountID, page, size)
+	sessions, err := s.db.GetSessionsForAccount(ctx, initiator.AccountID, limit, offset)
 	if err != nil {
-		return entity.SessionsCollection{}, errx.ErrorInternal.Raise(
+		return pagi.Page[[]models.Session]{}, errx.ErrorInternal.Raise(
 			fmt.Errorf("failed to list sessions for account %s, cause: %w", initiator.AccountID, err),
 		)
 	}

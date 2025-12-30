@@ -9,6 +9,7 @@ import (
 
 	sq "github.com/Masterminds/squirrel"
 	"github.com/google/uuid"
+	"github.com/umisto/pgx"
 )
 
 const sessionsTable = "sessions"
@@ -21,8 +22,22 @@ type Session struct {
 	CreatedAt time.Time `db:"created_at"`
 }
 
+func (s *Session) scan(row sq.RowScanner) error {
+	err := row.Scan(
+		&s.ID,
+		&s.AccountID,
+		&s.HashToken,
+		&s.LastUsed,
+		&s.CreatedAt,
+	)
+	if err != nil {
+		return fmt.Errorf("scanning session: %w", err)
+	}
+	return nil
+}
+
 type SessionsQ struct {
-	db       *sql.DB
+	db       pgx.DBTX
 	selector sq.SelectBuilder
 	inserter sq.InsertBuilder
 	updater  sq.UpdateBuilder
@@ -30,7 +45,7 @@ type SessionsQ struct {
 	counter  sq.SelectBuilder
 }
 
-func NewSessions(db *sql.DB) SessionsQ {
+func NewSessionsQ(db *sql.DB) SessionsQ {
 	builder := sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
 	return SessionsQ{
 		db:       db,
@@ -40,10 +55,6 @@ func NewSessions(db *sql.DB) SessionsQ {
 		deleter:  builder.Delete(sessionsTable),
 		counter:  builder.Select("COUNT(*) AS count").From(sessionsTable),
 	}
-}
-
-func (q SessionsQ) New() SessionsQ {
-	return NewSessions(q.db)
 }
 
 func (q SessionsQ) Insert(ctx context.Context, input Session) error {
@@ -60,11 +71,7 @@ func (q SessionsQ) Insert(ctx context.Context, input Session) error {
 		return fmt.Errorf("building insert query for %s: %w", sessionsTable, err)
 	}
 
-	if tx, ok := TxFromCtx(ctx); ok {
-		_, err = tx.ExecContext(ctx, query, args...)
-	} else {
-		_, err = q.db.ExecContext(ctx, query, args...)
-	}
+	_, err = q.db.ExecContext(ctx, query, args...)
 	return err
 }
 
@@ -78,12 +85,7 @@ func (q SessionsQ) Update(ctx context.Context) ([]Session, error) {
 		return nil, fmt.Errorf("building update query for %s: %w", sessionsTable, err)
 	}
 
-	var rows *sql.Rows
-	if tx, ok := TxFromCtx(ctx); ok {
-		rows, err = tx.QueryContext(ctx, query, args...)
-	} else {
-		rows, err = q.db.QueryContext(ctx, query, args...)
-	}
+	rows, err := q.db.QueryContext(ctx, query, args...)
 	if err != nil {
 		return nil, err
 	}
@@ -92,13 +94,7 @@ func (q SessionsQ) Update(ctx context.Context) ([]Session, error) {
 	var out []Session
 	for rows.Next() {
 		var s Session
-		err = rows.Scan(
-			&s.ID,
-			&s.AccountID,
-			&s.HashToken,
-			&s.LastUsed,
-			&s.CreatedAt,
-		)
+		err = s.scan(rows)
 		if err != nil {
 			return nil, fmt.Errorf("scanning updated session: %w", err)
 		}
@@ -125,19 +121,8 @@ func (q SessionsQ) Get(ctx context.Context) (Session, error) {
 	}
 
 	var sess Session
-	var row *sql.Row
-	if tx, ok := TxFromCtx(ctx); ok {
-		row = tx.QueryRowContext(ctx, query, args...)
-	} else {
-		row = q.db.QueryRowContext(ctx, query, args...)
-	}
-	err = row.Scan(
-		&sess.ID,
-		&sess.AccountID,
-		&sess.HashToken,
-		&sess.CreatedAt,
-		&sess.LastUsed,
-	)
+	row := q.db.QueryRowContext(ctx, query, args...)
+	err = sess.scan(row)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return Session{}, nil
@@ -155,13 +140,7 @@ func (q SessionsQ) Select(ctx context.Context) ([]Session, error) {
 		return nil, fmt.Errorf("building select query for sessions: %w", err)
 	}
 
-	var rows *sql.Rows
-
-	if tx, ok := TxFromCtx(ctx); ok {
-		rows, err = tx.QueryContext(ctx, query, args...)
-	} else {
-		rows, err = q.db.QueryContext(ctx, query, args...)
-	}
+	rows, err := q.db.QueryContext(ctx, query, args...)
 	if err != nil {
 		return nil, err
 	}
@@ -170,13 +149,7 @@ func (q SessionsQ) Select(ctx context.Context) ([]Session, error) {
 	var sessions []Session
 	for rows.Next() {
 		var sess Session
-		err = rows.Scan(
-			&sess.ID,
-			&sess.AccountID,
-			&sess.HashToken,
-			&sess.CreatedAt,
-			&sess.LastUsed,
-		)
+		err = sess.scan(rows)
 		if err != nil {
 			return nil, fmt.Errorf("scanning session row: %w", err)
 		}
@@ -191,11 +164,7 @@ func (q SessionsQ) Delete(ctx context.Context) error {
 		return fmt.Errorf("building delete query for sessions: %w", err)
 	}
 
-	if tx, ok := TxFromCtx(ctx); ok {
-		_, err = tx.ExecContext(ctx, query, args...)
-	} else {
-		_, err = q.db.ExecContext(ctx, query, args...)
-	}
+	_, err = q.db.ExecContext(ctx, query, args...)
 
 	return err
 }
@@ -227,18 +196,14 @@ func (q SessionsQ) OrderCreatedAt(ascending bool) SessionsQ {
 	return q
 }
 
-func (q SessionsQ) Count(ctx context.Context) (uint64, error) {
+func (q SessionsQ) Count(ctx context.Context) (uint, error) {
 	query, args, err := q.counter.ToSql()
 	if err != nil {
 		return 0, fmt.Errorf("building count query for sessions: %w", err)
 	}
 
-	var count uint64
-	if tx, ok := TxFromCtx(ctx); ok {
-		err = tx.QueryRowContext(ctx, query, args...).Scan(&count)
-	} else {
-		err = q.db.QueryRowContext(ctx, query, args...).Scan(&count)
-	}
+	var count uint
+	err = q.db.QueryRowContext(ctx, query, args...).Scan(&count)
 	if err != nil {
 		return 0, err
 	}
@@ -246,48 +211,7 @@ func (q SessionsQ) Count(ctx context.Context) (uint64, error) {
 	return count, nil
 }
 
-func (q SessionsQ) Page(limit, offset uint64) SessionsQ {
-	q.selector = q.selector.Limit(limit).Offset(offset)
-
+func (q SessionsQ) Page(limit, offset uint) SessionsQ {
+	q.selector = q.selector.Limit(uint64(limit)).Offset(uint64(offset))
 	return q
-}
-
-func (q SessionsQ) Transaction(ctx context.Context, fn func(ctx context.Context) error) error {
-	_, ok := TxFromCtx(ctx)
-	if ok {
-		return fn(ctx)
-	}
-
-	tx, err := q.db.BeginTx(ctx, nil)
-	if err != nil {
-		return fmt.Errorf("failed to start transaction: %w", err)
-	}
-
-	defer func() {
-		if p := recover(); p != nil {
-			_ = tx.Rollback()
-			panic(p)
-		}
-		if err != nil {
-			rbErr := tx.Rollback()
-			if rbErr != nil && !errors.Is(rbErr, sql.ErrTxDone) {
-				err = fmt.Errorf("tx err: %v; rollback err: %v", err, rbErr)
-			}
-		}
-	}()
-
-	ctxWithTx := context.WithValue(ctx, TxKey, tx)
-
-	if err = fn(ctxWithTx); err != nil {
-		if rbErr := tx.Rollback(); rbErr != nil {
-			return fmt.Errorf("transaction failed: %v, rollback error: %v", err, rbErr)
-		}
-		return fmt.Errorf("transaction failed: %w", err)
-	}
-
-	if err = tx.Commit(); err != nil {
-		return fmt.Errorf("failed to commit transaction: %w", err)
-	}
-
-	return nil
 }

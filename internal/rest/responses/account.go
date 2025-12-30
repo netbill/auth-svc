@@ -1,11 +1,11 @@
 package responses
 
 import (
-	"github.com/umisto/sso-svc/internal/domain/entity"
+	"github.com/umisto/sso-svc/internal/domain/models"
 	"github.com/umisto/sso-svc/resources"
 )
 
-func Account(m entity.Account) resources.Account {
+func Account(m models.Account) resources.Account {
 	resp := resources.Account{
 		Data: resources.AccountData{
 			Id:   m.ID,

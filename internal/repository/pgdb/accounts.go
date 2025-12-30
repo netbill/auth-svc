@@ -9,6 +9,7 @@ import (
 
 	sq "github.com/Masterminds/squirrel"
 	"github.com/google/uuid"
+	"github.com/umisto/pgx"
 )
 
 const accountsTable = "accounts"
@@ -23,8 +24,24 @@ type Account struct {
 	UsernameUpdatedAt time.Time `db:"username_updated_at"`
 }
 
+func (a *Account) scan(row sq.RowScanner) error {
+	err := row.Scan(
+		&a.ID,
+		&a.Username,
+		&a.Role,
+		&a.Status,
+		&a.CreatedAt,
+		&a.UpdatedAt,
+		&a.UsernameUpdatedAt,
+	)
+	if err != nil {
+		return fmt.Errorf("scanning account: %w", err)
+	}
+	return nil
+}
+
 type AccountsQ struct {
-	db       *sql.DB
+	db       pgx.DBTX
 	selector sq.SelectBuilder
 	inserter sq.InsertBuilder
 	updater  sq.UpdateBuilder
@@ -32,7 +49,7 @@ type AccountsQ struct {
 	counter  sq.SelectBuilder
 }
 
-func NewAccounts(db *sql.DB) AccountsQ {
+func NewAccountsQ(db pgx.DBTX) AccountsQ {
 	builder := sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
 	return AccountsQ{
 		db:       db,
@@ -42,10 +59,6 @@ func NewAccounts(db *sql.DB) AccountsQ {
 		deleter:  builder.Delete(accountsTable),
 		counter:  builder.Select("COUNT(*) AS count").From(accountsTable),
 	}
-}
-
-func (q AccountsQ) New() AccountsQ {
-	return NewAccounts(q.db)
 }
 
 func (q AccountsQ) Insert(ctx context.Context, input Account) error {
@@ -64,12 +77,7 @@ func (q AccountsQ) Insert(ctx context.Context, input Account) error {
 		return fmt.Errorf("building insert query for %s: %w", accountsTable, err)
 	}
 
-	if tx, ok := TxFromCtx(ctx); ok {
-		_, err = tx.ExecContext(ctx, query, args...)
-	} else {
-		_, err = q.db.ExecContext(ctx, query, args...)
-	}
-
+	_, err = q.db.ExecContext(ctx, query, args...)
 	return err
 }
 
@@ -83,12 +91,7 @@ func (q AccountsQ) Update(ctx context.Context) ([]Account, error) {
 		return nil, fmt.Errorf("building update query for %s: %w", accountsTable, err)
 	}
 
-	var rows *sql.Rows
-	if tx, ok := TxFromCtx(ctx); ok {
-		rows, err = tx.QueryContext(ctx, query, args...)
-	} else {
-		rows, err = q.db.QueryContext(ctx, query, args...)
-	}
+	rows, err := q.db.QueryContext(ctx, query, args...)
 	if err != nil {
 		return nil, err
 	}
@@ -97,15 +100,7 @@ func (q AccountsQ) Update(ctx context.Context) ([]Account, error) {
 	var out []Account
 	for rows.Next() {
 		var a Account
-		err = rows.Scan(
-			&a.ID,
-			&a.Username,
-			&a.Role,
-			&a.Status,
-			&a.CreatedAt,
-			&a.UpdatedAt,
-			&a.UsernameUpdatedAt,
-		)
+		err = a.scan(rows)
 		if err != nil {
 			return nil, fmt.Errorf("scanning updated account: %w", err)
 		}
@@ -138,23 +133,10 @@ func (q AccountsQ) Get(ctx context.Context) (Account, error) {
 		return Account{}, fmt.Errorf("building get query for %s: %w", accountsTable, err)
 	}
 
-	var row *sql.Row
-	if tx, ok := TxFromCtx(ctx); ok {
-		row = tx.QueryRowContext(ctx, query, args...)
-	} else {
-		row = q.db.QueryRowContext(ctx, query, args...)
-	}
+	row := q.db.QueryRowContext(ctx, query, args...)
 
 	var a Account
-	err = row.Scan(
-		&a.ID,
-		&a.Username,
-		&a.Role,
-		&a.Status,
-		&a.CreatedAt,
-		&a.UpdatedAt,
-		&a.UsernameUpdatedAt,
-	)
+	err = a.scan(row)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return Account{}, nil
@@ -171,12 +153,7 @@ func (q AccountsQ) Select(ctx context.Context) ([]Account, error) {
 		return nil, fmt.Errorf("building select query for %s: %w", accountsTable, err)
 	}
 
-	var rows *sql.Rows
-	if tx, ok := TxFromCtx(ctx); ok {
-		rows, err = tx.QueryContext(ctx, query, args...)
-	} else {
-		rows, err = q.db.QueryContext(ctx, query, args...)
-	}
+	rows, err := q.db.QueryContext(ctx, query, args...)
 	if err != nil {
 		return nil, err
 	}
@@ -185,15 +162,7 @@ func (q AccountsQ) Select(ctx context.Context) ([]Account, error) {
 	var out []Account
 	for rows.Next() {
 		var a Account
-		err = rows.Scan(
-			&a.ID,
-			&a.Username,
-			&a.Role,
-			&a.Status,
-			&a.CreatedAt,
-			&a.UpdatedAt,
-			&a.UsernameUpdatedAt,
-		)
+		err = a.scan(rows)
 		if err != nil {
 			return nil, fmt.Errorf("scanning account: %w", err)
 		}
@@ -209,11 +178,7 @@ func (q AccountsQ) Delete(ctx context.Context) error {
 		return fmt.Errorf("building delete query for %s: %w", accountsTable, err)
 	}
 
-	if tx, ok := TxFromCtx(ctx); ok {
-		_, err = tx.ExecContext(ctx, query, args...)
-	} else {
-		_, err = q.db.ExecContext(ctx, query, args...)
-	}
+	_, err = q.db.ExecContext(ctx, query, args...)
 
 	return err
 }
@@ -269,18 +234,14 @@ func (q AccountsQ) FilterEmail(email string) AccountsQ {
 	return q
 }
 
-func (q AccountsQ) Count(ctx context.Context) (uint64, error) {
+func (q AccountsQ) Count(ctx context.Context) (uint, error) {
 	query, args, err := q.counter.ToSql()
 	if err != nil {
 		return 0, fmt.Errorf("building count query for %s: %w", accountsTable, err)
 	}
 
-	var count uint64
-	if tx, ok := TxFromCtx(ctx); ok {
-		err = tx.QueryRowContext(ctx, query, args...).Scan(&count)
-	} else {
-		err = q.db.QueryRowContext(ctx, query, args...).Scan(&count)
-	}
+	var count uint
+	err = q.db.QueryRowContext(ctx, query, args...).Scan(&count)
 	if err != nil {
 		return 0, err
 	}
@@ -288,8 +249,9 @@ func (q AccountsQ) Count(ctx context.Context) (uint64, error) {
 	return count, nil
 }
 
-func (q AccountsQ) Page(limit, offset uint64) AccountsQ {
-	q.selector = q.selector.Limit(limit).Offset(offset)
+func (q AccountsQ) Page(limit, offset uint) AccountsQ {
+	q.selector = q.selector.Limit(uint64(limit)).Offset(uint64(offset))
+
 	return q
 }
 
@@ -300,36 +262,4 @@ func (q AccountsQ) OrderCreatedAt(ascending bool) AccountsQ {
 		q.selector = q.selector.OrderBy("created_at DESC")
 	}
 	return q
-}
-
-func (q AccountsQ) Transaction(ctx context.Context, fn func(ctx context.Context) error) error {
-	_, ok := TxFromCtx(ctx)
-	if ok {
-		return fn(ctx)
-	}
-
-	tx, err := q.db.BeginTx(ctx, nil)
-	if err != nil {
-		return fmt.Errorf("failed to start transaction: %w", err)
-	}
-
-	defer func() {
-		if p := recover(); p != nil {
-			_ = tx.Rollback()
-			panic(p)
-		}
-	}()
-
-	ctxWithTx := context.WithValue(ctx, TxKey, tx)
-
-	if err = fn(ctxWithTx); err != nil {
-		_ = tx.Rollback()
-		return err
-	}
-
-	if err = tx.Commit(); err != nil {
-		return fmt.Errorf("failed to commit transaction: %w", err)
-	}
-
-	return nil
 }

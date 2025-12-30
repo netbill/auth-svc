@@ -1,31 +1,40 @@
 package contracts
 
-import "github.com/umisto/sso-svc/internal/domain/entity"
+import "github.com/umisto/sso-svc/internal/domain/models"
 
-type AccountCreatedPayload struct {
-	Account entity.Account `json:"account"`
-	Email   string         `json:"email,omitempty"`
-}
+const AccountsTopicV1 = "accounts.v1"
 
 const AccountCreatedEvent = "account.created"
+
+type AccountCreatedPayload struct {
+	Account models.Account `json:"account"`
+	Email   string         `json:"email,omitempty"`
+}
 
 const AccountLoginEvent = "account.login"
 
 type AccountLoginPayload struct {
-	Account entity.Account `json:"account"`
+	Account models.Account `json:"account"`
 	Email   string         `json:"email"`
 }
 
 const AccountPasswordChangeEvent = "account.password.change"
 
 type AccountPasswordChangePayload struct {
-	Account entity.Account `json:"account"`
+	Account models.Account `json:"account"`
 	Email   string         `json:"email"`
 }
 
 const AccountUsernameChangeEvent = "account.username.change"
 
 type AccountUsernameChangePayload struct {
-	Account entity.Account `json:"account"`
+	Account models.Account `json:"account"`
 	Email   string         `json:"email"`
+}
+
+const AccountDeletedEvent = "account.deleted"
+
+type AccountDeletedPayload struct {
+	Account models.Account `json:"account"`
+	Email   string         `json:"email,omitempty"`
 }

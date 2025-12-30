@@ -9,8 +9,8 @@ import (
 	"github.com/umisto/logium"
 	"github.com/umisto/sso-svc/internal"
 	"github.com/umisto/sso-svc/internal/domain/modules/auth"
-	"github.com/umisto/sso-svc/internal/events/producer"
-	"github.com/umisto/sso-svc/internal/repo"
+	"github.com/umisto/sso-svc/internal/messaging/producer"
+	"github.com/umisto/sso-svc/internal/repository"
 	"github.com/umisto/sso-svc/internal/rest"
 	"github.com/umisto/sso-svc/internal/rest/controller"
 	"github.com/umisto/sso-svc/internal/rest/middlewares"
@@ -31,7 +31,7 @@ func StartServices(ctx context.Context, cfg internal.Config, log logium.Logger, 
 		log.Fatal("failed to connect to database", "error", err)
 	}
 
-	repository := repo.New(pg)
+	repository := repository.New(pg)
 
 	kafkaBox := box.New(pg)
 

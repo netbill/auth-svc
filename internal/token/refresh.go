@@ -5,10 +5,10 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/umisto/restkit/token"
-	"github.com/umisto/sso-svc/internal/domain/entity"
+	"github.com/umisto/sso-svc/internal/domain/models"
 )
 
-func (s Service) GenerateRefresh(account entity.Account, sessionID uuid.UUID) (string, error) {
+func (s Service) GenerateRefresh(account models.Account, sessionID uuid.UUID) (string, error) {
 	return token.GenerateAccountJWT(token.GenerateAccountJwtRequest{
 		Issuer:    s.iss,
 		Audience:  []string{s.iss},

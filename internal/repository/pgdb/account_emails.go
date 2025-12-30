@@ -9,6 +9,7 @@ import (
 
 	sq "github.com/Masterminds/squirrel"
 	"github.com/google/uuid"
+	"github.com/umisto/pgx"
 )
 
 const accountEmailsTable = "account_emails"
@@ -21,8 +22,22 @@ type AccountEmail struct {
 	CreatedAt time.Time `db:"created_at"`
 }
 
+func (e *AccountEmail) scan(row sq.RowScanner) error {
+	err := row.Scan(
+		&e.AccountID,
+		&e.Email,
+		&e.Verified,
+		&e.UpdatedAt,
+		&e.CreatedAt,
+	)
+	if err != nil {
+		return fmt.Errorf("scanning account email: %w", err)
+	}
+	return nil
+}
+
 type AccountEmailsQ struct {
-	db       *sql.DB
+	db       pgx.DBTX
 	selector sq.SelectBuilder
 	inserter sq.InsertBuilder
 	updater  sq.UpdateBuilder
@@ -30,7 +45,7 @@ type AccountEmailsQ struct {
 	counter  sq.SelectBuilder
 }
 
-func NewAccountEmails(db *sql.DB) AccountEmailsQ {
+func NewAccountEmailsQ(db pgx.DBTX) AccountEmailsQ {
 	builder := sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
 	return AccountEmailsQ{
 		db:       db,
@@ -40,10 +55,6 @@ func NewAccountEmails(db *sql.DB) AccountEmailsQ {
 		deleter:  builder.Delete(accountEmailsTable),
 		counter:  builder.Select("COUNT(*) AS count").From(accountEmailsTable),
 	}
-}
-
-func (q AccountEmailsQ) New() AccountEmailsQ {
-	return NewAccountEmails(q.db)
 }
 
 func (q AccountEmailsQ) Insert(ctx context.Context, input AccountEmail) error {
@@ -60,11 +71,7 @@ func (q AccountEmailsQ) Insert(ctx context.Context, input AccountEmail) error {
 		return fmt.Errorf("building insert query for %s: %w", accountEmailsTable, err)
 	}
 
-	if tx, ok := TxFromCtx(ctx); ok {
-		_, err = tx.ExecContext(ctx, query, args...)
-	} else {
-		_, err = q.db.ExecContext(ctx, query, args...)
-	}
+	_, err = q.db.ExecContext(ctx, query, args...)
 
 	return err
 }
@@ -79,12 +86,7 @@ func (q AccountEmailsQ) Update(ctx context.Context) ([]AccountEmail, error) {
 		return nil, fmt.Errorf("building update query for %s: %w", accountEmailsTable, err)
 	}
 
-	var rows *sql.Rows
-	if tx, ok := TxFromCtx(ctx); ok {
-		rows, err = tx.QueryContext(ctx, query, args...)
-	} else {
-		rows, err = q.db.QueryContext(ctx, query, args...)
-	}
+	rows, err := q.db.QueryContext(ctx, query, args...)
 	if err != nil {
 		return nil, err
 	}
@@ -93,13 +95,7 @@ func (q AccountEmailsQ) Update(ctx context.Context) ([]AccountEmail, error) {
 	var out []AccountEmail
 	for rows.Next() {
 		var e AccountEmail
-		err = rows.Scan(
-			&e.AccountID,
-			&e.Email,
-			&e.Verified,
-			&e.UpdatedAt,
-			&e.CreatedAt,
-		)
+		err = e.scan(rows)
 		if err != nil {
 			return nil, fmt.Errorf("scanning updated account email: %w", err)
 		}
@@ -125,21 +121,10 @@ func (q AccountEmailsQ) Get(ctx context.Context) (AccountEmail, error) {
 		return AccountEmail{}, fmt.Errorf("building get query for %s: %w", accountEmailsTable, err)
 	}
 
-	var row *sql.Row
-	if tx, ok := TxFromCtx(ctx); ok {
-		row = tx.QueryRowContext(ctx, query, args...)
-	} else {
-		row = q.db.QueryRowContext(ctx, query, args...)
-	}
+	row := q.db.QueryRowContext(ctx, query, args...)
 
 	var e AccountEmail
-	err = row.Scan(
-		&e.AccountID,
-		&e.Email,
-		&e.Verified,
-		&e.UpdatedAt,
-		&e.CreatedAt,
-	)
+	err = e.scan(row)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return AccountEmail{}, nil
@@ -156,12 +141,7 @@ func (q AccountEmailsQ) Select(ctx context.Context) ([]AccountEmail, error) {
 		return nil, fmt.Errorf("building select query for %s: %w", accountEmailsTable, err)
 	}
 
-	var rows *sql.Rows
-	if tx, ok := TxFromCtx(ctx); ok {
-		rows, err = tx.QueryContext(ctx, query, args...)
-	} else {
-		rows, err = q.db.QueryContext(ctx, query, args...)
-	}
+	rows, err := q.db.QueryContext(ctx, query, args...)
 	if err != nil {
 		return nil, err
 	}
@@ -170,13 +150,7 @@ func (q AccountEmailsQ) Select(ctx context.Context) ([]AccountEmail, error) {
 	var out []AccountEmail
 	for rows.Next() {
 		var e AccountEmail
-		err = rows.Scan(
-			&e.AccountID,
-			&e.Email,
-			&e.Verified,
-			&e.UpdatedAt,
-			&e.CreatedAt,
-		)
+		err = e.scan(rows)
 		if err != nil {
 			return nil, fmt.Errorf("scanning account_email: %w", err)
 		}
@@ -192,12 +166,7 @@ func (q AccountEmailsQ) Delete(ctx context.Context) error {
 		return fmt.Errorf("building delete query for %s: %w", accountEmailsTable, err)
 	}
 
-	if tx, ok := TxFromCtx(ctx); ok {
-		_, err = tx.ExecContext(ctx, query, args...)
-	} else {
-		_, err = q.db.ExecContext(ctx, query, args...)
-	}
-
+	_, err = q.db.ExecContext(ctx, query, args...)
 	return err
 }
 
@@ -225,18 +194,14 @@ func (q AccountEmailsQ) FilterVerified(verified bool) AccountEmailsQ {
 	return q
 }
 
-func (q AccountEmailsQ) Count(ctx context.Context) (uint64, error) {
+func (q AccountEmailsQ) Count(ctx context.Context) (uint, error) {
 	query, args, err := q.counter.ToSql()
 	if err != nil {
 		return 0, fmt.Errorf("building count query for %s: %w", accountEmailsTable, err)
 	}
 
-	var count uint64
-	if tx, ok := TxFromCtx(ctx); ok {
-		err = tx.QueryRowContext(ctx, query, args...).Scan(&count)
-	} else {
-		err = q.db.QueryRowContext(ctx, query, args...).Scan(&count)
-	}
+	var count uint
+	err = q.db.QueryRowContext(ctx, query, args...).Scan(&count)
 	if err != nil {
 		return 0, err
 	}
@@ -244,39 +209,7 @@ func (q AccountEmailsQ) Count(ctx context.Context) (uint64, error) {
 	return count, nil
 }
 
-func (q AccountEmailsQ) Page(limit, offset uint64) AccountEmailsQ {
-	q.selector = q.selector.Limit(limit).Offset(offset)
+func (q AccountEmailsQ) Page(limit, offset uint) AccountEmailsQ {
+	q.selector = q.selector.Limit(uint64(limit)).Offset(uint64(offset))
 	return q
-}
-
-func (q AccountEmailsQ) Transaction(ctx context.Context, fn func(ctx context.Context) error) error {
-	_, ok := TxFromCtx(ctx)
-	if ok {
-		return fn(ctx)
-	}
-
-	tx, err := q.db.BeginTx(ctx, nil)
-	if err != nil {
-		return fmt.Errorf("failed to start transaction: %w", err)
-	}
-
-	defer func() {
-		if p := recover(); p != nil {
-			_ = tx.Rollback()
-			panic(p)
-		}
-	}()
-
-	ctxWithTx := context.WithValue(ctx, TxKey, tx)
-
-	if err = fn(ctxWithTx); err != nil {
-		_ = tx.Rollback()
-		return err
-	}
-
-	if err = tx.Commit(); err != nil {
-		return fmt.Errorf("failed to commit transaction: %w", err)
-	}
-
-	return nil
 }

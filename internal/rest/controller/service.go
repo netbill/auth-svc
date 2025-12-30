@@ -5,7 +5,8 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/umisto/logium"
-	"github.com/umisto/sso-svc/internal/domain/entity"
+	"github.com/umisto/pagi"
+	"github.com/umisto/sso-svc/internal/domain/models"
 	"github.com/umisto/sso-svc/internal/domain/modules/auth"
 	"golang.org/x/oauth2"
 )
@@ -14,18 +15,18 @@ type core interface {
 	Registration(
 		ctx context.Context,
 		params auth.RegistrationParams,
-	) (entity.Account, error)
+	) (models.Account, error)
 	RegistrationByAdmin(
 		ctx context.Context,
 		initiatorID uuid.UUID,
 		params auth.RegistrationParams,
-	) (entity.Account, error)
+	) (models.Account, error)
 
-	LoginByEmail(ctx context.Context, email, password string) (entity.TokensPair, error)
-	LoginByUsername(ctx context.Context, username, password string) (entity.TokensPair, error)
-	LoginByGoogle(ctx context.Context, email string) (entity.TokensPair, error)
+	LoginByEmail(ctx context.Context, email, password string) (models.TokensPair, error)
+	LoginByUsername(ctx context.Context, username, password string) (models.TokensPair, error)
+	LoginByGoogle(ctx context.Context, email string) (models.TokensPair, error)
 
-	Refresh(ctx context.Context, oldRefreshToken string) (entity.TokensPair, error)
+	Refresh(ctx context.Context, oldRefreshToken string) (models.TokensPair, error)
 
 	UpdatePassword(
 		ctx context.Context,
@@ -37,18 +38,17 @@ type core interface {
 		initiator auth.InitiatorData,
 		password string,
 		newUsername string,
-	) (entity.Account, error)
+	) (models.Account, error)
 
-	GetAccountByID(ctx context.Context, ID uuid.UUID) (entity.Account, error)
-	GetAccountEmail(ctx context.Context, ID uuid.UUID) (entity.AccountEmail, error)
+	GetAccountByID(ctx context.Context, ID uuid.UUID) (models.Account, error)
+	GetAccountEmail(ctx context.Context, ID uuid.UUID) (models.AccountEmail, error)
 
-	GetOwnSession(ctx context.Context, initiator auth.InitiatorData, sessionID uuid.UUID) (entity.Session, error)
+	GetOwnSession(ctx context.Context, initiator auth.InitiatorData, sessionID uuid.UUID) (models.Session, error)
 	GetOwnSessions(
 		ctx context.Context,
 		initiator auth.InitiatorData,
-		page int32,
-		size int32,
-	) (entity.SessionsCollection, error)
+		limit, offset uint,
+	) (pagi.Page[[]models.Session], error)
 
 	DeleteOwnAccount(ctx context.Context, initiator auth.InitiatorData) error
 

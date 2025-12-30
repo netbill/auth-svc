@@ -3,14 +3,14 @@ package token
 import (
 	"github.com/google/uuid"
 	"github.com/umisto/restkit/token"
-	"github.com/umisto/sso-svc/internal/domain/entity"
+	"github.com/umisto/sso-svc/internal/domain/models"
 )
 
 func (s Service) EncryptAccess(token string) (string, error) {
 	return encryptAESGCM(token, []byte(s.accessSK))
 }
 
-func (s Service) GenerateAccess(user entity.Account, sessionID uuid.UUID) (string, error) {
+func (s Service) GenerateAccess(user models.Account, sessionID uuid.UUID) (string, error) {
 	return token.GenerateAccountJWT(token.GenerateAccountJwtRequest{
 		Issuer:    s.iss,
 		AccountID: user.ID,

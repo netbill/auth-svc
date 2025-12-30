@@ -1,4 +1,4 @@
-package entity
+package models
 
 import (
 	"time"
@@ -15,11 +15,4 @@ type Session struct {
 
 func (s Session) IsNil() bool {
 	return s.ID == uuid.Nil
-}
-
-type SessionsCollection struct {
-	Data  []Session `json:"repo"`
-	Page  int32     `json:"page"`
-	Size  int32     `json:"size"`
-	Total int64     `json:"total"`
 }

@@ -6,7 +6,7 @@ import (
 
 	"github.com/umisto/ape"
 	"github.com/umisto/ape/problems"
-	"github.com/umisto/restkit/pagi"
+	"github.com/umisto/pagi"
 	"github.com/umisto/sso-svc/internal/domain/errx"
 	"github.com/umisto/sso-svc/internal/domain/modules/auth"
 	"github.com/umisto/sso-svc/internal/rest/meta"
@@ -22,11 +22,11 @@ func (s *Service) GetMySessions(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	page, size := pagi.GetPagination(r)
+	limit, offset := pagi.GetPagination(r)
 	sessions, err := s.domain.GetOwnSessions(r.Context(), auth.InitiatorData{
 		AccountID: initiator.ID,
 		SessionID: initiator.SessionID,
-	}, page, size)
+	}, limit, offset)
 	if err != nil {
 		s.log.WithError(err).Errorf("failed to select My sessions")
 		switch {

@@ -49,8 +49,23 @@ func (s Service) UpdatePassword(
 		)
 	}
 
-	_, err = s.db.UpdateAccountPassword(ctx, initiator.AccountID, string(hash))
-	if err != nil {
+	if err = s.db.Transaction(ctx, func(txCtx context.Context) error {
+		_, err = s.db.UpdateAccountPassword(ctx, initiator.AccountID, string(hash))
+		if err != nil {
+			return errx.ErrorInternal.Raise(
+				fmt.Errorf("updating password for account %s, cause: %w", initiator.AccountID, err),
+			)
+		}
+
+		err = s.db.DeleteSessionsForAccount(ctx, account.ID)
+		if err != nil {
+			return errx.ErrorInternal.Raise(
+				fmt.Errorf("deleting sessions for account %s after password change, cause: %w", initiator.AccountID, err),
+			)
+		}
+
+		return nil
+	}); err != nil {
 		return err
 	}
 

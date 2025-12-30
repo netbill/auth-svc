@@ -7,9 +7,10 @@ import (
 	"unicode"
 
 	"github.com/google/uuid"
+	"github.com/umisto/pagi"
 	"github.com/umisto/restkit/token"
-	"github.com/umisto/sso-svc/internal/domain/entity"
 	"github.com/umisto/sso-svc/internal/domain/errx"
+	"github.com/umisto/sso-svc/internal/domain/models"
 )
 
 type JWTManager interface {
@@ -20,19 +21,19 @@ type JWTManager interface {
 	ParseRefreshClaims(enc string) (token.AccountClaims, error)
 
 	GenerateAccess(
-		account entity.Account, sessionID uuid.UUID,
+		account models.Account, sessionID uuid.UUID,
 	) (string, error)
 
 	GenerateRefresh(
-		account entity.Account, sessionID uuid.UUID,
+		account models.Account, sessionID uuid.UUID,
 	) (string, error)
 }
 
 type EventPublisher interface {
-	WriteAccountCreated(ctx context.Context, account entity.Account, email string) error
-	WriteAccountPasswordChanged(ctx context.Context, account entity.Account, email string) error
-	WriteAccountUsernameChanged(ctx context.Context, account entity.Account, email string) error
-	WriteAccountLogin(ctx context.Context, account entity.Account, email string) error
+	WriteAccountCreated(ctx context.Context, account models.Account, email string) error
+	WriteAccountPasswordChanged(ctx context.Context, account models.Account, email string) error
+	WriteAccountUsernameChanged(ctx context.Context, account models.Account, email string) error
+	WriteAccountLogin(ctx context.Context, account models.Account, email string) error
 }
 
 type CreateAccountParams struct {
@@ -46,59 +47,61 @@ type database interface {
 	CreateAccount(
 		ctx context.Context,
 		params CreateAccountParams,
-	) (entity.Account, error)
+	) (models.Account, error)
 
-	GetAccountByID(ctx context.Context, accountID uuid.UUID) (entity.Account, error)
-	GetAccountByUsername(ctx context.Context, username string) (entity.Account, error)
+	GetAccountByID(ctx context.Context, accountID uuid.UUID) (models.Account, error)
+	GetAccountByUsername(ctx context.Context, username string) (models.Account, error)
 	UpdateAccountUsername(
 		ctx context.Context,
 		accountID uuid.UUID,
 		newUsername string,
-	) (entity.Account, error)
+	) (models.Account, error)
 
-	GetAccountByEmail(ctx context.Context, email string) (entity.Account, error)
+	GetAccountByEmail(ctx context.Context, email string) (models.Account, error)
 	UpdateAccountStatus(
 		ctx context.Context,
 		accountID uuid.UUID,
 		status string,
-	) (entity.Account, error)
+	) (models.Account, error)
 
-	GetAccountEmail(ctx context.Context, accountID uuid.UUID) (entity.AccountEmail, error)
+	GetAccountEmail(ctx context.Context, accountID uuid.UUID) (models.AccountEmail, error)
 	UpdateAccountEmailVerification(
 		ctx context.Context,
 		accountID uuid.UUID,
 		verified bool,
-	) (entity.AccountEmail, error)
+	) (models.AccountEmail, error)
 
-	GetAccountPassword(ctx context.Context, accountID uuid.UUID) (entity.AccountPassword, error)
+	GetAccountPassword(ctx context.Context, accountID uuid.UUID) (models.AccountPassword, error)
 	UpdateAccountPassword(
 		ctx context.Context,
 		accountID uuid.UUID,
 		passwordHash string,
-	) (entity.AccountPassword, error)
+	) (models.AccountPassword, error)
 	DeleteAccount(ctx context.Context, accountID uuid.UUID) error
 
-	CreateSession(ctx context.Context, sessionID, accountID uuid.UUID, hashToken string) (entity.Session, error)
-	GetSession(ctx context.Context, sessionID uuid.UUID) (entity.Session, error)
+	CreateSession(ctx context.Context, sessionID, accountID uuid.UUID, hashToken string) (models.Session, error)
+	GetSession(ctx context.Context, sessionID uuid.UUID) (models.Session, error)
 	GetAccountSession(
 		ctx context.Context,
 		accountID, sessionID uuid.UUID,
-	) (entity.Session, error)
+	) (models.Session, error)
 	GetSessionsForAccount(
 		ctx context.Context,
 		accountID uuid.UUID,
-		page, size int32,
-	) (entity.SessionsCollection, error)
+		limit, offset uint,
+	) (pagi.Page[[]models.Session], error)
 	GetSessionToken(ctx context.Context, sessionID uuid.UUID) (string, error)
 	UpdateSessionToken(
 		ctx context.Context,
 		sessionID uuid.UUID,
 		token string,
-	) (entity.Session, error)
+	) (models.Session, error)
 
 	DeleteSession(ctx context.Context, sessionID uuid.UUID) error
 	DeleteSessionsForAccount(ctx context.Context, accountID uuid.UUID) error
 	DeleteAccountSession(ctx context.Context, accountID, sessionID uuid.UUID) error
+
+	Transaction(ctx context.Context, fn func(ctx context.Context) error) error
 }
 
 type Service struct {
