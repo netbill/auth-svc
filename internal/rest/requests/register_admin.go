@@ -7,8 +7,8 @@ import (
 
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 	"github.com/go-ozzo/ozzo-validation/v4/is"
-	"github.com/umisto/restkit/roles"
-	"github.com/umisto/sso-svc/resources"
+	"github.com/netbill/auth-svc/resources"
+	"github.com/netbill/restkit/roles"
 )
 
 func newDecodeError(what string, err error) error {

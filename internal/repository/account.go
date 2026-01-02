@@ -8,9 +8,9 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/umisto/sso-svc/internal/domain/models"
-	"github.com/umisto/sso-svc/internal/domain/modules/auth"
-	"github.com/umisto/sso-svc/internal/repository/pgdb"
+	"github.com/netbill/auth-svc/internal/domain/models"
+	"github.com/netbill/auth-svc/internal/domain/modules/auth"
+	"github.com/netbill/auth-svc/internal/repository/pgdb"
 )
 
 func (r Repository) CreateAccount(ctx context.Context, params auth.CreateAccountParams) (models.Account, error) {

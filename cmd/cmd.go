@@ -5,16 +5,16 @@ import (
 	"database/sql"
 	"sync"
 
-	"github.com/umisto/kafkakit/box"
-	"github.com/umisto/logium"
-	"github.com/umisto/sso-svc/internal"
-	"github.com/umisto/sso-svc/internal/domain/modules/auth"
-	"github.com/umisto/sso-svc/internal/messanger/producer"
-	"github.com/umisto/sso-svc/internal/repository"
-	"github.com/umisto/sso-svc/internal/rest"
-	"github.com/umisto/sso-svc/internal/rest/controller"
-	"github.com/umisto/sso-svc/internal/rest/middlewares"
-	"github.com/umisto/sso-svc/internal/token"
+	"github.com/netbill/auth-svc/internal"
+	"github.com/netbill/auth-svc/internal/domain/modules/auth"
+	"github.com/netbill/auth-svc/internal/messanger/producer"
+	"github.com/netbill/auth-svc/internal/repository"
+	"github.com/netbill/auth-svc/internal/rest"
+	"github.com/netbill/auth-svc/internal/rest/controller"
+	"github.com/netbill/auth-svc/internal/rest/middlewares"
+	"github.com/netbill/auth-svc/internal/token"
+	"github.com/netbill/kafkakit/box"
+	"github.com/netbill/logium"
 )
 
 func StartServices(ctx context.Context, cfg internal.Config, log logium.Logger, wg *sync.WaitGroup) {

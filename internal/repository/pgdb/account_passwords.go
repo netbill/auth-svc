@@ -9,7 +9,7 @@ import (
 
 	sq "github.com/Masterminds/squirrel"
 	"github.com/google/uuid"
-	"github.com/umisto/pgx"
+	"github.com/netbill/pgx"
 )
 
 const accountPasswordsTable = "account_passwords"

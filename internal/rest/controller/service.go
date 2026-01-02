@@ -4,10 +4,10 @@ import (
 	"context"
 
 	"github.com/google/uuid"
-	"github.com/umisto/logium"
-	"github.com/umisto/pagi"
-	"github.com/umisto/sso-svc/internal/domain/models"
-	"github.com/umisto/sso-svc/internal/domain/modules/auth"
+	"github.com/netbill/auth-svc/internal/domain/models"
+	"github.com/netbill/auth-svc/internal/domain/modules/auth"
+	"github.com/netbill/logium"
+	"github.com/netbill/pagi"
 	"golang.org/x/oauth2"
 )
 

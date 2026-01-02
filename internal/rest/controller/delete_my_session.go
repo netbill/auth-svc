@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/umisto/ape"
-	"github.com/umisto/ape/problems"
-	"github.com/umisto/sso-svc/internal/domain/errx"
-	"github.com/umisto/sso-svc/internal/domain/modules/auth"
-	"github.com/umisto/sso-svc/internal/rest/meta"
+	"github.com/netbill/ape"
+	"github.com/netbill/ape/problems"
+	"github.com/netbill/auth-svc/internal/domain/errx"
+	"github.com/netbill/auth-svc/internal/domain/modules/auth"
+	"github.com/netbill/auth-svc/internal/rest/meta"
 
 	"github.com/go-chi/chi/v5"
 	validation "github.com/go-ozzo/ozzo-validation/v4"

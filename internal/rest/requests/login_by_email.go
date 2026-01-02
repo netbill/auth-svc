@@ -5,7 +5,7 @@ import (
 	"net/http"
 
 	validation "github.com/go-ozzo/ozzo-validation/v4"
-	"github.com/umisto/sso-svc/resources"
+	"github.com/netbill/auth-svc/resources"
 )
 
 func LoginByEmail(r *http.Request) (req resources.LoginByEmail, err error) {

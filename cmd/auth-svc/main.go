@@ -3,7 +3,7 @@ package main
 import (
 	"os"
 
-	"github.com/umisto/sso-svc/cmd/cli"
+	"github.com/netbill/auth-svc/cmd/cli"
 )
 
 func main() {

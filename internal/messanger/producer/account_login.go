@@ -5,11 +5,11 @@ import (
 	"encoding/json"
 
 	"github.com/google/uuid"
+	"github.com/netbill/auth-svc/internal/domain/models"
+	"github.com/netbill/auth-svc/internal/messanger/contracts"
+	"github.com/netbill/kafkakit/box"
+	"github.com/netbill/kafkakit/header"
 	"github.com/segmentio/kafka-go"
-	"github.com/umisto/kafkakit/box"
-	"github.com/umisto/kafkakit/header"
-	"github.com/umisto/sso-svc/internal/domain/models"
-	"github.com/umisto/sso-svc/internal/messanger/contracts"
 )
 
 func (s Service) WriteAccountLogin(

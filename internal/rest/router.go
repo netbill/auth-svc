@@ -7,10 +7,10 @@ import (
 	"time"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/umisto/logium"
-	"github.com/umisto/restkit/roles"
-	"github.com/umisto/sso-svc/internal"
-	"github.com/umisto/sso-svc/internal/rest/meta"
+	"github.com/netbill/auth-svc/internal"
+	"github.com/netbill/auth-svc/internal/rest/meta"
+	"github.com/netbill/logium"
+	"github.com/netbill/restkit/roles"
 )
 
 type Handlers interface {
@@ -52,7 +52,7 @@ func Run(ctx context.Context, cfg internal.Config, log logium.Logger, m Middlewa
 
 	r := chi.NewRouter()
 
-	r.Route("/sso-svc", func(r chi.Router) {
+	r.Route("/auth-svc", func(r chi.Router) {
 		r.Route("/v1", func(r chi.Router) {
 			r.Post("/registration", h.Registration)
 

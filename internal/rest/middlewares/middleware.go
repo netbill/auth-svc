@@ -3,8 +3,8 @@ package middlewares
 import (
 	"net/http"
 
-	"github.com/umisto/logium"
-	"github.com/umisto/restkit/mdlv"
+	"github.com/netbill/logium"
+	"github.com/netbill/restkit/mdlv"
 )
 
 type Service struct {

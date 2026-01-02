@@ -8,11 +8,11 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/umisto/sso-svc/cmd/migrations"
-	"github.com/umisto/sso-svc/internal"
-	"github.com/umisto/sso-svc/internal/domain/models"
-	"github.com/umisto/sso-svc/internal/repository"
-	"github.com/umisto/sso-svc/internal/token"
+	"github.com/netbill/auth-svc/cmd/migrations"
+	"github.com/netbill/auth-svc/internal"
+	"github.com/netbill/auth-svc/internal/domain/models"
+	"github.com/netbill/auth-svc/internal/repository"
+	"github.com/netbill/auth-svc/internal/token"
 )
 
 // TEST DATABASE CONNECTION

@@ -1,8 +1,8 @@
 package responses
 
 import (
-	"github.com/umisto/sso-svc/internal/domain/models"
-	"github.com/umisto/sso-svc/resources"
+	"github.com/netbill/auth-svc/internal/domain/models"
+	"github.com/netbill/auth-svc/resources"
 )
 
 func Account(m models.Account) resources.Account {

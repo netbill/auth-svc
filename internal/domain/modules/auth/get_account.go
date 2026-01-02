@@ -5,8 +5,8 @@ import (
 	"fmt"
 
 	"github.com/google/uuid"
-	"github.com/umisto/sso-svc/internal/domain/errx"
-	"github.com/umisto/sso-svc/internal/domain/models"
+	"github.com/netbill/auth-svc/internal/domain/errx"
+	"github.com/netbill/auth-svc/internal/domain/models"
 )
 
 func (s Service) GetAccountByID(ctx context.Context, ID uuid.UUID) (models.Account, error) {

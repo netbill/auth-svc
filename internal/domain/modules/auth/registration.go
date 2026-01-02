@@ -5,9 +5,9 @@ import (
 	"fmt"
 
 	"github.com/google/uuid"
-	"github.com/umisto/restkit/roles"
-	"github.com/umisto/sso-svc/internal/domain/errx"
-	"github.com/umisto/sso-svc/internal/domain/models"
+	"github.com/netbill/auth-svc/internal/domain/errx"
+	"github.com/netbill/auth-svc/internal/domain/models"
+	"github.com/netbill/restkit/roles"
 	"golang.org/x/crypto/bcrypt"
 )
 

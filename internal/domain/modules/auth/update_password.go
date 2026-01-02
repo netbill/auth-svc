@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/umisto/sso-svc/internal/domain/errx"
+	"github.com/netbill/auth-svc/internal/domain/errx"
 	"golang.org/x/crypto/bcrypt"
 )
 

@@ -25,19 +25,19 @@ generate-models:
 	find $(RESOURCES_DIR) -type f -name "*_test.go" -delete
 
 build:
-	KV_VIPER_FILE=$(CONFIG_FILE) go build -o ./cmd/sso-svc/main ./cmd/sso-svc/main.go
+	KV_VIPER_FILE=$(CONFIG_FILE) go build -o ./cmd/auth-svc/main ./cmd/auth-svc/main.go
 
 migrate-up:
-	KV_VIPER_FILE=$(CONFIG_FILE) go build -o ./cmd/sso-svc/main ./cmd/sso-svc/main.go
-	KV_VIPER_FILE=$(CONFIG_FILE) ./cmd/sso-svc/main migrate up
+	KV_VIPER_FILE=$(CONFIG_FILE) go build -o ./cmd/auth-svc/main ./cmd/auth-svc/main.go
+	KV_VIPER_FILE=$(CONFIG_FILE) ./cmd/auth-svc/main migrate up
 
 migrate-down:
-	KV_VIPER_FILE=$(CONFIG_FILE) go build -o ./cmd/sso-svc/main ./cmd/sso-svc/main.go
-	KV_VIPER_FILE=$(CONFIG_FILE) ./cmd/sso-svc/main migrate down
+	KV_VIPER_FILE=$(CONFIG_FILE) go build -o ./cmd/auth-svc/main ./cmd/auth-svc/main.go
+	KV_VIPER_FILE=$(CONFIG_FILE) ./cmd/auth-svc/main migrate down
 
 run-server:
-	KV_VIPER_FILE=$(CONFIG_FILE) go build -o ./cmd/sso-svc/main ./cmd/sso-svc/main.go
-	KV_VIPER_FILE=$(CONFIG_FILE) ./cmd/sso-svc/main run service
+	KV_VIPER_FILE=$(CONFIG_FILE) go build -o ./cmd/auth-svc/main ./cmd/auth-svc/main.go
+	KV_VIPER_FILE=$(CONFIG_FILE) ./cmd/auth-svc/main run service
 
 docker-uo:
 	docker compose up -d

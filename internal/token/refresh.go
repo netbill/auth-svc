@@ -4,8 +4,8 @@ import (
 	"fmt"
 
 	"github.com/google/uuid"
-	"github.com/umisto/restkit/token"
-	"github.com/umisto/sso-svc/internal/domain/models"
+	"github.com/netbill/auth-svc/internal/domain/models"
+	"github.com/netbill/restkit/token"
 )
 
 func (s Service) GenerateRefresh(account models.Account, sessionID uuid.UUID) (string, error) {

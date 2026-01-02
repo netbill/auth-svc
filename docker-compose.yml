@@ -1,7 +1,7 @@
 services:
-  sso-svc:
+  auth-svc:
     build: .
-    container_name: sso-svc
+    container_name: auth-svc
     environment:
       - KV_VIPER_FILE=./config_docker.yaml
     ports:
@@ -9,9 +9,9 @@ services:
     networks:
       - chains-net
 
-  sso-svc-postgres:
+  auth-svc-postgres:
     image: postgres:15
-    container_name:  sso-svc-postgres
+    container_name:  auth-svc-postgres
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres

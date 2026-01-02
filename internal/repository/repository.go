@@ -4,8 +4,8 @@ import (
 	"context"
 	"database/sql"
 
-	"github.com/umisto/pgx"
-	"github.com/umisto/sso-svc/internal/repository/pgdb"
+	"github.com/netbill/auth-svc/internal/repository/pgdb"
+	"github.com/netbill/pgx"
 )
 
 type Repository struct {

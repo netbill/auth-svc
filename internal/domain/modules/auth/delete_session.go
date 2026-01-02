@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	"github.com/google/uuid"
-	"github.com/umisto/sso-svc/internal/domain/errx"
+	"github.com/netbill/auth-svc/internal/domain/errx"
 )
 
 func (s Service) Logout(ctx context.Context, initiator InitiatorData) error {

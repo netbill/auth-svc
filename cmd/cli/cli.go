@@ -8,10 +8,10 @@ import (
 	"syscall"
 
 	"github.com/alecthomas/kingpin"
-	"github.com/umisto/logium"
-	"github.com/umisto/sso-svc/cmd"
-	"github.com/umisto/sso-svc/cmd/migrations"
-	"github.com/umisto/sso-svc/internal"
+	"github.com/netbill/auth-svc/cmd"
+	"github.com/netbill/auth-svc/cmd/migrations"
+	"github.com/netbill/auth-svc/internal"
+	"github.com/netbill/logium"
 )
 
 func Run(args []string) bool {
@@ -24,7 +24,7 @@ func Run(args []string) bool {
 	log.Info("Starting server...")
 
 	var (
-		service        = kingpin.New("sso-svc", "")
+		service        = kingpin.New("auth-svc", "")
 		runCmd         = service.Command("run", "run command")
 		serviceCmd     = runCmd.Command("service", "run service")
 		migrateCmd     = service.Command("migrate", "migrate command")

@@ -1,6 +1,6 @@
 package contracts
 
-import "github.com/umisto/sso-svc/internal/domain/models"
+import "github.com/netbill/auth-svc/internal/domain/models"
 
 const AccountsTopicV1 = "accounts.v1"
 

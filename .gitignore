@@ -4,7 +4,7 @@ node_modules
 docs/node_modules
 
 main
-cmd/sso-svc/main
+cmd/auth-svc/main
 
 Makefile
 config_local.yaml

@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/umisto/restkit/roles"
+	"github.com/netbill/restkit/roles"
 )
 
 func TestAdminBlockUser(t *testing.T) {

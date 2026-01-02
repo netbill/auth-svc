@@ -8,9 +8,9 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/umisto/pagi"
-	"github.com/umisto/sso-svc/internal/domain/models"
-	"github.com/umisto/sso-svc/internal/repository/pgdb"
+	"github.com/netbill/auth-svc/internal/domain/models"
+	"github.com/netbill/auth-svc/internal/repository/pgdb"
+	"github.com/netbill/pagi"
 )
 
 func (r Repository) CreateSession(ctx context.Context, sessionID, accountID uuid.UUID, hashToken string) (models.Session, error) {

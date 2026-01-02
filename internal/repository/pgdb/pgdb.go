@@ -1,7 +1,7 @@
 package pgdb
 
 import (
-	"github.com/umisto/sso-svc/internal/domain/models"
+	"github.com/netbill/auth-svc/internal/domain/models"
 )
 
 func (a *Account) ToModel() models.Account {

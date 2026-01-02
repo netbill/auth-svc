@@ -3,10 +3,10 @@ package controller
 import (
 	"net/http"
 
-	"github.com/umisto/ape"
-	"github.com/umisto/ape/problems"
-	"github.com/umisto/sso-svc/internal/domain/modules/auth"
-	"github.com/umisto/sso-svc/internal/rest/meta"
+	"github.com/netbill/ape"
+	"github.com/netbill/ape/problems"
+	"github.com/netbill/auth-svc/internal/domain/modules/auth"
+	"github.com/netbill/auth-svc/internal/rest/meta"
 )
 
 func (s *Service) Logout(w http.ResponseWriter, r *http.Request) {

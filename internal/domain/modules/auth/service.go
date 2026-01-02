@@ -7,10 +7,10 @@ import (
 	"unicode"
 
 	"github.com/google/uuid"
-	"github.com/umisto/pagi"
-	"github.com/umisto/restkit/token"
-	"github.com/umisto/sso-svc/internal/domain/errx"
-	"github.com/umisto/sso-svc/internal/domain/models"
+	"github.com/netbill/auth-svc/internal/domain/errx"
+	"github.com/netbill/auth-svc/internal/domain/models"
+	"github.com/netbill/pagi"
+	"github.com/netbill/restkit/token"
 )
 
 type Service struct {

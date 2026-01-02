@@ -4,11 +4,11 @@ import (
 	"errors"
 	"net/http"
 
-	"github.com/umisto/ape"
-	"github.com/umisto/ape/problems"
-	"github.com/umisto/sso-svc/internal/domain/errx"
-	"github.com/umisto/sso-svc/internal/rest/requests"
-	"github.com/umisto/sso-svc/internal/rest/responses"
+	"github.com/netbill/ape"
+	"github.com/netbill/ape/problems"
+	"github.com/netbill/auth-svc/internal/domain/errx"
+	"github.com/netbill/auth-svc/internal/rest/requests"
+	"github.com/netbill/auth-svc/internal/rest/responses"
 )
 
 func (s *Service) LoginByUsername(w http.ResponseWriter, r *http.Request) {

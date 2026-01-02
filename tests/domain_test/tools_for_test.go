@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/google/uuid"
-	"github.com/umisto/sso-svc/internal/domain/models"
+	"github.com/netbill/auth-svc/internal/domain/models"
 )
 
 func CreateUser(s Setup, t *testing.T, email, password, role string) models.User {

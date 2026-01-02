@@ -1,9 +1,9 @@
 package responses
 
 import (
-	"github.com/umisto/pagi"
-	"github.com/umisto/sso-svc/internal/domain/models"
-	"github.com/umisto/sso-svc/resources"
+	"github.com/netbill/auth-svc/internal/domain/models"
+	"github.com/netbill/auth-svc/resources"
+	"github.com/netbill/pagi"
 )
 
 func AccountSession(m models.Session) resources.AccountSession {
