@@ -11,14 +11,11 @@ import (
 	"github.com/netbill/auth-svc/internal/core/models"
 	"github.com/netbill/auth-svc/internal/core/modules/auth"
 	"github.com/netbill/auth-svc/internal/repository/pgdb"
-	"github.com/sirupsen/logrus"
 )
 
 func (r Repository) CreateAccount(ctx context.Context, params auth.CreateAccountParams) (models.Account, error) {
 	now := time.Now().UTC()
 	accountID := uuid.New()
-
-	logrus.Infof("Creating account with ID: %s", accountID)
 
 	account, err := r.accountsQ(ctx).Insert(ctx, pgdb.InsertAccountParams{
 		ID:       accountID,
@@ -29,8 +26,6 @@ func (r Repository) CreateAccount(ctx context.Context, params auth.CreateAccount
 	if err != nil {
 		return models.Account{}, err
 	}
-
-	logrus.Infof("Account created with ID: %s", accountID)
 
 	emailRow := pgdb.AccountEmail{
 		AccountID: accountID,
@@ -45,8 +40,6 @@ func (r Repository) CreateAccount(ctx context.Context, params auth.CreateAccount
 		return models.Account{}, err
 	}
 
-	logrus.Infof("Email record created for account ID: %s", accountID)
-
 	passwordRow := pgdb.AccountPassword{
 		AccountID: accountID,
 		Hash:      params.PasswordHash,
@@ -58,8 +51,6 @@ func (r Repository) CreateAccount(ctx context.Context, params auth.CreateAccount
 	if err != nil {
 		return models.Account{}, err
 	}
-
-	logrus.Infof("Password record created for account ID: %s", accountID)
 
 	return account.ToModel(), err
 }

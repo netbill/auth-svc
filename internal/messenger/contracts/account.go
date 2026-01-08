@@ -17,13 +17,13 @@ type AccountLoginPayload struct {
 	Account models.Account `json:"account"`
 }
 
-const AccountPasswordChangeEvent = "account.password.change"
+const AccountPasswordChangedEvent = "account.password.changed"
 
 type AccountPasswordChangePayload struct {
 	Account models.Account `json:"account"`
 }
 
-const AccountUsernameChangeEvent = "account.username.change"
+const AccountUsernameChangedEvent = "account.username.changed"
 
 type AccountUsernameChangePayload struct {
 	Account models.Account `json:"account"`

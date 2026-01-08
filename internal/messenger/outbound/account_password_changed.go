@@ -30,7 +30,7 @@ func (p Producer) WriteAccountPasswordChanged(
 			Value: payload,
 			Headers: []kafka.Header{
 				{Key: header.EventID, Value: []byte(uuid.New().String())}, // Outbox will fill this
-				{Key: header.EventType, Value: []byte(contracts.AccountPasswordChangeEvent)},
+				{Key: header.EventType, Value: []byte(contracts.AccountPasswordChangedEvent)},
 				{Key: header.EventVersion, Value: []byte("1")},
 				{Key: header.Producer, Value: []byte(contracts.AuthSvcGroup)},
 				{Key: header.ContentType, Value: []byte("application/json")},
@@ -38,7 +38,7 @@ func (p Producer) WriteAccountPasswordChanged(
 		},
 	)
 
-	p.log.Debugf("created outbox event %s for account %s, id %s", contracts.AccountPasswordChangeEvent, account.ID.String(), account.ID.String())
+	p.log.Debugf("created outbox event %s for account %s, id %s", contracts.AccountPasswordChangedEvent, account.ID.String(), account.ID.String())
 
 	return err
 }
