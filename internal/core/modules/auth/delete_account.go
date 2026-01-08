@@ -21,7 +21,7 @@ func (s Service) DeleteOwnAccount(ctx context.Context, initiator InitiatorData) 
 			)
 		}
 
-		err = s.messanger.WriteAccountDeleted(ctx, account)
+		err = s.messenger.WriteAccountDeleted(ctx, account)
 		if err != nil {
 			return errx.ErrorInternal.Raise(
 				fmt.Errorf("failed to write account deleted event for account id: %s, cause: %w", initiator.AccountID, err),

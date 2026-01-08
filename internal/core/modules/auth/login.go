@@ -103,10 +103,10 @@ func (s Service) createSession(
 			)
 		}
 
-		err = s.messanger.WriteAccountLogin(ctx, account)
+		err = s.messenger.WriteAccountLogin(ctx, account)
 		if err != nil {
 			return errx.ErrorInternal.Raise(
-				fmt.Errorf("failed to publish account login messanger for account %s: %w", account.ID, err),
+				fmt.Errorf("failed to publish account login messenger for account %s: %w", account.ID, err),
 			)
 		}
 

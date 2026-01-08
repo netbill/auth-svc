@@ -51,14 +51,10 @@ github.com/mattn/go-sqlite3 v1.14.19 h1:fhGleo2h1p8tVChob4I9HpmVFIAkKGpiukdrgQbW
 github.com/mattn/go-sqlite3 v1.14.19/go.mod h1:2eHXhiwb8IkHr+BDWZGa96P6+rkvnG63S2DGjv9HUNg=
 github.com/netbill/ape v0.1.0 h1:CIAkTYIPedm7hqFPt9N64mOrTEJaDvAJnOvElLwWB5w=
 github.com/netbill/ape v0.1.0/go.mod h1:0VOAEb/M94S4L/tby8PhN3QcG/4nJeXQN5loloLmXWk=
-github.com/netbill/kafkakit v0.1.0 h1:K59X3b9tIk4yEm3bjebaKF0fI8TfaL7vps7PLhUej10=
-github.com/netbill/kafkakit v0.1.0/go.mod h1:4ESVTxjOmLJQ4RdrB7Bnf177Go3W/7IuUm/Jz5QS/w0=
-github.com/netbill/kafkakit v0.1.4 h1:H7GmgKhK5112XGa45CAGEMl6NrAp9E0l7E4/lgHqSxE=
-github.com/netbill/kafkakit v0.1.4/go.mod h1:4ESVTxjOmLJQ4RdrB7Bnf177Go3W/7IuUm/Jz5QS/w0=
+github.com/netbill/evebox v0.2.8 h1:swl6NEF5a+TmOwbiSSPMQyYddJup3EVV9Bu+jI8vbMc=
+github.com/netbill/evebox v0.2.8/go.mod h1:ZVCQvH6T3Dn+tD4zARzOgYMaKvgYGJ02hWuGVbVkXFo=
 github.com/netbill/logium v0.1.0 h1:Cq1iT1RtRFQdd4XggWQHBpa/fc+c0BYCqSeuqRB0IZM=
 github.com/netbill/logium v0.1.0/go.mod h1:4c8Cbzv2iGdDY+bx34xo8Xy4L78jUVOJrTATZqwGUEs=
-github.com/netbill/pagi v0.1.0 h1:/t0mujZNFZisa631b9SJ7Eo1eiewp+wF1VbGKidPyp4=
-github.com/netbill/pagi v0.1.0/go.mod h1:Z5fKTgEsPVgcx+gfmYO3lnQRAyuQYiUBYNmBYljqIao=
 github.com/netbill/pagi v0.1.2 h1:AAyOJ59wS+qFE5tnROSaAcrBUY6MJk+GrvcLASsbM7M=
 github.com/netbill/pagi v0.1.2/go.mod h1:Z5fKTgEsPVgcx+gfmYO3lnQRAyuQYiUBYNmBYljqIao=
 github.com/netbill/pgx v0.1.0 h1:4keP+ykB5Xe5+G+8lK7yVvs3UDWG4keehpPVRz5v8PE=

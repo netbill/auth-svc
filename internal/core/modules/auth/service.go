@@ -14,20 +14,20 @@ import (
 )
 
 type Service struct {
-	repo      database
+	repo      repo
 	jwt       JWTManager
-	messanger messanger
+	messenger messenger
 }
 
 func NewService(
-	db database,
+	db repo,
 	jwt JWTManager,
-	event messanger,
+	event messenger,
 ) *Service {
 	return &Service{
 		repo:      db,
 		jwt:       jwt,
-		messanger: event,
+		messenger: event,
 	}
 }
 
@@ -47,7 +47,7 @@ type JWTManager interface {
 	) (string, error)
 }
 
-type messanger interface {
+type messenger interface {
 	WriteAccountCreated(ctx context.Context, account models.Account, email string) error
 	WriteAccountPasswordChanged(ctx context.Context, account models.Account) error
 	WriteAccountUsernameChanged(ctx context.Context, account models.Account) error
@@ -62,7 +62,7 @@ type CreateAccountParams struct {
 	PasswordHash string
 }
 
-type database interface {
+type repo interface {
 	CreateAccount(
 		ctx context.Context,
 		params CreateAccountParams,

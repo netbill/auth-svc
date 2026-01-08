@@ -80,10 +80,10 @@ func (s Service) Registration(
 			)
 		}
 
-		err = s.messanger.WriteAccountCreated(ctx, account, params.Email)
+		err = s.messenger.WriteAccountCreated(ctx, account, params.Email)
 		if err != nil {
 			return errx.ErrorInternal.Raise(
-				fmt.Errorf("failed to publish account created messanger for account '%s', cause: %w", account.ID, err),
+				fmt.Errorf("failed to publish account created messenger for account '%s', cause: %w", account.ID, err),
 			)
 		}
 
@@ -128,10 +128,10 @@ func (s Service) RegistrationByAdmin(
 		return models.Account{}, err
 	}
 
-	err = s.messanger.WriteAccountCreated(ctx, account, params.Email)
+	err = s.messenger.WriteAccountCreated(ctx, account, params.Email)
 	if err != nil {
 		return models.Account{}, errx.ErrorInternal.Raise(
-			fmt.Errorf("failed to publish admin created messanger for account '%s', cause: %w", account.ID, err),
+			fmt.Errorf("failed to publish admin created messenger for account '%s', cause: %w", account.ID, err),
 		)
 	}
 

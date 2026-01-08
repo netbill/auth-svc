@@ -46,7 +46,7 @@ func (s Service) UpdateUsername(
 			)
 		}
 
-		err = s.messanger.WriteAccountUsernameChanged(ctx, account)
+		err = s.messenger.WriteAccountUsernameChanged(ctx, account)
 		if err != nil {
 			return errx.ErrorInternal.Raise(
 				fmt.Errorf("failed to write account username changed event for account id: %s, cause: %w", initiator.AccountID, err),

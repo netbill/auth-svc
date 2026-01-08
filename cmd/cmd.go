@@ -7,12 +7,13 @@ import (
 
 	"github.com/netbill/auth-svc/internal"
 	"github.com/netbill/auth-svc/internal/core/modules/auth"
-	"github.com/netbill/auth-svc/internal/messanger/producer"
+	"github.com/netbill/auth-svc/internal/messenger"
+	"github.com/netbill/auth-svc/internal/messenger/outbound"
 	"github.com/netbill/auth-svc/internal/repository"
 	"github.com/netbill/auth-svc/internal/rest"
 	"github.com/netbill/auth-svc/internal/rest/controller"
 	"github.com/netbill/auth-svc/internal/token"
-	"github.com/netbill/kafkakit/box"
+	"github.com/netbill/evebox/box/outbox"
 	"github.com/netbill/logium"
 	"github.com/netbill/restkit/mdlv"
 )
@@ -31,9 +32,9 @@ func StartServices(ctx context.Context, cfg internal.Config, log logium.Logger, 
 		log.Fatal("failed to connect to database", "error", err)
 	}
 
-	repository := repository.New(pg)
+	repo := repository.New(pg)
 
-	kafkaBox := box.New(pg)
+	outBox := outbox.New(pg)
 
 	jwtTokenManager := token.NewManager(token.Config{
 		AccessSK:   cfg.JWT.User.AccessToken.SecretKey,
@@ -43,17 +44,19 @@ func StartServices(ctx context.Context, cfg internal.Config, log logium.Logger, 
 		Iss:        cfg.Service.Name,
 	})
 
-	kafkaProducer := producer.New(log, cfg.Kafka.Brokers, kafkaBox)
+	kafkaOutbound := outbound.New(log, outBox)
 
-	core := auth.NewService(repository, jwtTokenManager, kafkaProducer)
+	core := auth.NewService(repo, jwtTokenManager, kafkaOutbound)
 
-	router := rest.New(
-		log,
-		mdlv.New(cfg.JWT.User.AccessToken.SecretKey, rest.AccountDataCtxKey),
-		controller.New(log, cfg.GoogleOAuth(), core),
-	)
+	ctrl := controller.New(log, cfg.GoogleOAuth(), core)
 
+	mdll := mdlv.New(cfg.JWT.User.AccessToken.SecretKey, rest.AccountDataCtxKey)
+	router := rest.New(log, mdll, ctrl)
+
+	kafkaProducer := messenger.NewProducer(log, outBox, cfg.Kafka.Brokers...)
+	
 	run(func() { router.Run(ctx, cfg) })
 
 	run(func() { kafkaProducer.Run(ctx) })
+
 }

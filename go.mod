@@ -10,7 +10,7 @@ require (
 	github.com/google/uuid v1.6.0
 	github.com/lib/pq v1.10.9
 	github.com/netbill/ape v0.1.0
-	github.com/netbill/kafkakit v0.1.4
+	github.com/netbill/evebox v0.2.8
 	github.com/netbill/logium v0.1.0
 	github.com/netbill/pagi v0.1.2
 	github.com/netbill/pgx v0.1.0
@@ -49,3 +49,5 @@ require (
 	golang.org/x/sys v0.39.0 // indirect
 	golang.org/x/text v0.32.0 // indirect
 )
+
+//replace github.com/netbill/evebox => /home/trpdjke/go/src/github.com/netbill/evebox
