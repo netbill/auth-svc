@@ -1,0 +1,22 @@
+post:
+  tags:
+    - login
+  summary: Start Google OAuth login
+  description: >
+    Redirects the user-agent to Google OAuth consent screen.
+    This endpoint returns a redirect and does not return a JSON:API document.
+  responses:
+    '307':
+      description: Temporary Redirect to Google OAuth consent screen
+      headers:
+        Location:
+          description: Google OAuth authorization URL
+          schema:
+            type: string
+            format: uri
+    '500':
+      description: Internal Server Error
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/responses/Errors.yaml'

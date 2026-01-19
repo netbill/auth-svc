@@ -1,7 +1,7 @@
 package errx
 
 import (
-	"github.com/netbill/ape"
+	"github.com/netbill/restkit/ape"
 )
 
 var ErrorAccountNotFound = ape.DeclareError("ACCOUNT_NOT_FOUND")

@@ -1,0 +1,51 @@
+get:
+  tags:
+    - accounts
+  summary: Get my email data
+  description: >
+    Returns the email data of the authenticated account.
+
+    **401 Unauthorized** is returned when the account cannot be resolved from the provided credentials
+    or the initiator account is not found.
+  security:
+    - BearerAuth: [ ]
+  responses:
+    '200':
+      description: Email data successfully retrieved
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/responses/AccountEmail.yaml'
+
+    '401':
+      description: >
+        Unauthorized. Invalid credentials or initiator account not found.
+        Check the `detail` field in the response for more information.
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/responses/Errors.yaml'
+          examples:
+            failedToGetUserFromContext:
+              summary: failed to get user from context
+              value:
+                errors:
+                  - status: 401
+                    title: Unauthorized
+                    code: UNAUTHORIZED
+                    detail: failed to get user from context
+            initiatorNotFound:
+              summary: initiator account not found by credentials
+              value:
+                errors:
+                  - status: 401
+                    title: Unauthorized
+                    code: UNAUTHORIZED
+                    detail: initiator account not found by credentials
+
+    '500':
+      description: Internal Server Error
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/responses/Errors.yaml'

@@ -1,0 +1,126 @@
+get:
+  tags:
+    - accounts
+  summary: Get my account
+  description: >
+    Returns the authenticated account.
+
+    **401 Unauthorized** is returned when the account cannot be resolved from the provided credentials
+    or the initiator account is not found.
+  security:
+    - BearerAuth: [ ]
+  responses:
+    '200':
+      description: Account successfully retrieved
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/responses/Account.yaml'
+
+    '401':
+      description: >
+        Unauthorized. Invalid credentials or account cannot be resolved from context.
+        Check the `detail` field in the response for more information.
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/responses/Errors.yaml'
+          examples:
+            failedToGetAccountFromContext:
+              summary: failed to get account from context
+              value:
+                errors:
+                  - status: 401
+                    title: Unauthorized
+                    code: UNAUTHORIZED
+                    detail: failed to get account from context
+            initiatorNotFound:
+              summary: initiator account not found by credentials
+              value:
+                errors:
+                  - status: 401
+                    title: Unauthorized
+                    code: UNAUTHORIZED
+                    detail: initiator account not found by credentials
+
+    '500':
+      description: Internal Server Error
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/responses/Errors.yaml'
+
+delete:
+  tags:
+    - accounts
+  summary: Delete my account
+  description: >
+    Deletes the authenticated account.
+
+    **401 Unauthorized** is returned when the account cannot be resolved from the provided credentials
+    or the session is invalid.
+    **403 Forbidden** is returned when the initiator account is blocked.
+  security:
+    - BearerAuth: [ ]
+  responses:
+    '204':
+      description: Account successfully deleted
+
+    '401':
+      description: >
+        Unauthorized. Invalid credentials, initiator account not found, or session is invalid.
+        Check the `detail` field in the response for more information.
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/responses/Errors.yaml'
+          examples:
+            failedToGetUserFromContext:
+              summary: failed to get user from context
+              value:
+                errors:
+                  - status: 401
+                    title: Unauthorized
+                    code: UNAUTHORIZED
+                    detail: failed to get user from context
+            initiatorNotFound:
+              summary: initiator account not found by credentials
+              value:
+                errors:
+                  - status: 401
+                    title: Unauthorized
+                    code: UNAUTHORIZED
+                    detail: initiator account not found by credentials
+            sessionInvalid:
+              summary: initiator session is invalid
+              value:
+                errors:
+                  - status: 401
+                    title: Unauthorized
+                    code: UNAUTHORIZED
+                    detail: initiator session is invalid
+
+    '403':
+      description: >
+        Forbidden. Initiator account is blocked.
+        Check the `detail` field in the response for more information.
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/responses/Errors.yaml'
+          examples:
+            initiatorBlocked:
+              summary: initiator is blocked
+              value:
+                errors:
+                  - status: 403
+                    title: Forbidden
+                    code: FORBIDDEN
+                    detail: initiator is blocked
+
+    '500':
+      description: Internal Server Error
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/responses/Errors.yaml'

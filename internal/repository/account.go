@@ -9,11 +9,11 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/netbill/auth-svc/internal/core/models"
-	"github.com/netbill/auth-svc/internal/core/modules/auth"
+	"github.com/netbill/auth-svc/internal/core/modules/account"
 	"github.com/netbill/auth-svc/internal/repository/pgdb"
 )
 
-func (r Repository) CreateAccount(ctx context.Context, params auth.CreateAccountParams) (models.Account, error) {
+func (r Repository) CreateAccount(ctx context.Context, params account.CreateAccountParams) (models.Account, error) {
 	now := time.Now().UTC()
 	accountID := uuid.New()
 

@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/netbill/restkit/token"
+	"github.com/netbill/restkit/auth"
 )
 
 type ctxKey int
@@ -13,14 +13,14 @@ const (
 	AccountDataCtxKey ctxKey = iota
 )
 
-func AccountData(ctx context.Context) (token.AccountData, error) {
+func AccountData(ctx context.Context) (auth.AccountData, error) {
 	if ctx == nil {
-		return token.AccountData{}, fmt.Errorf("missing context")
+		return auth.AccountData{}, fmt.Errorf("missing context")
 	}
 
-	userData, ok := ctx.Value(AccountDataCtxKey).(token.AccountData)
+	userData, ok := ctx.Value(AccountDataCtxKey).(auth.AccountData)
 	if !ok {
-		return token.AccountData{}, fmt.Errorf("missing context")
+		return auth.AccountData{}, fmt.Errorf("missing context")
 	}
 
 	return userData, nil

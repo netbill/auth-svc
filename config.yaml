@@ -36,8 +36,3 @@ jwt:
 kafka:
   brokers:
     - "localhost:9092"
-
-swagger:
-  enabled: true
-  url: "/swagger"
-  port: "8080"

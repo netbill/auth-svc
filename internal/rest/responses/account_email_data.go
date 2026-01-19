@@ -9,7 +9,7 @@ func AccountEmailData(ae models.AccountEmail) resources.AccountEmail {
 	return resources.AccountEmail{
 		Data: resources.AccountEmailData{
 			Id:   ae.AccountID,
-			Type: resources.AccountEmailType,
+			Type: "account_email",
 			Attributes: resources.AccountEmailDataAttributes{
 				Email:     ae.Email,
 				Verified:  ae.Verified,

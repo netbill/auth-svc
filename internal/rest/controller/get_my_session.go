@@ -5,12 +5,12 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/netbill/ape"
-	"github.com/netbill/ape/problems"
 	"github.com/netbill/auth-svc/internal/core/errx"
-	"github.com/netbill/auth-svc/internal/core/modules/auth"
+	"github.com/netbill/auth-svc/internal/core/modules/account"
 	"github.com/netbill/auth-svc/internal/rest"
 	"github.com/netbill/auth-svc/internal/rest/responses"
+	"github.com/netbill/restkit/ape"
+	"github.com/netbill/restkit/ape/problems"
 
 	"github.com/go-chi/chi/v5"
 	validation "github.com/go-ozzo/ozzo-validation/v4"
@@ -36,7 +36,7 @@ func (s *Service) GetMySession(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	session, err := s.core.GetOwnSession(r.Context(), auth.InitiatorData{
+	session, err := s.core.GetOwnSession(r.Context(), account.InitiatorData{
 		AccountID: initiator.ID,
 		SessionID: initiator.SessionID,
 	}, sessionId)

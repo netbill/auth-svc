@@ -9,7 +9,7 @@ func Account(m models.Account) resources.Account {
 	resp := resources.Account{
 		Data: resources.AccountData{
 			Id:   m.ID,
-			Type: resources.AccountType,
+			Type: "account",
 			Attributes: resources.AccountDataAttributes{
 				Username:  m.Username,
 				Role:      m.Role,

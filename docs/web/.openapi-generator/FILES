@@ -2,7 +2,10 @@
 .travis.yml
 README.md
 api/openapi.yaml
-api_test_.go
+api_accounts.go
+api_login.go
+api_registration.go
+api_sessions.go
 client.go
 configuration.go
 docs/AccessToken.md
@@ -18,8 +21,10 @@ docs/AccountSession.md
 docs/AccountSessionAttributes.md
 docs/AccountSessionData.md
 docs/AccountSessionsCollection.md
+docs/AccountsAPI.md
 docs/Errors.md
 docs/ErrorsErrorsInner.md
+docs/LoginAPI.md
 docs/LoginByEmail.md
 docs/LoginByEmailData.md
 docs/LoginByEmailDataAttributes.md
@@ -31,12 +36,13 @@ docs/RefreshSession.md
 docs/RefreshSessionData.md
 docs/RefreshSessionDataAttributes.md
 docs/Registration.md
+docs/RegistrationAPI.md
 docs/RegistrationAdmin.md
 docs/RegistrationAdminData.md
 docs/RegistrationAdminDataAttributes.md
 docs/RegistrationData.md
 docs/RegistrationDataAttributes.md
-docs/TestAPI.md
+docs/SessionsAPI.md
 docs/TokensPair.md
 docs/TokensPairData.md
 docs/TokensPairDataAttributes.md
@@ -90,5 +96,8 @@ model_update_username.go
 model_update_username_data.go
 model_update_username_data_attributes.go
 response.go
-test/api_test__test.go
+test/api_accounts_test.go
+test/api_login_test.go
+test/api_registration_test.go
+test/api_sessions_test.go
 utils.go

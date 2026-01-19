@@ -62,12 +62,6 @@ type JWTConfig struct {
 	} `mapstructure:"user"`
 }
 
-type SwaggerConfig struct {
-	Enabled bool   `mapstructure:"enabled"`
-	URL     string `mapstructure:"url"`
-	Port    string `mapstructure:"port"`
-}
-
 type Config struct {
 	Service  ServerConfig   `mapstructure:"service"`
 	Log      LogConfig      `mapstructure:"log"`
@@ -76,7 +70,6 @@ type Config struct {
 	OAuth    OAuthConfig    `mapstructure:"oauth"`
 	Kafka    KafkaConfig    `mapstructure:"kafka"`
 	Database DatabaseConfig `mapstructure:"database"`
-	Swagger  SwaggerConfig  `mapstructure:"swagger"`
 }
 
 func LoadConfig() (Config, error) {

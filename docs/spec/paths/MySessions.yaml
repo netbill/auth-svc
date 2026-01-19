@@ -1,0 +1,162 @@
+get:
+  tags:
+    - sessions
+  summary: Get my sessions
+  description: >
+    Returns sessions of the authenticated account.
+
+    Supports pagination via query parameters.
+  security:
+    - BearerAuth: [ ]
+  parameters:
+    - in: query
+      name: page[limit]
+      required: false
+      schema:
+        type: integer
+        minimum: 1
+      description: Max number of items to return
+    - in: query
+      name: page[offset]
+      required: false
+      schema:
+        type: integer
+        minimum: 0
+      description: Number of items to skip
+  responses:
+    '200':
+      description: Sessions successfully retrieved
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/responses/AccountSessionsCollection.yaml'
+
+    '401':
+      description: >
+        Unauthorized. Invalid credentials, initiator account not found, or session is invalid.
+        Check the `detail` field in the response for more information.
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/responses/Errors.yaml'
+          examples:
+            failedToGetUserFromContext:
+              summary: failed to get user from context
+              value:
+                errors:
+                  - status: 401
+                    title: Unauthorized
+                    code: UNAUTHORIZED
+                    detail: failed to get user from context
+            initiatorNotFound:
+              summary: initiator account not found by credentials
+              value:
+                errors:
+                  - status: 401
+                    title: Unauthorized
+                    code: UNAUTHORIZED
+                    detail: initiator account not found by credentials
+            sessionInvalid:
+              summary: initiator session is invalid
+              value:
+                errors:
+                  - status: 401
+                    title: Unauthorized
+                    code: UNAUTHORIZED
+                    detail: initiator session is invalid
+
+    '403':
+      description: >
+        Forbidden. Initiator is blocked.
+        Check the `detail` field in the response for more information.
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/responses/Errors.yaml'
+          examples:
+            initiatorBlocked:
+              summary: initiator is blocked
+              value:
+                errors:
+                  - status: 403
+                    title: Forbidden
+                    code: FORBIDDEN
+                    detail: initiator is blocked
+
+    '500':
+      description: Internal Server Error
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/responses/Errors.yaml'
+
+delete:
+  tags:
+    - sessions
+  summary: Delete my sessions
+  description: >
+    Deletes all sessions of the authenticated account (logout from all devices).
+  security:
+    - BearerAuth: [ ]
+  responses:
+    '204':
+      description: Sessions successfully deleted
+
+    '401':
+      description: >
+        Unauthorized. Invalid credentials, initiator account not found, or session is invalid.
+        Check the `detail` field in the response for more information.
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/responses/Errors.yaml'
+          examples:
+            failedToGetAccountFromContext:
+              summary: failed to get account from context
+              value:
+                errors:
+                  - status: 401
+                    title: Unauthorized
+                    code: UNAUTHORIZED
+                    detail: failed to get account from context
+            initiatorNotFound:
+              summary: initiator account not found by credentials
+              value:
+                errors:
+                  - status: 401
+                    title: Unauthorized
+                    code: UNAUTHORIZED
+                    detail: initiator account not found by credentials
+            sessionInvalid:
+              summary: initiator session is invalid
+              value:
+                errors:
+                  - status: 401
+                    title: Unauthorized
+                    code: UNAUTHORIZED
+                    detail: initiator session is invalid
+
+    '403':
+      description: >
+        Forbidden. Initiator is not active or blocked.
+        Check the `detail` field in the response for more information.
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/responses/Errors.yaml'
+          examples:
+            initiatorNotActive:
+              summary: initiator is not active
+              value:
+                errors:
+                  - status: 403
+                    title: Forbidden
+                    code: FORBIDDEN
+                    detail: initiator is not active
+
+    '500':
+      description: Internal Server Error
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/responses/Errors.yaml'

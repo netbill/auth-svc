@@ -7,14 +7,15 @@ import (
 	"time"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/cors"
 	"github.com/netbill/auth-svc/internal"
 	"github.com/netbill/logium"
-	"github.com/netbill/restkit/roles"
+	"github.com/netbill/restkit/auth/roles"
 )
 
 type Handlers interface {
 	Registration(w http.ResponseWriter, r *http.Request)
-	RegistrationAdmin(w http.ResponseWriter, r *http.Request)
+	RegistrationByAdmin(w http.ResponseWriter, r *http.Request)
 
 	LoginByEmail(w http.ResponseWriter, r *http.Request)
 	LoginByUsername(w http.ResponseWriter, r *http.Request)
@@ -69,9 +70,23 @@ func (s *Service) Run(ctx context.Context, cfg internal.Config) {
 
 	r := chi.NewRouter()
 
+	// CORS for swagger UI documentation need to delete after configuring nginx
+	r.Use(cors.Handler(cors.Options{
+		AllowedOrigins:   []string{"http://localhost:5555"},
+		AllowedMethods:   []string{"GET", "POST", "PATCH", "DELETE", "OPTIONS"},
+		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type"},
+		ExposedHeaders:   []string{"Link"},
+		AllowCredentials: true,
+		MaxAge:           300,
+	}))
+
 	r.Route("/auth-svc", func(r chi.Router) {
 		r.Route("/v1", func(r chi.Router) {
-			r.Post("/registration", s.handlers.Registration)
+
+			r.Route("/registration", func(r chi.Router) {
+				r.Post("/", s.handlers.Registration)
+				r.With(auth, sysadmin).Post("/admin", s.handlers.RegistrationByAdmin)
+			})
 
 			r.Route("/login", func(r chi.Router) {
 				r.Post("/email", s.handlers.LoginByEmail)
@@ -103,13 +118,6 @@ func (s *Service) Run(ctx context.Context, cfg internal.Config) {
 						r.Delete("/", s.handlers.DeleteMySession)
 					})
 				})
-			})
-
-			r.Route("/admin", func(r chi.Router) {
-				r.Use(auth)
-				r.Use(sysadmin)
-
-				r.Post("/", s.handlers.RegistrationAdmin)
 			})
 		})
 	})

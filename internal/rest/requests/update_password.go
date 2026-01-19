@@ -15,7 +15,7 @@ func UpdatePassword(r *http.Request) (req resources.UpdatePassword, err error) {
 	}
 
 	errs := validation.Errors{
-		"data/type":       validation.Validate(req.Data.Type, validation.Required, validation.In(resources.UpdatePasswordType)),
+		"data/type":       validation.Validate(req.Data.Type, validation.Required, validation.In("update_account_password")),
 		"data/attributes": validation.Validate(req.Data.Attributes, validation.Required),
 	}
 

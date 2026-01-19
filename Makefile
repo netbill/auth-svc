@@ -39,11 +39,8 @@ run-server:
 	KV_VIPER_FILE=$(CONFIG_FILE) go build -o ./cmd/auth-svc/main ./cmd/auth-svc/main.go
 	KV_VIPER_FILE=$(CONFIG_FILE) ./cmd/auth-svc/main run service
 
-docker-uo:
-	docker compose up -d
+docker-up:
+	docker compose up -d --build
 
 docker-down:
 	docker compose down
-
-docker-rebuild:
-	docker compose up -d --build --force-recreate

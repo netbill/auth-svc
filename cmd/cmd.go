@@ -6,7 +6,7 @@ import (
 	"sync"
 
 	"github.com/netbill/auth-svc/internal"
-	"github.com/netbill/auth-svc/internal/core/modules/auth"
+	"github.com/netbill/auth-svc/internal/core/modules/account"
 	"github.com/netbill/auth-svc/internal/messenger"
 	"github.com/netbill/auth-svc/internal/messenger/outbound"
 	"github.com/netbill/auth-svc/internal/repository"
@@ -46,11 +46,11 @@ func StartServices(ctx context.Context, cfg internal.Config, log logium.Logger, 
 
 	kafkaOutbound := outbound.New(log, outBox)
 
-	core := auth.NewService(repo, jwtTokenManager, kafkaOutbound)
+	core := account.NewService(repo, jwtTokenManager, kafkaOutbound)
 
 	ctrl := controller.New(log, cfg.GoogleOAuth(), core)
 
-	mdll := mdlv.New(cfg.JWT.User.AccessToken.SecretKey, rest.AccountDataCtxKey)
+	mdll := mdlv.New(cfg.JWT.User.AccessToken.SecretKey, rest.AccountDataCtxKey, log)
 	router := rest.New(log, mdll, ctrl)
 
 	kafkaProducer := messenger.NewProducer(log, outBox, cfg.Kafka.Brokers...)

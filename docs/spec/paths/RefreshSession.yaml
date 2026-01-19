@@ -1,0 +1,90 @@
+post:
+  tags:
+    - sessions
+  summary: Refresh session
+  description: >
+    Issues a new access/refresh tokens pair using a valid refresh token.
+
+    **401 Unauthorized** is returned when the account or session does not exist.
+    **403 Forbidden** is returned when the account is inactive or the refresh token does not match the session.
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: '../components/schemas/requests/RefreshSession.yaml'
+  responses:
+    '200':
+      description: Tokens pair successfully refreshed
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/responses/TokensPair.yaml'
+
+    '400':
+      description: >
+        Bad Request. Request body is invalid.
+        Check the `errors` array for details.
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/responses/Errors.yaml'
+
+    '401':
+      description: >
+        Unauthorized. Account not found or session not found.
+        Check the `detail` field in the response for more information.
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/responses/Errors.yaml'
+          examples:
+            accountNotFound:
+              summary: account not found
+              value:
+                errors:
+                  - status: 401
+                    title: Unauthorized
+                    code: UNAUTHORIZED
+                    detail: account not found
+            sessionNotFound:
+              summary: session not found
+              value:
+                errors:
+                  - status: 401
+                    title: Unauthorized
+                    code: UNAUTHORIZED
+                    detail: session not found
+
+    '403':
+      description: >
+        Forbidden. Account is not active or refresh token mismatch.
+        Check the `detail` field in the response for more information.
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/responses/Errors.yaml'
+          examples:
+            accountNotActive:
+              summary: account is not active
+              value:
+                errors:
+                  - status: 403
+                    title: Forbidden
+                    code: FORBIDDEN
+                    detail: account is not active
+            refreshTokenMismatch:
+              summary: refresh session token mismatch
+              value:
+                errors:
+                  - status: 403
+                    title: Forbidden
+                    code: FORBIDDEN
+                    detail: refresh session token mismatch
+
+    '500':
+      description: Internal Server Error
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/responses/Errors.yaml'

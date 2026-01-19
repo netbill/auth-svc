@@ -1,0 +1,149 @@
+post:
+  tags:
+    - registration
+  summary: Register a new admin account
+  description: >
+    Registers a new account by an authenticated admin.
+
+    **403 Forbidden** is returned when the initiator is not active or does not have enough rights.
+    **409 Conflict** is returned when the email or username is already taken.
+  security:
+    - BearerAuth: [ ]
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: '../components/schemas/requests/RegistrationAdmin.yaml'
+  responses:
+    '201':
+      description: Account successfully registered by admin
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/responses/Account.yaml'
+
+    '400':
+      description: >
+        Bad Request. Request body is invalid or some attributes do not meet requirements.
+        Check the `errors` array for details.
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/responses/Errors.yaml'
+          examples:
+            usernameNotAllowed:
+              summary: username is not allowed
+              value:
+                errors:
+                  - status: 400
+                    title: Bad Request
+                    code: VALIDATION_ERROR
+                    detail: username is not allowed
+                    source:
+                      pointer: /data/attributes/username
+            passwordNotAllowed:
+              summary: password is not allowed
+              value:
+                errors:
+                  - status: 400
+                    title: Bad Request
+                    code: VALIDATION_ERROR
+                    detail: password is not allowed
+                    source:
+                      pointer: /data/attributes/password
+            roleNotSupported:
+              summary: role is not supported
+              value:
+                errors:
+                  - status: 400
+                    title: Bad Request
+                    code: VALIDATION_ERROR
+                    detail: role is not supported
+                    source:
+                      pointer: /data/attributes/role
+
+    '401':
+      description: >
+        Unauthorized. Account cannot be resolved from context or initiator account not found.
+        Check the `detail` field in the response for more information.
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/responses/Errors.yaml'
+          examples:
+            failedToGetUserFromContext:
+              summary: failed to get user from context
+              value:
+                errors:
+                  - status: 401
+                    title: Unauthorized
+                    code: UNAUTHORIZED
+                    detail: failed to get user from context
+            initiatorNotFound:
+              summary: failed to register admin user not found
+              value:
+                errors:
+                  - status: 401
+                    title: Unauthorized
+                    code: UNAUTHORIZED
+                    detail: failed to register admin user not found
+
+    '403':
+      description: >
+        Forbidden. Initiator account is not active or does not have enough rights.
+        Check the `detail` field in the response for more information.
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/responses/Errors.yaml'
+          examples:
+            initiatorNotActive:
+              summary: initiator account is not active
+              value:
+                errors:
+                  - status: 403
+                    title: Forbidden
+                    code: FORBIDDEN
+                    detail: initiator account is not active
+            notEnoughRights:
+              summary: only admins can register new admin accounts
+              value:
+                errors:
+                  - status: 403
+                    title: Forbidden
+                    code: FORBIDDEN
+                    detail: only admins can register new admin accounts
+
+    '409':
+      description: >
+        Conflict. Email or username is already taken.
+        Check the `detail` field in the response for more information.
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/responses/Errors.yaml'
+          examples:
+            emailAlreadyExists:
+              summary: user with this email already exists
+              value:
+                errors:
+                  - status: 409
+                    title: Conflict
+                    code: CONFLICT
+                    detail: user with this email already exists
+            usernameAlreadyExists:
+              summary: user with this username already exists
+              value:
+                errors:
+                  - status: 409
+                    title: Conflict
+                    code: CONFLICT
+                    detail: user with this username already exists
+
+    '500':
+      description: Internal Server Error
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/responses/Errors.yaml'

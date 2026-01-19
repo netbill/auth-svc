@@ -4,11 +4,11 @@ import (
 	"errors"
 	"net/http"
 
-	"github.com/netbill/ape"
-	"github.com/netbill/ape/problems"
 	"github.com/netbill/auth-svc/internal/core/errx"
-	"github.com/netbill/auth-svc/internal/core/modules/auth"
+	"github.com/netbill/auth-svc/internal/core/modules/account"
 	"github.com/netbill/auth-svc/internal/rest"
+	"github.com/netbill/restkit/ape"
+	"github.com/netbill/restkit/ape/problems"
 )
 
 func (s *Service) DeleteMySessions(w http.ResponseWriter, r *http.Request) {
@@ -20,7 +20,7 @@ func (s *Service) DeleteMySessions(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err = s.core.DeleteOwnSessions(r.Context(), auth.InitiatorData{
+	if err = s.core.DeleteOwnSessions(r.Context(), account.InitiatorData{
 		AccountID: initiator.ID,
 		SessionID: initiator.SessionID,
 	}); err != nil {
@@ -39,5 +39,5 @@ func (s *Service) DeleteMySessions(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.WriteHeader(http.StatusNoContent)
+	ape.Render(w, http.StatusNoContent)
 }

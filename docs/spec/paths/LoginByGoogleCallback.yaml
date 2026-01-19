@@ -1,0 +1,73 @@
+get:
+  tags:
+    - login
+  summary: Google OAuth callback
+  description: >
+    Exchanges Google OAuth `code` for user info and returns an access/refresh tokens pair.
+  parameters:
+    - in: query
+      name: code
+      required: true
+      schema:
+        type: string
+      description: OAuth authorization code returned by Google
+  responses:
+    '200':
+      description: Tokens pair issued
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/responses/TokensPair.yaml'
+    '400':
+      description: Missing or invalid query parameter `code`
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/responses/Errors.yaml'
+          examples:
+            codeRequired:
+              summary: code is required
+              value:
+                errors:
+                  - status: 400
+                    title: Bad Request
+                    code: VALIDATION_ERROR
+                    detail: code is required
+                    source:
+                      parameter: code
+    '403':
+      description: Account is not active
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/responses/Errors.yaml'
+          examples:
+            notActive:
+              summary: account is not active
+              value:
+                errors:
+                  - status: 403
+                    title: Forbidden
+                    code: ACCOUNT_NOT_ACTIVE
+                    detail: account is not active
+    '404':
+      description: Account not found for this email
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/responses/Errors.yaml'
+          examples:
+            notFound:
+              summary: user with this email not found
+              value:
+                errors:
+                  - status: 404
+                    title: Not Found
+                    code: ACCOUNT_NOT_FOUND
+                    detail: user with this email not found
+    '500':
+      description: Internal Server Error
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/responses/Errors.yaml'

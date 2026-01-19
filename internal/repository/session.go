@@ -9,7 +9,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/netbill/auth-svc/internal/core/models"
 	"github.com/netbill/auth-svc/internal/repository/pgdb"
-	"github.com/netbill/pagi"
+	"github.com/netbill/restkit/pagi"
 )
 
 func (r Repository) CreateSession(ctx context.Context, sessionID, accountID uuid.UUID, hashToken string) (models.Session, error) {

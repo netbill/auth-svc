@@ -8,7 +8,7 @@ import (
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 	"github.com/go-ozzo/ozzo-validation/v4/is"
 	"github.com/netbill/auth-svc/resources"
-	"github.com/netbill/restkit/roles"
+	"github.com/netbill/restkit/auth/roles"
 )
 
 func newDecodeError(what string, err error) error {
@@ -19,12 +19,14 @@ func newDecodeError(what string, err error) error {
 
 func RegistrationAdmin(r *http.Request) (req resources.RegistrationAdmin, err error) {
 	if err = json.NewDecoder(r.Body).Decode(&req); err != nil {
-		err = newDecodeError("body", err)
+		err = validation.Errors{
+			"body": fmt.Errorf("decode request body: %w", err),
+		}
 		return
 	}
 
 	errs := validation.Errors{
-		"data/type":       validation.Validate(req.Data.Type, validation.Required, validation.In(resources.RegistrationAdminType)),
+		"data/type":       validation.Validate(req.Data.Type, validation.Required, validation.In("registration_account_by_admin")),
 		"data/attributes": validation.Validate(req.Data.Attributes, validation.Required),
 
 		"data/attributes/email": validation.Validate(

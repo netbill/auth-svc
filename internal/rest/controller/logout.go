@@ -3,10 +3,10 @@ package controller
 import (
 	"net/http"
 
-	"github.com/netbill/ape"
-	"github.com/netbill/ape/problems"
-	"github.com/netbill/auth-svc/internal/core/modules/auth"
+	"github.com/netbill/auth-svc/internal/core/modules/account"
 	"github.com/netbill/auth-svc/internal/rest"
+	"github.com/netbill/restkit/ape"
+	"github.com/netbill/restkit/ape/problems"
 )
 
 func (s *Service) Logout(w http.ResponseWriter, r *http.Request) {
@@ -18,7 +18,7 @@ func (s *Service) Logout(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = s.core.Logout(r.Context(), auth.InitiatorData{
+	err = s.core.Logout(r.Context(), account.InitiatorData{
 		AccountID: initiator.ID,
 		SessionID: initiator.SessionID,
 	})
@@ -32,5 +32,5 @@ func (s *Service) Logout(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.WriteHeader(http.StatusNoContent)
+	ape.Render(w, http.StatusNoContent)
 }

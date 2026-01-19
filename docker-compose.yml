@@ -11,7 +11,7 @@ services:
 
   auth-svc-postgres:
     image: postgres:15
-    container_name:  auth-svc-postgres
+    container_name: auth-svc-postgres
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
@@ -23,9 +23,20 @@ services:
     networks:
       - chains-net
 
+  auth-svc-swagger:
+    image: swaggerapi/swagger-ui
+    container_name: auth-svc-swagger
+    environment:
+      - SWAGGER_JSON=/docs/api-bundled.yaml
+    volumes:
+      - ./docs:/docs:ro
+    ports:
+      - "5555:8080"
+    networks:
+      - chains-net
+
 volumes:
   pgdata:
-  bundle:
 
 networks:
   chains-net:

@@ -7,10 +7,10 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/netbill/ape"
-	"github.com/netbill/ape/problems"
 	"github.com/netbill/auth-svc/internal/core/errx"
 	"github.com/netbill/auth-svc/internal/rest/responses"
+	"github.com/netbill/restkit/ape"
+	"github.com/netbill/restkit/ape/problems"
 
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 )

@@ -1,55 +1,80 @@
-openapi: 3.0.0
+openapi: 3.1.1
 info:
-  title: Cifra SSO REST API
-  description: SSO REST API for Cifra services
-  version: 0.0.1
+  title: netbill auth-svc API
+  description: swagger documentation for auth-svc 
+  version: 0.1.0
+
+servers:
+  - url: http://localhost:8001
 
 paths:
-  /test:
-    post:
-      tags:
-        - Test
-      description: Test
-      responses:
-        '201':
-          description: successfully
+  /auth-svc/v1/registration/:
+    $ref: './spec/paths/Registration.yaml'
+  /auth-svc/v1/registration/admin:
+    $ref: './spec/paths/RegistrationByAdmin.yaml'
+
+  /auth-svc/v1/login/email:
+    $ref: './spec/paths/LoginByEmail.yaml'
+  /auth-svc/v1/login/username:
+    $ref: './spec/paths/LoginByUsername.yaml'
+  /auth-svc/v1/login/google:
+    $ref: './spec/paths/LoginByGoogle.yaml'
+  /auth-svc/v1/login/google/callback:
+    $ref: './spec/paths/LoginByGoogleCallback.yaml'
+  /auth-svc/v1/refresh:
+    $ref: './spec/paths/RefreshSession.yaml'
+
+  /auth-svc/v1/me:
+    $ref: './spec/paths/MyAccount.yaml'
+  /auth-svc/v1/me/email:
+    $ref: './spec/paths/MyEmailData.yaml'
+  /auth-svc/v1/me/logout:
+    $ref: './spec/paths/Logout.yaml'
+  /auth-svc/v1/me/password:
+    $ref: './spec/paths/MyPassword.yaml'
+  /auth-svc/v1/me/username:
+    $ref: './spec/paths/MyUsername.yaml'
+  /auth-svc/v1/me/sessions:
+    $ref: './spec/paths/MySessions.yaml'
+  /auth-svc/v1/me/sessions/{session_id}:
+    $ref: './spec/paths/MySession.yaml'
 
 components:
   schemas:
     #requests
     LoginByEmail:
-      $ref: './spec/components/schemas/LoginByEmail.yaml'
+      $ref: './spec/components/schemas/requests/LoginByEmail.yaml'
     LoginByUsername:
-      $ref: './spec/components/schemas/LoginByUsername.yaml'
+      $ref: './spec/components/schemas/requests/LoginByUsername.yaml'
     Registration:
-      $ref: './spec/components/schemas/Registration.yaml'
+      $ref: './spec/components/schemas/requests/Registration.yaml'
     RegistrationAdmin:
-      $ref: './spec/components/schemas/RegistrationAdmin.yaml'
+      $ref: './spec/components/schemas/requests/RegistrationAdmin.yaml'
     RefreshSession:
-      $ref: './spec/components/schemas/RefreshSession.yaml'
+      $ref: './spec/components/schemas/requests/RefreshSession.yaml'
     UpdatePassword:
-      $ref: './spec/components/schemas/UpdatePassword.yaml'
+      $ref: './spec/components/schemas/requests/UpdatePassword.yaml'
     UpdateUsername:
-      $ref: './spec/components/schemas/UpdateUsername.yaml'
+      $ref: './spec/components/schemas/requests/UpdateUsername.yaml'
 
     #responses
     TokensPair:
-        $ref: './spec/components/schemas/TokensPair.yaml'
+        $ref: './spec/components/schemas/responses/TokensPair.yaml'
     AccessToken:
-      $ref: './spec/components/schemas/AccessToken.yaml'
+      $ref: './spec/components/schemas/responses/AccessToken.yaml'
     AccountSession:
-      $ref: './spec/components/schemas/AccountSession.yaml'
+      $ref: './spec/components/schemas/responses/AccountSession.yaml'
     AccountSessionData:
-      $ref: './spec/components/schemas/AccountSessionData.yaml'
+      $ref: './spec/components/schemas/responses/AccountSessionData.yaml'
     AccountSessionAttributes:
-      $ref: './spec/components/schemas/AccountSessionAttributes.yaml'
+      $ref: './spec/components/schemas/responses/AccountSessionAttributes.yaml'
     AccountSessionsCollection:
-      $ref: './spec/components/schemas/AccountSessionsCollection.yaml'
+      $ref: './spec/components/schemas/responses/AccountSessionsCollection.yaml'
     Account:
-      $ref: './spec/components/schemas/Account.yaml'
+      $ref: './spec/components/schemas/responses/Account.yaml'
     AccountEmail:
-      $ref: './spec/components/schemas/AccountEmail.yaml'
+      $ref: './spec/components/schemas/responses/AccountEmail.yaml'
     Errors:
-      $ref: './spec/components/schemas/Errors.yaml'
+      $ref: './spec/components/schemas/responses/Errors.yaml'
     PaginationData:
-      $ref: './spec/components/schemas/PaginationData.yaml'
+      $ref: './spec/components/schemas/responses/PaginationData.yaml'

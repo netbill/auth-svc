@@ -4,13 +4,13 @@ import (
 	"errors"
 	"net/http"
 
-	"github.com/netbill/ape"
-	"github.com/netbill/ape/problems"
 	"github.com/netbill/auth-svc/internal/core/errx"
-	"github.com/netbill/auth-svc/internal/core/modules/auth"
+	"github.com/netbill/auth-svc/internal/core/modules/account"
 	"github.com/netbill/auth-svc/internal/rest"
 	"github.com/netbill/auth-svc/internal/rest/requests"
 	"github.com/netbill/auth-svc/internal/rest/responses"
+	"github.com/netbill/restkit/ape"
+	"github.com/netbill/restkit/ape/problems"
 
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 )
@@ -32,7 +32,7 @@ func (s *Service) UpdateUsername(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	res, err := s.core.UpdateUsername(r.Context(), auth.InitiatorData{
+	res, err := s.core.UpdateUsername(r.Context(), account.InitiatorData{
 		AccountID: initiator.ID,
 		SessionID: initiator.SessionID,
 	}, req.Data.Attributes.Password, req.Data.Attributes.NewUsername)

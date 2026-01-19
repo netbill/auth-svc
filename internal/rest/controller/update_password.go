@@ -4,12 +4,12 @@ import (
 	"errors"
 	"net/http"
 
-	"github.com/netbill/ape"
-	"github.com/netbill/ape/problems"
 	"github.com/netbill/auth-svc/internal/core/errx"
-	"github.com/netbill/auth-svc/internal/core/modules/auth"
+	"github.com/netbill/auth-svc/internal/core/modules/account"
 	"github.com/netbill/auth-svc/internal/rest"
 	"github.com/netbill/auth-svc/internal/rest/requests"
+	"github.com/netbill/restkit/ape"
+	"github.com/netbill/restkit/ape/problems"
 
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 )
@@ -31,7 +31,7 @@ func (s *Service) UpdatePassword(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = s.core.UpdatePassword(r.Context(), auth.InitiatorData{
+	err = s.core.UpdatePassword(r.Context(), account.InitiatorData{
 		AccountID: initiator.ID,
 		SessionID: initiator.SessionID,
 	}, req.Data.Attributes.OldPassword, req.Data.Attributes.NewPassword)
@@ -59,5 +59,5 @@ func (s *Service) UpdatePassword(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.WriteHeader(http.StatusNoContent)
+	ape.Render(w, http.StatusNoContent)
 }

@@ -4,12 +4,12 @@ import (
 	"errors"
 	"net/http"
 
-	"github.com/netbill/ape"
 	"github.com/netbill/ape/problems"
 	"github.com/netbill/auth-svc/internal/core/errx"
-	"github.com/netbill/auth-svc/internal/core/modules/auth"
+	"github.com/netbill/auth-svc/internal/core/modules/account"
 	"github.com/netbill/auth-svc/internal/rest/requests"
-	"github.com/netbill/restkit/roles"
+	"github.com/netbill/restkit/ape"
+	"github.com/netbill/restkit/auth/roles"
 
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 )
@@ -23,7 +23,7 @@ func (s *Service) Registration(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, err = s.core.Registration(r.Context(), auth.RegistrationParams{
+	_, err = s.core.Registration(r.Context(), account.RegistrationParams{
 		Username: req.Data.Attributes.Username,
 		Email:    req.Data.Attributes.Email,
 		Password: req.Data.Attributes.Password,

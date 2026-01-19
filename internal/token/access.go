@@ -3,7 +3,7 @@ package token
 import (
 	"github.com/google/uuid"
 	"github.com/netbill/auth-svc/internal/core/models"
-	"github.com/netbill/restkit/token"
+	"github.com/netbill/restkit/auth"
 )
 
 func (s Service) EncryptAccess(token string) (string, error) {
@@ -11,7 +11,7 @@ func (s Service) EncryptAccess(token string) (string, error) {
 }
 
 func (s Service) GenerateAccess(user models.Account, sessionID uuid.UUID) (string, error) {
-	return token.GenerateAccountJWT(token.GenerateAccountJwtRequest{
+	return auth.GenerateAccountJWT(auth.GenerateAccountJwtRequest{
 		Issuer:    s.iss,
 		AccountID: user.ID,
 		//Audience:  []string{"gateway"},

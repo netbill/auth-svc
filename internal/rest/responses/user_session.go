@@ -3,14 +3,14 @@ package responses
 import (
 	"github.com/netbill/auth-svc/internal/core/models"
 	"github.com/netbill/auth-svc/resources"
-	"github.com/netbill/pagi"
+	"github.com/netbill/restkit/pagi"
 )
 
 func AccountSession(m models.Session) resources.AccountSession {
 	resp := resources.AccountSession{
 		Data: resources.AccountSessionData{
 			Id:   m.ID,
-			Type: resources.AccountSessionType,
+			Type: "account_session",
 			Attributes: resources.AccountSessionAttributes{
 				AccountId: m.AccountID,
 				CreatedAt: m.CreatedAt,

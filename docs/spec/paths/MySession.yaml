@@ -1,0 +1,87 @@
+parameters:
+  - in: path
+    name: session_id
+    required: true
+    schema:
+      type: string
+      format: uuid
+    description: Session ID
+
+get:
+  tags:
+    - sessions
+  summary: Get my sessions
+  description: >
+    Returns sessions of the authenticated account.
+  security:
+    - BearerAuth: [ ]
+  parameters:
+    - in: query
+      name: page[limit]
+      required: false
+      schema:
+        type: integer
+        minimum: 1
+      description: Max number of items to return
+    - in: query
+      name: page[offset]
+      required: false
+      schema:
+        type: integer
+        minimum: 0
+      description: Number of items to skip
+  responses:
+    '200':
+      description: Sessions successfully retrieved
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/responses/AccountSessionsCollection.yaml'
+    '401':
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/responses/Errors.yaml'
+    '403':
+      description: Forbidden
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/responses/Errors.yaml'
+    '500':
+      description: Internal Server Error
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/responses/Errors.yaml'
+
+delete:
+  tags:
+    - sessions
+  summary: Delete my sessions
+  description: >
+    Deletes all sessions of the authenticated account (logout from all devices).
+  security:
+    - BearerAuth: [ ]
+  responses:
+    '204':
+      description: Sessions successfully deleted
+    '401':
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/responses/Errors.yaml'
+    '403':
+      description: Forbidden
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/responses/Errors.yaml'
+    '500':
+      description: Internal Server Error
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/responses/Errors.yaml'
