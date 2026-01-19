@@ -14,6 +14,8 @@ import (
 
 const accountPasswordsTable = "account_passwords"
 
+const accountPasswordsColumns = "account_id, hash, created_at, updated_at"
+
 type AccountPassword struct {
 	AccountID uuid.UUID `db:"account_id"`
 	Hash      string    `db:"hash"`
@@ -25,8 +27,8 @@ func (a *AccountPassword) scan(row sq.RowScanner) error {
 	err := row.Scan(
 		&a.AccountID,
 		&a.Hash,
-		&a.UpdatedAt,
 		&a.CreatedAt,
+		&a.UpdatedAt,
 	)
 	if err != nil {
 		return fmt.Errorf("scanning account password: %w", err)
@@ -72,35 +74,43 @@ func (q AccountPasswordsQ) Insert(ctx context.Context, input AccountPassword) er
 	return err
 }
 
-func (q AccountPasswordsQ) Update(
-	ctx context.Context,
-) ([]AccountPassword, error) {
-	q.updater = q.updater.
-		Set("updated_at", time.Now().UTC()).
-		Suffix("RETURNING account_passwords.*")
+func (q AccountPasswordsQ) UpdateMany(ctx context.Context) (int64, error) {
+	q.updater = q.updater.Set("updated_at", time.Now().UTC())
 
 	query, args, err := q.updater.ToSql()
 	if err != nil {
-		return nil, fmt.Errorf("building update query for %s: %w", accountPasswordsTable, err)
+		return 0, fmt.Errorf("building update query for %s: %w", accountPasswordsTable, err)
 	}
 
-	rows, err := q.db.QueryContext(ctx, query, args...)
+	res, err := q.db.ExecContext(ctx, query, args...)
 	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-
-	var out []AccountPassword
-	for rows.Next() {
-		var p AccountPassword
-		err = p.scan(rows)
-		if err != nil {
-			return nil, fmt.Errorf("scanning updated account password: %w", err)
-		}
-		out = append(out, p)
+		return 0, fmt.Errorf("executing update query for %s: %w", accountPasswordsTable, err)
 	}
 
-	return out, nil
+	affected, err := res.RowsAffected()
+	if err != nil {
+		return 0, fmt.Errorf("rows affected for %s: %w", accountPasswordsTable, err)
+	}
+
+	return affected, nil
+}
+
+func (q AccountPasswordsQ) UpdateOne(ctx context.Context) (AccountPassword, error) {
+	q.updater = q.updater.Set("updated_at", time.Now().UTC())
+
+	query, args, err := q.updater.
+		Suffix("RETURNING " + accountPasswordsColumns).
+		ToSql()
+	if err != nil {
+		return AccountPassword{}, fmt.Errorf("building update query for %s: %w", accountPasswordsTable, err)
+	}
+
+	var updated AccountPassword
+	if err = updated.scan(q.db.QueryRowContext(ctx, query, args...)); err != nil {
+		return AccountPassword{}, err
+	}
+
+	return updated, nil
 }
 
 func (q AccountPasswordsQ) UpdateHash(hash string) AccountPasswordsQ {

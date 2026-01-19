@@ -6,7 +6,7 @@ post:
     Registers a new account by an authenticated admin.
 
     **403 Forbidden** is returned when the initiator is not active or does not have enough rights.
-    **409 Conflict** is returned when the email or username is already taken.
+    **409 Conflict** is returned when the email is already taken.
   security:
     - BearerAuth: [ ]
   requestBody:
@@ -32,16 +32,6 @@ post:
           schema:
             $ref: '../components/schemas/responses/Errors.yaml'
           examples:
-            usernameNotAllowed:
-              summary: username is not allowed
-              value:
-                errors:
-                  - status: 400
-                    title: Bad Request
-                    code: VALIDATION_ERROR
-                    detail: username is not allowed
-                    source:
-                      pointer: /data/attributes/username
             passwordNotAllowed:
               summary: password is not allowed
               value:
@@ -117,7 +107,7 @@ post:
 
     '409':
       description: >
-        Conflict. Email or username is already taken.
+        Conflict. Email is already taken.
         Check the `detail` field in the response for more information.
       content:
         application/json:
@@ -132,14 +122,6 @@ post:
                     title: Conflict
                     code: CONFLICT
                     detail: user with this email already exists
-            usernameAlreadyExists:
-              summary: user with this username already exists
-              value:
-                errors:
-                  - status: 409
-                    title: Conflict
-                    code: CONFLICT
-                    detail: user with this username already exists
 
     '500':
       description: Internal Server Error

@@ -41,7 +41,7 @@ func (r ApiAuthSvcV1RegistrationAdminPostRequest) Execute() (*Account, *http.Res
 AuthSvcV1RegistrationAdminPost Register a new admin account
 
 Registers a new account by an authenticated admin.
-**403 Forbidden** is returned when the initiator is not active or does not have enough rights. **409 Conflict** is returned when the email or username is already taken.
+**403 Forbidden** is returned when the initiator is not active or does not have enough rights. **409 Conflict** is returned when the email is already taken.
 
 
  @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().

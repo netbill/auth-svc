@@ -16,7 +16,6 @@ properties:
         required:
           - email
           - password
-          - username
         properties:
           email:
             type: string
@@ -28,7 +27,3 @@ properties:
             format: password
             description: The account's password.
             example: StrongP@ssw0rd!
-          username:
-            type: string
-            description: The account's username.
-            example: example

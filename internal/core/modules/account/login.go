@@ -27,24 +27,6 @@ func (s Service) LoginByEmail(ctx context.Context, email, password string) (mode
 	return s.createSession(ctx, account)
 }
 
-func (s Service) LoginByUsername(ctx context.Context, username, password string) (models.TokensPair, error) {
-	account, err := s.GetAccountByUsername(ctx, username)
-	if err != nil {
-		return models.TokensPair{}, err
-	}
-
-	if err = account.CanInteract(); err != nil {
-		return models.TokensPair{}, err
-	}
-
-	err = s.checkAccountPassword(ctx, account.ID, password)
-	if err != nil {
-		return models.TokensPair{}, err
-	}
-
-	return s.createSession(ctx, account)
-}
-
 func (s Service) LoginByGoogle(ctx context.Context, email string) (models.TokensPair, error) {
 	account, err := s.GetAccountByEmail(ctx, email)
 	if err != nil {

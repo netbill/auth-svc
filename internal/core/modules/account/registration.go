@@ -13,7 +13,6 @@ import (
 
 type RegistrationParams struct {
 	Email    string
-	Username string
 	Password string
 	Role     string
 }
@@ -32,16 +31,6 @@ func (s Service) Registration(
 		)
 	}
 
-	check, err = s.AccountExistsByUsername(ctx, params.Username)
-	if err != nil {
-		return models.Account{}, err
-	}
-	if check {
-		return models.Account{}, errx.ErrorUsernameAlreadyTaken.Raise(
-			fmt.Errorf("account with username '%s' already exists", params.Username),
-		)
-	}
-
 	err = roles.ValidateUserSystemRole(params.Role)
 	if err != nil {
 		return models.Account{}, errx.ErrorRoleNotSupported.Raise(
@@ -50,11 +39,6 @@ func (s Service) Registration(
 	}
 
 	err = s.CheckPasswordRequirements(params.Password)
-	if err != nil {
-		return models.Account{}, err
-	}
-
-	err = s.CheckUsernameRequirements(params.Username)
 	if err != nil {
 		return models.Account{}, err
 	}
@@ -69,7 +53,6 @@ func (s Service) Registration(
 	var account models.Account
 	err = s.repo.Transaction(ctx, func(ctx context.Context) error {
 		account, err = s.repo.CreateAccount(ctx, CreateAccountParams{
-			Username:     params.Username,
 			Role:         params.Role,
 			Email:        params.Email,
 			PasswordHash: string(hash),

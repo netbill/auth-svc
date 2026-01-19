@@ -25,8 +25,6 @@ type RegistrationAdminDataAttributes struct {
 	Email string `json:"email"`
 	// The account's password.
 	Password string `json:"password"`
-	// The account's username.
-	Username string `json:"username"`
 	// The role assigned to the registering account.
 	Role string `json:"role"`
 }
@@ -37,11 +35,10 @@ type _RegistrationAdminDataAttributes RegistrationAdminDataAttributes
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewRegistrationAdminDataAttributes(email string, password string, username string, role string) *RegistrationAdminDataAttributes {
+func NewRegistrationAdminDataAttributes(email string, password string, role string) *RegistrationAdminDataAttributes {
 	this := RegistrationAdminDataAttributes{}
 	this.Email = email
 	this.Password = password
-	this.Username = username
 	this.Role = role
 	return &this
 }
@@ -102,30 +99,6 @@ func (o *RegistrationAdminDataAttributes) SetPassword(v string) {
 	o.Password = v
 }
 
-// GetUsername returns the Username field value
-func (o *RegistrationAdminDataAttributes) GetUsername() string {
-	if o == nil {
-		var ret string
-		return ret
-	}
-
-	return o.Username
-}
-
-// GetUsernameOk returns a tuple with the Username field value
-// and a boolean to check if the value has been set.
-func (o *RegistrationAdminDataAttributes) GetUsernameOk() (*string, bool) {
-	if o == nil {
-		return nil, false
-	}
-	return &o.Username, true
-}
-
-// SetUsername sets field value
-func (o *RegistrationAdminDataAttributes) SetUsername(v string) {
-	o.Username = v
-}
-
 // GetRole returns the Role field value
 func (o *RegistrationAdminDataAttributes) GetRole() string {
 	if o == nil {
@@ -162,7 +135,6 @@ func (o RegistrationAdminDataAttributes) ToMap() (map[string]interface{}, error)
 	toSerialize := map[string]interface{}{}
 	toSerialize["email"] = o.Email
 	toSerialize["password"] = o.Password
-	toSerialize["username"] = o.Username
 	toSerialize["role"] = o.Role
 	return toSerialize, nil
 }
@@ -174,7 +146,6 @@ func (o *RegistrationAdminDataAttributes) UnmarshalJSON(data []byte) (err error)
 	requiredProperties := []string{
 		"email",
 		"password",
-		"username",
 		"role",
 	}
 

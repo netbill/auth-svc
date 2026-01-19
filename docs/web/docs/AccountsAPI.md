@@ -8,7 +8,6 @@ Method | HTTP request | Description
 [**AuthSvcV1MeEmailGet**](AccountsAPI.md#AuthSvcV1MeEmailGet) | **Get** /auth-svc/v1/me/email | Get my email data
 [**AuthSvcV1MeGet**](AccountsAPI.md#AuthSvcV1MeGet) | **Get** /auth-svc/v1/me | Get my account
 [**AuthSvcV1MePasswordPatch**](AccountsAPI.md#AuthSvcV1MePasswordPatch) | **Patch** /auth-svc/v1/me/password | Update password
-[**AuthSvcV1MeUsernamePatch**](AccountsAPI.md#AuthSvcV1MeUsernamePatch) | **Patch** /auth-svc/v1/me/username | Update username
 
 
 
@@ -242,72 +241,6 @@ Name | Type | Description  | Notes
 ### Return type
 
  (empty response body)
-
-### Authorization
-
-No authorization required
-
-### HTTP request headers
-
-- **Content-Type**: application/json
-- **Accept**: application/json
-
-[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints)
-[[Back to Model list]](../README.md#documentation-for-models)
-[[Back to README]](../README.md)
-
-
-## AuthSvcV1MeUsernamePatch
-
-> Account AuthSvcV1MeUsernamePatch(ctx).UpdateUsername(updateUsername).Execute()
-
-Update username
-
-
-
-### Example
-
-```go
-package main
-
-import (
-	"context"
-	"fmt"
-	"os"
-	openapiclient "github.com/GIT_USER_ID/GIT_REPO_ID"
-)
-
-func main() {
-	updateUsername := *openapiclient.NewUpdateUsername(*openapiclient.NewUpdateUsernameData("Type_example", *openapiclient.NewUpdateUsernameDataAttributes("new_username123", "CurrentP@ssw0rd!"))) // UpdateUsername | 
-
-	configuration := openapiclient.NewConfiguration()
-	apiClient := openapiclient.NewAPIClient(configuration)
-	resp, r, err := apiClient.AccountsAPI.AuthSvcV1MeUsernamePatch(context.Background()).UpdateUsername(updateUsername).Execute()
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error when calling `AccountsAPI.AuthSvcV1MeUsernamePatch``: %v\n", err)
-		fmt.Fprintf(os.Stderr, "Full HTTP response: %v\n", r)
-	}
-	// response from `AuthSvcV1MeUsernamePatch`: Account
-	fmt.Fprintf(os.Stdout, "Response from `AccountsAPI.AuthSvcV1MeUsernamePatch`: %v\n", resp)
-}
-```
-
-### Path Parameters
-
-
-
-### Other Parameters
-
-Other parameters are passed through a pointer to a apiAuthSvcV1MeUsernamePatchRequest struct via the builder pattern
-
-
-Name | Type | Description  | Notes
-------------- | ------------- | ------------- | -------------
- **updateUsername** | [**UpdateUsername**](UpdateUsername.md) |  | 
-
-### Return type
-
-[**Account**](Account.md)
 
 ### Authorization
 

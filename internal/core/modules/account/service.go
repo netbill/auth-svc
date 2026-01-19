@@ -50,13 +50,11 @@ type JWTManager interface {
 type messenger interface {
 	WriteAccountCreated(ctx context.Context, account models.Account, email string) error
 	WriteAccountPasswordChanged(ctx context.Context, account models.Account) error
-	WriteAccountUsernameChanged(ctx context.Context, account models.Account) error
 	WriteAccountLogin(ctx context.Context, account models.Account) error
 	WriteAccountDeleted(ctx context.Context, account models.Account) error
 }
 
 type CreateAccountParams struct {
-	Username     string
 	Role         string
 	Email        string
 	PasswordHash string
@@ -69,12 +67,6 @@ type repo interface {
 	) (models.Account, error)
 
 	GetAccountByID(ctx context.Context, accountID uuid.UUID) (models.Account, error)
-	GetAccountByUsername(ctx context.Context, username string) (models.Account, error)
-	UpdateAccountUsername(
-		ctx context.Context,
-		accountID uuid.UUID,
-		newUsername string,
-	) (models.Account, error)
 
 	GetAccountByEmail(ctx context.Context, email string) (models.Account, error)
 	UpdateAccountStatus(
@@ -172,24 +164,6 @@ func (s Service) CheckPasswordRequirements(password string) error {
 		return errx.ErrorPasswordIsNotAllowed.Raise(
 			fmt.Errorf("need at least one special character from %s", allowedSpecials),
 		)
-	}
-
-	return nil
-}
-
-func (s Service) CheckUsernameRequirements(username string) error {
-	if len(username) < 3 || len(username) > 32 {
-		return errx.ErrorUsernameIsNotAllowed.Raise(
-			fmt.Errorf("username must be between 3 and 32 characters"),
-		)
-	}
-
-	for _, r := range username {
-		if !(unicode.IsLetter(r) || unicode.IsDigit(r) || r == '_' || r == '-') {
-			return errx.ErrorUsernameIsNotAllowed.Raise(
-				fmt.Errorf("username contains invalid characters %s", string(r)),
-			)
-		}
 	}
 
 	return nil

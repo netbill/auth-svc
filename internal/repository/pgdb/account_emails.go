@@ -14,6 +14,8 @@ import (
 
 const accountEmailsTable = "account_emails"
 
+const accountEmailsColumns = "account_id, email, verified, created_at, updated_at"
+
 type AccountEmail struct {
 	AccountID uuid.UUID `db:"account_id"`
 	Email     string    `db:"email"`
@@ -27,8 +29,8 @@ func (e *AccountEmail) scan(row sq.RowScanner) error {
 		&e.AccountID,
 		&e.Email,
 		&e.Verified,
-		&e.UpdatedAt,
 		&e.CreatedAt,
+		&e.UpdatedAt,
 	)
 	if err != nil {
 		return fmt.Errorf("scanning account email: %w", err)
@@ -76,33 +78,43 @@ func (q AccountEmailsQ) Insert(ctx context.Context, input AccountEmail) error {
 	return err
 }
 
-func (q AccountEmailsQ) Update(ctx context.Context) ([]AccountEmail, error) {
-	q.updater = q.updater.
-		Set("updated_at", time.Now().UTC()).
-		Suffix("RETURNING account_emails.*")
+func (q AccountEmailsQ) UpdateMany(ctx context.Context) (int64, error) {
+	q.updater = q.updater.Set("updated_at", time.Now().UTC())
 
 	query, args, err := q.updater.ToSql()
 	if err != nil {
-		return nil, fmt.Errorf("building update query for %s: %w", accountEmailsTable, err)
+		return 0, fmt.Errorf("building update query for %s: %w", accountEmailsTable, err)
 	}
 
-	rows, err := q.db.QueryContext(ctx, query, args...)
+	res, err := q.db.ExecContext(ctx, query, args...)
 	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-
-	var out []AccountEmail
-	for rows.Next() {
-		var e AccountEmail
-		err = e.scan(rows)
-		if err != nil {
-			return nil, fmt.Errorf("scanning updated account email: %w", err)
-		}
-		out = append(out, e)
+		return 0, fmt.Errorf("executing update query for %s: %w", accountEmailsTable, err)
 	}
 
-	return out, nil
+	affected, err := res.RowsAffected()
+	if err != nil {
+		return 0, fmt.Errorf("rows affected for %s: %w", accountEmailsTable, err)
+	}
+
+	return affected, nil
+}
+
+func (q AccountEmailsQ) UpdateOne(ctx context.Context) (AccountEmail, error) {
+	q.updater = q.updater.Set("updated_at", time.Now().UTC())
+
+	query, args, err := q.updater.
+		Suffix("RETURNING " + accountEmailsColumns).
+		ToSql()
+	if err != nil {
+		return AccountEmail{}, fmt.Errorf("building update query for %s: %w", accountEmailsTable, err)
+	}
+
+	var updated AccountEmail
+	if err = updated.scan(q.db.QueryRowContext(ctx, query, args...)); err != nil {
+		return AccountEmail{}, err
+	}
+
+	return updated, nil
 }
 
 func (q AccountEmailsQ) UpdateEmail(email string) AccountEmailsQ {

@@ -28,9 +28,6 @@ docs/LoginAPI.md
 docs/LoginByEmail.md
 docs/LoginByEmailData.md
 docs/LoginByEmailDataAttributes.md
-docs/LoginByUsername.md
-docs/LoginByUsernameData.md
-docs/LoginByUsernameDataAttributes.md
 docs/PaginationData.md
 docs/RefreshSession.md
 docs/RefreshSessionData.md
@@ -41,7 +38,6 @@ docs/RegistrationAdmin.md
 docs/RegistrationAdminData.md
 docs/RegistrationAdminDataAttributes.md
 docs/RegistrationData.md
-docs/RegistrationDataAttributes.md
 docs/SessionsAPI.md
 docs/TokensPair.md
 docs/TokensPairData.md
@@ -49,9 +45,6 @@ docs/TokensPairDataAttributes.md
 docs/UpdatePassword.md
 docs/UpdatePasswordData.md
 docs/UpdatePasswordDataAttributes.md
-docs/UpdateUsername.md
-docs/UpdateUsernameData.md
-docs/UpdateUsernameDataAttributes.md
 git_push.sh
 go.mod
 go.sum
@@ -73,9 +66,6 @@ model_errors_errors_inner.go
 model_login_by_email.go
 model_login_by_email_data.go
 model_login_by_email_data_attributes.go
-model_login_by_username.go
-model_login_by_username_data.go
-model_login_by_username_data_attributes.go
 model_pagination_data.go
 model_refresh_session.go
 model_refresh_session_data.go
@@ -85,16 +75,12 @@ model_registration_admin.go
 model_registration_admin_data.go
 model_registration_admin_data_attributes.go
 model_registration_data.go
-model_registration_data_attributes.go
 model_tokens_pair.go
 model_tokens_pair_data.go
 model_tokens_pair_data_attributes.go
 model_update_password.go
 model_update_password_data.go
 model_update_password_data_attributes.go
-model_update_username.go
-model_update_username_data.go
-model_update_username_data_attributes.go
 response.go
 test/api_accounts_test.go
 test/api_login_test.go

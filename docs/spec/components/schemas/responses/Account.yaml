@@ -19,15 +19,11 @@ properties:
       attributes:
         type: object
         required:
-          - username
           - role
           - status
           - created_at
           - updated_at
         properties:
-          username:
-            type: string
-            description: "The username of the account"
           role:
             type: string
             description: "The role assigned to the account"

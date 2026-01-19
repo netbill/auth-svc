@@ -23,7 +23,6 @@ type core interface {
 	) (models.Account, error)
 
 	LoginByEmail(ctx context.Context, email, password string) (models.TokensPair, error)
-	LoginByUsername(ctx context.Context, username, password string) (models.TokensPair, error)
 	LoginByGoogle(ctx context.Context, email string) (models.TokensPair, error)
 
 	Refresh(ctx context.Context, oldRefreshToken string) (models.TokensPair, error)
@@ -33,12 +32,6 @@ type core interface {
 		initiator account.InitiatorData,
 		oldPassword, newPassword string,
 	) error
-	UpdateUsername(
-		ctx context.Context,
-		initiator account.InitiatorData,
-		password string,
-		newUsername string,
-	) (models.Account, error)
 
 	GetAccountByID(ctx context.Context, ID uuid.UUID) (models.Account, error)
 	GetAccountEmail(ctx context.Context, ID uuid.UUID) (models.AccountEmail, error)

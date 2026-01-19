@@ -14,7 +14,6 @@ func (s Service) GenerateRefresh(account models.Account, sessionID uuid.UUID) (s
 		Audience:  []string{s.iss},
 		AccountID: account.ID,
 		SessionID: sessionID,
-		Username:  account.Username,
 		Role:      account.Role,
 		Ttl:       s.refreshTTL,
 	}, s.refreshSK)

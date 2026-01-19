@@ -17,7 +17,6 @@ func (s Service) GenerateAccess(user models.Account, sessionID uuid.UUID) (strin
 		//Audience:  []string{"gateway"},
 		SessionID: sessionID,
 		Role:      user.Role,
-		Username:  user.Username,
 		Ttl:       s.accessTTL,
 	}, s.accessSK)
 }

@@ -11,7 +11,6 @@ func Account(m models.Account) resources.Account {
 			Id:   m.ID,
 			Type: "account",
 			Attributes: resources.AccountDataAttributes{
-				Username:  m.Username,
 				Role:      m.Role,
 				Status:    m.Status,
 				CreatedAt: m.CreatedAt,

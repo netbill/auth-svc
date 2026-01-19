@@ -4,7 +4,6 @@
 
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-**Username** | **string** | The username of the account | 
 **Role** | **string** | The role assigned to the account | 
 **Status** | **string** | The current status of the account | 
 **CreatedAt** | **time.Time** | The date and time when the account was created | 
@@ -14,7 +13,7 @@ Name | Type | Description | Notes
 
 ### NewAccountDataAttributes
 
-`func NewAccountDataAttributes(username string, role string, status string, createdAt time.Time, updatedAt time.Time, ) *AccountDataAttributes`
+`func NewAccountDataAttributes(role string, status string, createdAt time.Time, updatedAt time.Time, ) *AccountDataAttributes`
 
 NewAccountDataAttributes instantiates a new AccountDataAttributes object
 This constructor will assign default values to properties that have it defined,
@@ -28,26 +27,6 @@ will change when the set of required properties is changed
 NewAccountDataAttributesWithDefaults instantiates a new AccountDataAttributes object
 This constructor will only assign default values to properties that have it defined,
 but it doesn't guarantee that properties required by API are set
-
-### GetUsername
-
-`func (o *AccountDataAttributes) GetUsername() string`
-
-GetUsername returns the Username field if non-nil, zero value otherwise.
-
-### GetUsernameOk
-
-`func (o *AccountDataAttributes) GetUsernameOk() (*string, bool)`
-
-GetUsernameOk returns a tuple with the Username field if it's non-nil, zero value otherwise
-and a boolean to check if the value has been set.
-
-### SetUsername
-
-`func (o *AccountDataAttributes) SetUsername(v string)`
-
-SetUsername sets Username field to given value.
-
 
 ### GetRole
 

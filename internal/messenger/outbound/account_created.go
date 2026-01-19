@@ -17,8 +17,12 @@ func (p Producer) WriteAccountCreated(
 	email string,
 ) error {
 	payload, err := json.Marshal(contracts.AccountCreatedPayload{
-		Account: account,
-		Email:   email,
+		ID:        account.ID,
+		Email:     email,
+		Role:      account.Role,
+		Status:    account.Status,
+		CreatedAt: account.CreatedAt,
+		UpdatedAt: account.UpdatedAt,
 	})
 	if err != nil {
 		return err

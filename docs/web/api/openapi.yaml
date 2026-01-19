@@ -38,7 +38,7 @@ paths:
     post:
       description: |
         Registers a new account by an authenticated admin.
-        **403 Forbidden** is returned when the initiator is not active or does not have enough rights. **409 Conflict** is returned when the email or username is already taken.
+        **403 Forbidden** is returned when the initiator is not active or does not have enough rights. **409 Conflict** is returned when the email is already taken.
       requestBody:
         content:
           application/json:
@@ -56,16 +56,6 @@ paths:
           content:
             application/json:
               examples:
-                usernameNotAllowed:
-                  summary: username is not allowed
-                  value:
-                    errors:
-                    - status: 400
-                      title: Bad Request
-                      code: VALIDATION_ERROR
-                      detail: username is not allowed
-                      source:
-                        pointer: /data/attributes/username
                 passwordNotAllowed:
                   summary: password is not allowed
                   value:
@@ -150,18 +140,10 @@ paths:
                       title: Conflict
                       code: CONFLICT
                       detail: user with this email already exists
-                usernameAlreadyExists:
-                  summary: user with this username already exists
-                  value:
-                    errors:
-                    - status: 409
-                      title: Conflict
-                      code: CONFLICT
-                      detail: user with this username already exists
               schema:
                 $ref: "#/components/schemas/Errors"
           description: |
-            Conflict. Email or username is already taken. Check the `detail` field in the response for more information.
+            Conflict. Email is already taken. Check the `detail` field in the response for more information.
         "500":
           content:
             application/json:
@@ -173,7 +155,7 @@ paths:
       summary: Register a new admin account
       tags:
       - registration
-  /auth-svc/v1/login/email:
+  /auth-svc/v1/login/:
     post:
       description: Endpoint to login a user using their email and password.
       requestBody:
@@ -203,38 +185,6 @@ paths:
                 $ref: "#/components/schemas/Errors"
           description: Internal server error
       summary: Login by email
-      tags:
-      - login
-  /auth-svc/v1/login/username:
-    post:
-      description: Endpoint to login a user using their username and password.
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/LoginByUsername"
-        required: true
-      responses:
-        "200":
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/TokensPair"
-          description: Successful login
-        "401":
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Errors"
-          description: |
-            Unauthorized: Invalid username or password. Check the 'detail' field in the response for more information.
-        "500":
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Errors"
-          description: Internal server error
-      summary: Login by username
       tags:
       - login
   /auth-svc/v1/login/google:
@@ -721,133 +671,6 @@ paths:
       summary: Update password
       tags:
       - accounts
-  /auth-svc/v1/me/username:
-    patch:
-      description: |
-        Updates the username of the authenticated account.
-        **401 Unauthorized** is returned when credentials are invalid, the session is invalid, or the password is incorrect. **403 Forbidden** is returned when the initiator is blocked or username change is temporarily restricted. **409 Conflict** is returned when the requested username is already taken.
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/UpdateUsername"
-        required: true
-      responses:
-        "200":
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Account"
-          description: Username successfully updated
-        "400":
-          content:
-            application/json:
-              examples:
-                usernameNotAllowed:
-                  summary: username is not allowed
-                  value:
-                    errors:
-                    - status: 400
-                      title: Bad Request
-                      code: VALIDATION_ERROR
-                      detail: username is not allowed
-                      source:
-                        pointer: /data/attributes/new_username
-              schema:
-                $ref: "#/components/schemas/Errors"
-          description: |
-            Bad Request. Request body is invalid or the new username does not meet requirements. Check the `errors` array for details.
-        "401":
-          content:
-            application/json:
-              examples:
-                failedToGetUserFromContext:
-                  summary: failed to get user from context
-                  value:
-                    errors:
-                    - status: 401
-                      title: Unauthorized
-                      code: UNAUTHORIZED
-                      detail: failed to get user from context
-                userNotFound:
-                  summary: failed to update password user not found
-                  value:
-                    errors:
-                    - status: 401
-                      title: Unauthorized
-                      code: UNAUTHORIZED
-                      detail: failed to update password user not found
-                sessionInvalid:
-                  summary: initiator session is invalid
-                  value:
-                    errors:
-                    - status: 401
-                      title: Unauthorized
-                      code: UNAUTHORIZED
-                      detail: initiator session is invalid
-                invalidPassword:
-                  summary: invalid password
-                  value:
-                    errors:
-                    - status: 401
-                      title: Unauthorized
-                      code: UNAUTHORIZED
-                      detail: invalid password
-              schema:
-                $ref: "#/components/schemas/Errors"
-          description: |
-            Unauthorized. Invalid credentials, invalid session, user not found, or invalid password. Check the `detail` field in the response for more information.
-        "403":
-          content:
-            application/json:
-              examples:
-                initiatorBlocked:
-                  summary: initiator is blocked
-                  value:
-                    errors:
-                    - status: 403
-                      title: Forbidden
-                      code: FORBIDDEN
-                      detail: initiator is blocked
-                cannotChangeUsernameYet:
-                  summary: cannot change username due to cooldown
-                  value:
-                    errors:
-                    - status: 403
-                      title: Forbidden
-                      code: FORBIDDEN
-                      detail: cannot change username due to cooldown
-              schema:
-                $ref: "#/components/schemas/Errors"
-          description: |
-            Forbidden. Initiator is blocked or username cannot be changed yet due to cooldown. Check the `detail` field in the response for more information.
-        "409":
-          content:
-            application/json:
-              examples:
-                usernameAlreadyTaken:
-                  summary: user with this username already exists
-                  value:
-                    errors:
-                    - status: 409
-                      title: Conflict
-                      code: CONFLICT
-                      detail: user with this username already exists
-              schema:
-                $ref: "#/components/schemas/Errors"
-          description: |
-            Conflict. The requested username is already taken. Check the `detail` field in the response for more information.
-        "500":
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Errors"
-          description: Internal Server Error
-      security:
-      - BearerAuth: []
-      summary: Update username
-      tags:
-      - accounts
   /auth-svc/v1/me/sessions:
     delete:
       description: |
@@ -1128,25 +951,12 @@ components:
           $ref: "#/components/schemas/LoginByEmail_data"
       required:
       - data
-    LoginByUsername:
-      example:
-        data:
-          attributes:
-            password: StrongP@ssw0rd!
-            username: example
-          type: login_by_username
-      properties:
-        data:
-          $ref: "#/components/schemas/LoginByUsername_data"
-      required:
-      - data
     Registration:
       example:
         data:
           attributes:
             password: StrongP@ssw0rd!
             email: example@gmail.com
-            username: example
           type: registration_account
       properties:
         data:
@@ -1160,7 +970,6 @@ components:
             password: StrongP@ssw0rd!
             role: admin
             email: example1312@gmail.com
-            username: admin
           type: registration_account_by_admin
       properties:
         data:
@@ -1188,18 +997,6 @@ components:
       properties:
         data:
           $ref: "#/components/schemas/UpdatePassword_data"
-      required:
-      - data
-    UpdateUsername:
-      example:
-        data:
-          attributes:
-            password: CurrentP@ssw0rd!
-            new_username: new_username123
-          type: update_account_username
-      properties:
-        data:
-          $ref: "#/components/schemas/UpdateUsername_data"
       required:
       - data
     TokensPair:
@@ -1308,7 +1105,6 @@ components:
             role: role
             updated_at: 2000-01-23T04:56:07.000+00:00
             created_at: 2000-01-23T04:56:07.000+00:00
-            username: username
             status: status
           id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
           type: account
@@ -1408,69 +1204,11 @@ components:
       required:
       - attributes
       - type
-    LoginByUsername_data_attributes:
-      example:
-        password: StrongP@ssw0rd!
-        username: example
-      properties:
-        username:
-          description: The account's username.
-          example: example
-          type: string
-        password:
-          description: The account's password.
-          example: StrongP@ssw0rd!
-          format: password
-          type: string
-      required:
-      - password
-      - username
-    LoginByUsername_data:
-      example:
-        attributes:
-          password: StrongP@ssw0rd!
-          username: example
-        type: login_by_username
-      properties:
-        type:
-          enum:
-          - login_by_username
-          type: string
-        attributes:
-          $ref: "#/components/schemas/LoginByUsername_data_attributes"
-      required:
-      - attributes
-      - type
-    Registration_data_attributes:
-      example:
-        password: StrongP@ssw0rd!
-        email: example@gmail.com
-        username: example
-      properties:
-        email:
-          description: The account's email address.
-          example: example@gmail.com
-          format: email
-          type: string
-        password:
-          description: The account's password.
-          example: StrongP@ssw0rd!
-          format: password
-          type: string
-        username:
-          description: The account's username.
-          example: example
-          type: string
-      required:
-      - email
-      - password
-      - username
     Registration_data:
       example:
         attributes:
           password: StrongP@ssw0rd!
           email: example@gmail.com
-          username: example
         type: registration_account
       properties:
         type:
@@ -1478,7 +1216,7 @@ components:
           - registration_account
           type: string
         attributes:
-          $ref: "#/components/schemas/Registration_data_attributes"
+          $ref: "#/components/schemas/LoginByEmail_data_attributes"
       required:
       - attributes
       - type
@@ -1487,7 +1225,6 @@ components:
         password: StrongP@ssw0rd!
         role: admin
         email: example1312@gmail.com
-        username: admin
       properties:
         email:
           description: The account's email address.
@@ -1498,10 +1235,6 @@ components:
           description: The account's password.
           example: StrongP@ssw0rd!
           format: password
-          type: string
-        username:
-          description: The account's username.
-          example: admin
           type: string
         role:
           description: The role assigned to the registering account.
@@ -1514,14 +1247,12 @@ components:
       - email
       - password
       - role
-      - username
     RegistrationAdmin_data:
       example:
         attributes:
           password: StrongP@ssw0rd!
           role: admin
           email: example1312@gmail.com
-          username: admin
         type: registration_account_by_admin
       properties:
         type:
@@ -1592,39 +1323,6 @@ components:
       required:
       - attributes
       - type
-    UpdateUsername_data_attributes:
-      example:
-        password: CurrentP@ssw0rd!
-        new_username: new_username123
-      properties:
-        new_username:
-          description: The account's new username.
-          example: new_username123
-          type: string
-        password:
-          description: The account's current password.
-          example: CurrentP@ssw0rd!
-          format: password
-          type: string
-      required:
-      - new_username
-      - password
-    UpdateUsername_data:
-      example:
-        attributes:
-          password: CurrentP@ssw0rd!
-          new_username: new_username123
-        type: update_account_username
-      properties:
-        type:
-          enum:
-          - update_account_username
-          type: string
-        attributes:
-          $ref: "#/components/schemas/UpdateUsername_data_attributes"
-      required:
-      - attributes
-      - type
     TokensPair_data_attributes:
       example:
         access_token: access_token
@@ -1685,12 +1383,8 @@ components:
         role: role
         updated_at: 2000-01-23T04:56:07.000+00:00
         created_at: 2000-01-23T04:56:07.000+00:00
-        username: username
         status: status
       properties:
-        username:
-          description: The username of the account
-          type: string
         role:
           description: The role assigned to the account
           type: string
@@ -1710,14 +1404,12 @@ components:
       - role
       - status
       - updated_at
-      - username
     Account_data:
       example:
         attributes:
           role: role
           updated_at: 2000-01-23T04:56:07.000+00:00
           created_at: 2000-01-23T04:56:07.000+00:00
-          username: username
           status: status
         id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
         type: account

@@ -5,13 +5,13 @@
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **Type** | **string** |  | 
-**Attributes** | [**RegistrationDataAttributes**](RegistrationDataAttributes.md) |  | 
+**Attributes** | [**LoginByEmailDataAttributes**](LoginByEmailDataAttributes.md) |  | 
 
 ## Methods
 
 ### NewRegistrationData
 
-`func NewRegistrationData(type_ string, attributes RegistrationDataAttributes, ) *RegistrationData`
+`func NewRegistrationData(type_ string, attributes LoginByEmailDataAttributes, ) *RegistrationData`
 
 NewRegistrationData instantiates a new RegistrationData object
 This constructor will assign default values to properties that have it defined,
@@ -48,20 +48,20 @@ SetType sets Type field to given value.
 
 ### GetAttributes
 
-`func (o *RegistrationData) GetAttributes() RegistrationDataAttributes`
+`func (o *RegistrationData) GetAttributes() LoginByEmailDataAttributes`
 
 GetAttributes returns the Attributes field if non-nil, zero value otherwise.
 
 ### GetAttributesOk
 
-`func (o *RegistrationData) GetAttributesOk() (*RegistrationDataAttributes, bool)`
+`func (o *RegistrationData) GetAttributesOk() (*LoginByEmailDataAttributes, bool)`
 
 GetAttributesOk returns a tuple with the Attributes field if it's non-nil, zero value otherwise
 and a boolean to check if the value has been set.
 
 ### SetAttributes
 
-`func (o *RegistrationData) SetAttributes(v RegistrationDataAttributes)`
+`func (o *RegistrationData) SetAttributes(v LoginByEmailDataAttributes)`
 
 SetAttributes sets Attributes field to given value.
 

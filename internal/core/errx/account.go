@@ -21,8 +21,4 @@ var ErrorPasswordInvalid = ape.DeclareError("PASSWORD_INVALID")
 var ErrorPasswordIsNotAllowed = ape.DeclareError("PASSWORD_IS_NOT_ALLOWED")
 var ErrorCannotChangePasswordYet = ape.DeclareError("CANNOT_CHANGE_PASSWORD_YET")
 
-var ErrorUsernameIsNotAllowed = ape.DeclareError("USERNAME_IS_NOT_ALLOWED")
-var ErrorUsernameAlreadyTaken = ape.DeclareError("USERNAME_ALREADY_TAKEN")
-var ErrorCannotChangeUsernameYet = ape.DeclareError("CANNOT_CHANGE_USERNAME_YET")
-
 var ErrorRoleNotSupported = ape.DeclareError("ACCOUNT_ROLE_NOT_SUPPORTED")

@@ -10,7 +10,6 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-const updateUsernameCooldown = 14 * 24 * time.Hour
 const updatePasswordCooldown = 30 * 24 * time.Hour
 const updateEmailCooldown = 30 * 24 * time.Hour
 
@@ -43,28 +42,16 @@ func GetAllAccountStatuses() []string {
 }
 
 type Account struct {
-	ID       uuid.UUID `json:"id"`
-	Username string    `json:"username"`
-	Role     string    `json:"role"`
-	Status   string    `json:"status"`
+	ID     uuid.UUID `json:"id"`
+	Role   string    `json:"role"`
+	Status string    `json:"status"`
 
-	CreatedAt         time.Time `json:"created_at"`
-	UpdatedAt         time.Time `json:"updated_at"`
-	UsernameUpdatedAt time.Time `json:"username_name_updated_at"`
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
 }
 
 func (a Account) IsNil() bool {
 	return a.ID == uuid.Nil
-}
-
-func (a Account) CanChangeUsername() error {
-	if time.Since(a.UsernameUpdatedAt) >= updateUsernameCooldown {
-		return nil
-	}
-
-	return errx.ErrorCannotChangeUsernameYet.Raise(fmt.Errorf(
-		"account with id %s cannot change username yet", a.ID),
-	)
 }
 
 func (a Account) CanInteract() error {

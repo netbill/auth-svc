@@ -13,10 +13,8 @@ paths:
   /auth-svc/v1/registration/admin:
     $ref: './spec/paths/RegistrationByAdmin.yaml'
 
-  /auth-svc/v1/login/email:
+  /auth-svc/v1/login/:
     $ref: './spec/paths/LoginByEmail.yaml'
-  /auth-svc/v1/login/username:
-    $ref: './spec/paths/LoginByUsername.yaml'
   /auth-svc/v1/login/google:
     $ref: './spec/paths/LoginByGoogle.yaml'
   /auth-svc/v1/login/google/callback:
@@ -32,8 +30,6 @@ paths:
     $ref: './spec/paths/Logout.yaml'
   /auth-svc/v1/me/password:
     $ref: './spec/paths/MyPassword.yaml'
-  /auth-svc/v1/me/username:
-    $ref: './spec/paths/MyUsername.yaml'
   /auth-svc/v1/me/sessions:
     $ref: './spec/paths/MySessions.yaml'
   /auth-svc/v1/me/sessions/{session_id}:
@@ -44,8 +40,6 @@ components:
     #requests
     LoginByEmail:
       $ref: './spec/components/schemas/requests/LoginByEmail.yaml'
-    LoginByUsername:
-      $ref: './spec/components/schemas/requests/LoginByUsername.yaml'
     Registration:
       $ref: './spec/components/schemas/requests/Registration.yaml'
     RegistrationAdmin:
@@ -54,8 +48,6 @@ components:
       $ref: './spec/components/schemas/requests/RefreshSession.yaml'
     UpdatePassword:
       $ref: './spec/components/schemas/requests/UpdatePassword.yaml'
-    UpdateUsername:
-      $ref: './spec/components/schemas/requests/UpdateUsername.yaml'
 
     #responses
     TokensPair:

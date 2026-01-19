@@ -35,7 +35,6 @@ func (s *Service) RegistrationByAdmin(w http.ResponseWriter, r *http.Request) {
 	u, err := s.core.RegistrationByAdmin(r.Context(),
 		initiator.ID,
 		account.RegistrationParams{
-			Username: req.Data.Attributes.Username,
 			Email:    req.Data.Attributes.Email,
 			Password: req.Data.Attributes.Password,
 			Role:     req.Data.Attributes.Role,
@@ -52,12 +51,6 @@ func (s *Service) RegistrationByAdmin(w http.ResponseWriter, r *http.Request) {
 			ape.RenderErr(w, problems.Forbidden("only admins can register new admin accounts"))
 		case errors.Is(err, errx.ErrorEmailAlreadyExist):
 			ape.RenderErr(w, problems.Conflict("user with this email already exists"))
-		case errors.Is(err, errx.ErrorUsernameAlreadyTaken):
-			ape.RenderErr(w, problems.Conflict("user with this username already exists"))
-		case errors.Is(err, errx.ErrorUsernameIsNotAllowed):
-			ape.RenderErr(w, problems.BadRequest(validation.Errors{
-				"repo/attributes/username": err,
-			})...)
 		case errors.Is(err, errx.ErrorPasswordIsNotAllowed):
 			ape.RenderErr(w, problems.BadRequest(validation.Errors{
 				"repo/attributes/password": err,

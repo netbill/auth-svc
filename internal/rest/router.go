@@ -18,7 +18,6 @@ type Handlers interface {
 	RegistrationByAdmin(w http.ResponseWriter, r *http.Request)
 
 	LoginByEmail(w http.ResponseWriter, r *http.Request)
-	LoginByUsername(w http.ResponseWriter, r *http.Request)
 	LoginByGoogleOAuth(w http.ResponseWriter, r *http.Request)
 	LoginByGoogleOAuthCallback(w http.ResponseWriter, r *http.Request)
 
@@ -32,7 +31,6 @@ type Handlers interface {
 	GetMyEmailData(w http.ResponseWriter, r *http.Request)
 
 	UpdatePassword(w http.ResponseWriter, r *http.Request)
-	UpdateUsername(w http.ResponseWriter, r *http.Request)
 
 	DeleteMyAccount(w http.ResponseWriter, r *http.Request)
 	DeleteMySession(w http.ResponseWriter, r *http.Request)
@@ -89,8 +87,7 @@ func (s *Service) Run(ctx context.Context, cfg internal.Config) {
 			})
 
 			r.Route("/login", func(r chi.Router) {
-				r.Post("/email", s.handlers.LoginByEmail)
-				r.Post("/username", s.handlers.LoginByUsername)
+				r.Post("/", s.handlers.LoginByEmail)
 
 				r.Route("/google", func(r chi.Router) {
 					r.Post("/", s.handlers.LoginByGoogleOAuth)
@@ -107,7 +104,6 @@ func (s *Service) Run(ctx context.Context, cfg internal.Config) {
 				r.With(auth).Get("/email", s.handlers.GetMyEmailData)
 				r.With(auth).Post("/logout", s.handlers.Logout)
 				r.With(auth).Post("/password", s.handlers.UpdatePassword)
-				r.With(auth).Post("/username", s.handlers.UpdateUsername)
 
 				r.With(auth).Route("/sessions", func(r chi.Router) {
 					r.Get("/", s.handlers.GetMySessions)

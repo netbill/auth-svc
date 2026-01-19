@@ -16,7 +16,6 @@ properties:
         required:
           - email
           - password
-          - username
           - role
         properties:
           email:
@@ -29,10 +28,6 @@ properties:
             format: password
             description: The account's password.
             example: StrongP@ssw0rd!
-          username:
-            type: string
-            description: The account's username.
-            example: admin
           role:
             type: string
             description: The role assigned to the registering account.

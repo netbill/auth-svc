@@ -14,25 +14,24 @@ import (
 
 const accountsTable = "accounts"
 
+const accountsColumns = "id, role, status, created_at, updated_at"
+const accountsColumnsA = "a.id, a.role, a.status, a.created_at, a.updated_at"
+
 type Account struct {
-	ID                uuid.UUID `db:"id"`
-	Username          string    `db:"username"`
-	Role              string    `db:"role"`
-	Status            string    `db:"status"`
-	CreatedAt         time.Time `db:"created_at"`
-	UpdatedAt         time.Time `db:"updated_at"`
-	UsernameUpdatedAt time.Time `db:"username_updated_at"`
+	ID        uuid.UUID `db:"id"`
+	Role      string    `db:"role"`
+	Status    string    `db:"status"`
+	CreatedAt time.Time `db:"created_at"`
+	UpdatedAt time.Time `db:"updated_at"`
 }
 
 func (a *Account) scan(row sq.RowScanner) error {
 	err := row.Scan(
 		&a.ID,
-		&a.Username,
 		&a.Role,
 		&a.Status,
 		&a.CreatedAt,
 		&a.UpdatedAt,
-		&a.UsernameUpdatedAt,
 	)
 	if err != nil {
 		return fmt.Errorf("scanning account: %w", err)
@@ -62,19 +61,17 @@ func NewAccountsQ(db pgx.DBTX) AccountsQ {
 }
 
 type InsertAccountParams struct {
-	ID       uuid.UUID
-	Username string
-	Role     string
-	Status   string
+	ID     uuid.UUID
+	Role   string
+	Status string
 }
 
 func (q AccountsQ) Insert(ctx context.Context, input InsertAccountParams) (Account, error) {
 	query, args, err := q.inserter.SetMap(map[string]interface{}{
-		"id":       input.ID,
-		"username": input.Username,
-		"role":     input.Role,
-		"status":   input.Status,
-	}).Suffix("RETURNING id, username, role, status, created_at, updated_at, username_updated_at").ToSql()
+		"id":     input.ID,
+		"role":   input.Role,
+		"status": input.Status,
+	}).Suffix("RETURNING accounts.*").ToSql()
 	if err != nil {
 		return Account{}, fmt.Errorf("building insert query for %s: %w", accountsTable, err)
 	}
@@ -107,33 +104,43 @@ func (q AccountsQ) Get(ctx context.Context) (Account, error) {
 	return a, nil
 }
 
-func (q AccountsQ) Update(ctx context.Context) ([]Account, error) {
-	q.updater = q.updater.
-		Set("updated_at", time.Now().UTC()).
-		Suffix("RETURNING accounts.*")
+func (q AccountsQ) UpdateMany(ctx context.Context) (int64, error) {
+	q.updater = q.updater.Set("updated_at", time.Now().UTC())
 
 	query, args, err := q.updater.ToSql()
 	if err != nil {
-		return nil, fmt.Errorf("building update query for %s: %w", accountsTable, err)
+		return 0, fmt.Errorf("building update query for %s: %w", accountsTable, err)
 	}
 
-	rows, err := q.db.QueryContext(ctx, query, args...)
+	res, err := q.db.ExecContext(ctx, query, args...)
 	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-
-	var out []Account
-	for rows.Next() {
-		var a Account
-		err = a.scan(rows)
-		if err != nil {
-			return nil, fmt.Errorf("scanning updated account: %w", err)
-		}
-		out = append(out, a)
+		return 0, fmt.Errorf("executing update query for %s: %w", accountsTable, err)
 	}
 
-	return out, nil
+	affected, err := res.RowsAffected()
+	if err != nil {
+		return 0, fmt.Errorf("rows affected for %s: %w", accountsTable, err)
+	}
+
+	return affected, nil
+}
+
+func (q AccountsQ) UpdateOne(ctx context.Context) (Account, error) {
+	q.updater = q.updater.Set("updated_at", time.Now().UTC())
+
+	query, args, err := q.updater.
+		Suffix("RETURNING " + accountsColumns).
+		ToSql()
+	if err != nil {
+		return Account{}, fmt.Errorf("building update query for %s: %w", accountsTable, err)
+	}
+
+	var updated Account
+	if err = updated.scan(q.db.QueryRowContext(ctx, query, args...)); err != nil {
+		return Account{}, err
+	}
+
+	return updated, nil
 }
 
 func (q AccountsQ) UpdateRole(role string) AccountsQ {
@@ -143,13 +150,6 @@ func (q AccountsQ) UpdateRole(role string) AccountsQ {
 
 func (q AccountsQ) UpdateStatus(status string) AccountsQ {
 	q.updater = q.updater.Set("status", status)
-	return q
-}
-
-func (q AccountsQ) UpdateUsername(username string, usernameUpdatedAt time.Time) AccountsQ {
-	q.updater = q.updater.
-		Set("username", username).
-		Set("username_updated_at", usernameUpdatedAt)
 	return q
 }
 
@@ -165,7 +165,7 @@ func (q AccountsQ) Select(ctx context.Context) ([]Account, error) {
 	}
 	defer rows.Close()
 
-	var out []Account
+	out := make([]Account, 0)
 	for rows.Next() {
 		var a Account
 		err = a.scan(rows)
@@ -185,7 +185,6 @@ func (q AccountsQ) Delete(ctx context.Context) error {
 	}
 
 	_, err = q.db.ExecContext(ctx, query, args...)
-
 	return err
 }
 
@@ -194,14 +193,6 @@ func (q AccountsQ) FilterID(id uuid.UUID) AccountsQ {
 	q.counter = q.counter.Where(sq.Eq{"id": id})
 	q.deleter = q.deleter.Where(sq.Eq{"id": id})
 	q.updater = q.updater.Where(sq.Eq{"id": id})
-	return q
-}
-
-func (q AccountsQ) FilterUsername(username string) AccountsQ {
-	q.selector = q.selector.Where(sq.Eq{"username": username})
-	q.counter = q.counter.Where(sq.Eq{"username": username})
-	q.deleter = q.deleter.Where(sq.Eq{"username": username})
-	q.updater = q.updater.Where(sq.Eq{"username": username})
 	return q
 }
 
@@ -257,7 +248,6 @@ func (q AccountsQ) Count(ctx context.Context) (uint, error) {
 
 func (q AccountsQ) Page(limit, offset uint) AccountsQ {
 	q.selector = q.selector.Limit(uint64(limit)).Offset(uint64(offset))
-
 	return q
 }
 
