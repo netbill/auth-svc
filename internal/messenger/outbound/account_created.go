@@ -17,25 +17,23 @@ func (p Producer) WriteAccountCreated(
 	email string,
 ) error {
 	payload, err := json.Marshal(contracts.AccountCreatedPayload{
-		ID:        account.ID,
-		Email:     email,
-		Role:      account.Role,
-		Status:    account.Status,
-		CreatedAt: account.CreatedAt,
-		UpdatedAt: account.UpdatedAt,
+		ID:    account.ID,
+		Email: email,
+		Role:  account.Role,
 	})
 	if err != nil {
 		return err
 	}
 
-	event, err := p.outbox.CreateOutboxEvent(
+	eventID := uuid.New().String()
+	_, err = p.outbox.CreateOutboxEvent(
 		ctx,
 		kafka.Message{
 			Topic: contracts.AccountsTopicV1,
 			Key:   []byte(account.ID.String()),
 			Value: payload,
 			Headers: []kafka.Header{
-				{Key: header.EventID, Value: []byte(uuid.New().String())},
+				{Key: header.EventID, Value: []byte(eventID)},
 				{Key: header.EventType, Value: []byte(contracts.AccountCreatedEvent)},
 				{Key: header.EventVersion, Value: []byte("1")},
 				{Key: header.Producer, Value: []byte(contracts.AuthSvcGroup)},
@@ -43,11 +41,8 @@ func (p Producer) WriteAccountCreated(
 			},
 		},
 	)
-	if err != nil {
-		return err
-	}
 
-	p.log.Debugf("created outbox event %s for account %s, id %s", contracts.AccountCreatedEvent, account.ID.String(), event.ID.String())
+	p.log.Debugf("created outbox event %s for account %s, id %s", contracts.AccountCreatedEvent, account.ID.String(), eventID)
 
 	return err
 }

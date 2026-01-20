@@ -5,11 +5,7 @@ import (
 )
 
 var ErrorAccountNotFound = ape.DeclareError("ACCOUNT_NOT_FOUND")
-var ErrorAccountIsNotActive = ape.DeclareError("ACCOUNT_IS_NOT_ACTIVE")
-var ErrorAccountIsBlocked = ape.DeclareError("ACCOUNT_IS_BLOCKED")
-var ErrorAccountInvalidSession = ape.DeclareError("ACCOUNT_INVALID_SESSION")
 
-var ErrorInitiatorIsNotActive = ape.DeclareError("INITIATOR_IS_NOT_ACTIVE")
 var ErrorInitiatorNotFound = ape.DeclareError("INITIATOR_NOT_FOUND")
 var ErrorInitiatorInvalidSession = ape.DeclareError("INITIATOR_INVALID_SESSION")
 

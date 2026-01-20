@@ -102,10 +102,6 @@ func (s Service) RegistrationByAdmin(
 		)
 	}
 
-	if initiator.CanInteract() != nil {
-		return models.Account{}, err
-	}
-
 	account, err := s.Registration(ctx, params)
 	if err != nil {
 		return models.Account{}, err

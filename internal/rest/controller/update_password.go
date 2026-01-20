@@ -40,8 +40,6 @@ func (s *Service) UpdatePassword(w http.ResponseWriter, r *http.Request) {
 		switch {
 		case errors.Is(err, errx.ErrorInitiatorNotFound):
 			ape.RenderErr(w, problems.Unauthorized("failed to update password user not found"))
-		case errors.Is(err, errx.ErrorInitiatorIsNotActive):
-			ape.RenderErr(w, problems.Forbidden("initiator is blocked"))
 		case errors.Is(err, errx.ErrorInitiatorInvalidSession):
 			ape.RenderErr(w, problems.Unauthorized("initiator session is invalid"))
 		case errors.Is(err, errx.ErrorPasswordInvalid):

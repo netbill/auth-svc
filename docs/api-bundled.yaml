@@ -1197,16 +1197,12 @@ components:
               type: object
               required:
                 - role
-                - status
                 - created_at
                 - updated_at
               properties:
                 role:
                   type: string
                   description: The role assigned to the account
-                status:
-                  type: string
-                  description: The current status of the account
                 created_at:
                   type: string
                   format: date-time

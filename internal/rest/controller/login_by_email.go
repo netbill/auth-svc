@@ -26,8 +26,6 @@ func (s *Service) LoginByEmail(w http.ResponseWriter, r *http.Request) {
 		switch {
 		case errors.Is(err, errx.ErrorPasswordInvalid) || errors.Is(err, errx.ErrorAccountNotFound):
 			ape.RenderErr(w, problems.Unauthorized("invalid login or password"))
-		case errors.Is(err, errx.ErrorInitiatorIsNotActive):
-			ape.RenderErr(w, problems.Forbidden("account is not active"))
 		default:
 			ape.RenderErr(w, problems.InternalError())
 		}

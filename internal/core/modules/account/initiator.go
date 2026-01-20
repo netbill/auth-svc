@@ -24,12 +24,6 @@ func (s Service) ValidateSession(
 		)
 	}
 
-	if err = account.CanInteract(); err != nil {
-		return models.Account{}, models.Session{}, errx.ErrorInitiatorIsNotActive.Raise(
-			fmt.Errorf("account with id '%s' cannot interact, cause: %w", initiator.AccountID, err),
-		)
-	}
-
 	session, err := s.repo.GetSession(ctx, initiator.SessionID)
 	if err != nil {
 		return models.Account{}, models.Session{}, errx.ErrorInitiatorInvalidSession.Raise(

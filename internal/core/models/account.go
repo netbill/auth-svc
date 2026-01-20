@@ -13,38 +13,9 @@ import (
 const updatePasswordCooldown = 30 * 24 * time.Hour
 const updateEmailCooldown = 30 * 24 * time.Hour
 
-const (
-	AccountStatusActive      = "active"
-	AccountStatusDeactivated = "deactivated"
-	AccountStatusSuspended   = "suspended"
-)
-
-var accountStatuses = []string{
-	AccountStatusActive,
-	AccountStatusDeactivated,
-	AccountStatusSuspended,
-}
-
-var ErrorAccountStatusIsNotSupported = fmt.Errorf("account status is not supported, must be one of: %v", GetAllAccountStatuses())
-
-func CheckAccountStatus(status string) error {
-	for _, accountStatus := range accountStatuses {
-		if accountStatus == status {
-			return nil
-		}
-	}
-
-	return fmt.Errorf("%s: %w", status, ErrorAccountStatusIsNotSupported)
-}
-
-func GetAllAccountStatuses() []string {
-	return accountStatuses
-}
-
 type Account struct {
-	ID     uuid.UUID `json:"id"`
-	Role   string    `json:"role"`
-	Status string    `json:"status"`
+	ID   uuid.UUID `json:"id"`
+	Role string    `json:"role"`
 
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
@@ -52,16 +23,6 @@ type Account struct {
 
 func (a Account) IsNil() bool {
 	return a.ID == uuid.Nil
-}
-
-func (a Account) CanInteract() error {
-	if a.Status != AccountStatusActive {
-		return errx.ErrorInitiatorIsNotActive.Raise(fmt.Errorf(
-			"account with id %s is blocked and cannot interact", a.ID),
-		)
-	}
-
-	return nil
 }
 
 type AccountPassword struct {

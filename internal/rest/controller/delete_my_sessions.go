@@ -28,8 +28,6 @@ func (s *Service) DeleteMySessions(w http.ResponseWriter, r *http.Request) {
 		switch {
 		case errors.Is(err, errx.ErrorInitiatorNotFound):
 			ape.RenderErr(w, problems.Unauthorized("initiator account not found by credentials"))
-		case errors.Is(err, errx.ErrorInitiatorIsNotActive):
-			ape.RenderErr(w, problems.Forbidden("initiator is not active"))
 		case errors.Is(err, errx.ErrorInitiatorInvalidSession):
 			ape.RenderErr(w, problems.Unauthorized("initiator session is invalid"))
 		default:

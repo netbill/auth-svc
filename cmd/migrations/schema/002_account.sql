@@ -5,16 +5,9 @@ CREATE TYPE "account_role" AS ENUM (
     'user'
 );
 
-CREATE TYPE "account_status" AS ENUM (
-    'active',
-    'suspended',
-    'deactivated'
-);
-
 CREATE TABLE accounts (
     id         UUID           PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
     role       account_role   DEFAULT 'user'   NOT NULL,
-    status     account_status DEFAULT 'active' NOT NULL,
 
     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),

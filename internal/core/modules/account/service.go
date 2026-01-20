@@ -49,9 +49,7 @@ type JWTManager interface {
 
 type messenger interface {
 	WriteAccountCreated(ctx context.Context, account models.Account, email string) error
-	WriteAccountPasswordChanged(ctx context.Context, account models.Account) error
-	WriteAccountLogin(ctx context.Context, account models.Account) error
-	WriteAccountDeleted(ctx context.Context, account models.Account) error
+	WriteAccountDeleted(ctx context.Context, accountID uuid.UUID) error
 }
 
 type CreateAccountParams struct {
@@ -69,18 +67,8 @@ type repo interface {
 	GetAccountByID(ctx context.Context, accountID uuid.UUID) (models.Account, error)
 
 	GetAccountByEmail(ctx context.Context, email string) (models.Account, error)
-	UpdateAccountStatus(
-		ctx context.Context,
-		accountID uuid.UUID,
-		status string,
-	) (models.Account, error)
 
 	GetAccountEmail(ctx context.Context, accountID uuid.UUID) (models.AccountEmail, error)
-	UpdateAccountEmailVerification(
-		ctx context.Context,
-		accountID uuid.UUID,
-		verified bool,
-	) (models.AccountEmail, error)
 
 	GetAccountPassword(ctx context.Context, accountID uuid.UUID) (models.AccountPassword, error)
 	UpdateAccountPassword(

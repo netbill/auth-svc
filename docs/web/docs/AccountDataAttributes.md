@@ -5,7 +5,6 @@
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **Role** | **string** | The role assigned to the account | 
-**Status** | **string** | The current status of the account | 
 **CreatedAt** | **time.Time** | The date and time when the account was created | 
 **UpdatedAt** | **time.Time** | The date and time when the account was last updated | 
 
@@ -13,7 +12,7 @@ Name | Type | Description | Notes
 
 ### NewAccountDataAttributes
 
-`func NewAccountDataAttributes(role string, status string, createdAt time.Time, updatedAt time.Time, ) *AccountDataAttributes`
+`func NewAccountDataAttributes(role string, createdAt time.Time, updatedAt time.Time, ) *AccountDataAttributes`
 
 NewAccountDataAttributes instantiates a new AccountDataAttributes object
 This constructor will assign default values to properties that have it defined,
@@ -46,26 +45,6 @@ and a boolean to check if the value has been set.
 `func (o *AccountDataAttributes) SetRole(v string)`
 
 SetRole sets Role field to given value.
-
-
-### GetStatus
-
-`func (o *AccountDataAttributes) GetStatus() string`
-
-GetStatus returns the Status field if non-nil, zero value otherwise.
-
-### GetStatusOk
-
-`func (o *AccountDataAttributes) GetStatusOk() (*string, bool)`
-
-GetStatusOk returns a tuple with the Status field if it's non-nil, zero value otherwise
-and a boolean to check if the value has been set.
-
-### SetStatus
-
-`func (o *AccountDataAttributes) SetStatus(v string)`
-
-SetStatus sets Status field to given value.
 
 
 ### GetCreatedAt

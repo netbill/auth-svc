@@ -15,10 +15,6 @@ func (s Service) LoginByEmail(ctx context.Context, email, password string) (mode
 		return models.TokensPair{}, err
 	}
 
-	if err = account.CanInteract(); err != nil {
-		return models.TokensPair{}, err
-	}
-
 	err = s.checkAccountPassword(ctx, account.ID, password)
 	if err != nil {
 		return models.TokensPair{}, err
@@ -30,10 +26,6 @@ func (s Service) LoginByEmail(ctx context.Context, email, password string) (mode
 func (s Service) LoginByGoogle(ctx context.Context, email string) (models.TokensPair, error) {
 	account, err := s.GetAccountByEmail(ctx, email)
 	if err != nil {
-		return models.TokensPair{}, err
-	}
-
-	if err = account.CanInteract(); err != nil {
 		return models.TokensPair{}, err
 	}
 
@@ -77,24 +69,11 @@ func (s Service) createSession(
 		)
 	}
 
-	if err = s.repo.Transaction(ctx, func(txCtx context.Context) error {
-		_, err = s.repo.CreateSession(ctx, sessionID, account.ID, refreshTokenCrypto)
-		if err != nil {
-			return errx.ErrorInternal.Raise(
-				fmt.Errorf("failed to createSession session for account %s, cause: %w", account.ID, err),
-			)
-		}
-
-		err = s.messenger.WriteAccountLogin(ctx, account)
-		if err != nil {
-			return errx.ErrorInternal.Raise(
-				fmt.Errorf("failed to publish account login messenger for account %s: %w", account.ID, err),
-			)
-		}
-
-		return nil
-	}); err != nil {
-		return models.TokensPair{}, err
+	_, err = s.repo.CreateSession(ctx, sessionID, account.ID, refreshTokenCrypto)
+	if err != nil {
+		return models.TokensPair{}, errx.ErrorInternal.Raise(
+			fmt.Errorf("failed to createSession session for account %s, cause: %w", account.ID, err),
+		)
 	}
 
 	return models.TokensPair{

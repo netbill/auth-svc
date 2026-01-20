@@ -26,8 +26,6 @@ func (s *Service) RefreshSession(w http.ResponseWriter, r *http.Request) {
 		switch {
 		case errors.Is(err, errx.ErrorInitiatorNotFound):
 			ape.RenderErr(w, problems.Unauthorized("account not found"))
-		case errors.Is(err, errx.ErrorInitiatorIsNotActive):
-			ape.RenderErr(w, problems.Forbidden("account is not active"))
 		case errors.Is(err, errx.ErrorSessionNotFound):
 			ape.RenderErr(w, problems.Unauthorized("session not found"))
 		case errors.Is(err, errx.ErrorSessionTokenMismatch):

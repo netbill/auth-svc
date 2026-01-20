@@ -64,13 +64,6 @@ func (s Service) UpdatePassword(
 			)
 		}
 
-		err = s.messenger.WriteAccountPasswordChanged(ctx, account)
-		if err != nil {
-			return errx.ErrorInternal.Raise(
-				fmt.Errorf("failed to write account password changed event for account id: %s, cause: %w", initiator.AccountID, err),
-			)
-		}
-
 		return nil
 	})
 }

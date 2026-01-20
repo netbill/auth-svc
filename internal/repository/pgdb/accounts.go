@@ -14,13 +14,12 @@ import (
 
 const accountsTable = "accounts"
 
-const accountsColumns = "id, role, status, created_at, updated_at"
-const accountsColumnsA = "a.id, a.role, a.status, a.created_at, a.updated_at"
+const accountsColumns = "id, role, created_at, updated_at"
+const accountsColumnsA = "a.id, a.role, a.created_at, a.updated_at"
 
 type Account struct {
 	ID        uuid.UUID `db:"id"`
 	Role      string    `db:"role"`
-	Status    string    `db:"status"`
 	CreatedAt time.Time `db:"created_at"`
 	UpdatedAt time.Time `db:"updated_at"`
 }
@@ -29,7 +28,6 @@ func (a *Account) scan(row sq.RowScanner) error {
 	err := row.Scan(
 		&a.ID,
 		&a.Role,
-		&a.Status,
 		&a.CreatedAt,
 		&a.UpdatedAt,
 	)
@@ -61,16 +59,14 @@ func NewAccountsQ(db pgx.DBTX) AccountsQ {
 }
 
 type InsertAccountParams struct {
-	ID     uuid.UUID
-	Role   string
-	Status string
+	ID   uuid.UUID
+	Role string
 }
 
 func (q AccountsQ) Insert(ctx context.Context, input InsertAccountParams) (Account, error) {
 	query, args, err := q.inserter.SetMap(map[string]interface{}{
-		"id":     input.ID,
-		"role":   input.Role,
-		"status": input.Status,
+		"id":   input.ID,
+		"role": input.Role,
 	}).Suffix("RETURNING accounts.*").ToSql()
 	if err != nil {
 		return Account{}, fmt.Errorf("building insert query for %s: %w", accountsTable, err)
@@ -148,11 +144,6 @@ func (q AccountsQ) UpdateRole(role string) AccountsQ {
 	return q
 }
 
-func (q AccountsQ) UpdateStatus(status string) AccountsQ {
-	q.updater = q.updater.Set("status", status)
-	return q
-}
-
 func (q AccountsQ) Select(ctx context.Context) ([]Account, error) {
 	query, args, err := q.selector.ToSql()
 	if err != nil {
@@ -201,14 +192,6 @@ func (q AccountsQ) FilterRole(role string) AccountsQ {
 	q.counter = q.counter.Where(sq.Eq{"role": role})
 	q.deleter = q.deleter.Where(sq.Eq{"role": role})
 	q.updater = q.updater.Where(sq.Eq{"role": role})
-	return q
-}
-
-func (q AccountsQ) FilterStatus(status string) AccountsQ {
-	q.selector = q.selector.Where(sq.Eq{"status": status})
-	q.counter = q.counter.Where(sq.Eq{"status": status})
-	q.deleter = q.deleter.Where(sq.Eq{"status": status})
-	q.updater = q.updater.Where(sq.Eq{"status": status})
 	return q
 }
 

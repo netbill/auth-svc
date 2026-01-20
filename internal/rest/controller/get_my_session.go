@@ -45,8 +45,6 @@ func (s *Service) GetMySession(w http.ResponseWriter, r *http.Request) {
 		switch {
 		case errors.Is(err, errx.ErrorInitiatorNotFound):
 			ape.RenderErr(w, problems.Unauthorized("initiator account not found by credentials"))
-		case errors.Is(err, errx.ErrorInitiatorIsNotActive):
-			ape.RenderErr(w, problems.Forbidden("initiator is blocked"))
 		case errors.Is(err, errx.ErrorSessionNotFound):
 			ape.RenderErr(w, problems.Unauthorized("session not found"))
 		case errors.Is(err, errx.ErrorInitiatorInvalidSession):

@@ -8,7 +8,6 @@ func (a *Account) ToModel() models.Account {
 	return models.Account{
 		ID:        a.ID,
 		Role:      a.Role,
-		Status:    a.Status,
 		CreatedAt: a.CreatedAt,
 		UpdatedAt: a.UpdatedAt,
 	}

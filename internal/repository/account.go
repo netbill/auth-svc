@@ -17,9 +17,8 @@ func (r Repository) CreateAccount(ctx context.Context, params account.CreateAcco
 	accountID := uuid.New()
 
 	acc, err := r.accountsQ(ctx).Insert(ctx, pgdb.InsertAccountParams{
-		ID:     accountID,
-		Role:   params.Role,
-		Status: models.AccountStatusActive,
+		ID:   accountID,
+		Role: params.Role,
 	})
 	if err != nil {
 		return models.Account{}, err
@@ -77,40 +76,12 @@ func (r Repository) GetAccountByEmail(ctx context.Context, email string) (models
 	return acc.ToModel(), nil
 }
 
-func (r Repository) UpdateAccountStatus(ctx context.Context, accountID uuid.UUID, status string) (models.Account, error) {
-	acc, err := r.accountsQ(ctx).
-		FilterID(accountID).
-		UpdateStatus(status).
-		UpdateOne(ctx)
-	if err != nil {
-		return models.Account{}, err
-	}
-
-	return acc.ToModel(), nil
-}
-
 func (r Repository) GetAccountEmail(ctx context.Context, accountID uuid.UUID) (models.AccountEmail, error) {
 	acc, err := r.emailsQ(ctx).FilterAccountID(accountID).Get(ctx)
 	switch {
 	case errors.Is(err, sql.ErrNoRows):
 		return models.AccountEmail{}, nil
 	case err != nil:
-		return models.AccountEmail{}, err
-	}
-
-	return acc.ToModel(), nil
-}
-
-func (r Repository) UpdateAccountEmailVerification(
-	ctx context.Context,
-	accountID uuid.UUID,
-	verified bool,
-) (models.AccountEmail, error) {
-	acc, err := r.emailsQ(ctx).
-		FilterAccountID(accountID).
-		UpdateVerified(verified).
-		UpdateOne(ctx)
-	if err != nil {
 		return models.AccountEmail{}, err
 	}
 

@@ -45,8 +45,6 @@ func (s *Service) RegistrationByAdmin(w http.ResponseWriter, r *http.Request) {
 		switch {
 		case errors.Is(err, errx.ErrorInitiatorNotFound):
 			ape.RenderErr(w, problems.Unauthorized("failed to register admin user not found"))
-		case errors.Is(err, errx.ErrorInitiatorIsNotActive):
-			ape.RenderErr(w, problems.Forbidden("initiator account is not active"))
 		case errors.Is(err, errx.ErrorNotEnoughRights):
 			ape.RenderErr(w, problems.Forbidden("only admins can register new admin accounts"))
 		case errors.Is(err, errx.ErrorEmailAlreadyExist):
