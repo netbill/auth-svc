@@ -16,38 +16,38 @@ import (
 	"fmt"
 )
 
-// checks if the RegistrationData type satisfies the MappedNullable interface at compile time
-var _ MappedNullable = &RegistrationData{}
+// checks if the LoginByUsernameData type satisfies the MappedNullable interface at compile time
+var _ MappedNullable = &LoginByUsernameData{}
 
-// RegistrationData struct for RegistrationData
-type RegistrationData struct {
+// LoginByUsernameData struct for LoginByUsernameData
+type LoginByUsernameData struct {
 	Type string `json:"type"`
-	Attributes RegistrationDataAttributes `json:"attributes"`
+	Attributes LoginByUsernameDataAttributes `json:"attributes"`
 }
 
-type _RegistrationData RegistrationData
+type _LoginByUsernameData LoginByUsernameData
 
-// NewRegistrationData instantiates a new RegistrationData object
+// NewLoginByUsernameData instantiates a new LoginByUsernameData object
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewRegistrationData(type_ string, attributes RegistrationDataAttributes) *RegistrationData {
-	this := RegistrationData{}
+func NewLoginByUsernameData(type_ string, attributes LoginByUsernameDataAttributes) *LoginByUsernameData {
+	this := LoginByUsernameData{}
 	this.Type = type_
 	this.Attributes = attributes
 	return &this
 }
 
-// NewRegistrationDataWithDefaults instantiates a new RegistrationData object
+// NewLoginByUsernameDataWithDefaults instantiates a new LoginByUsernameData object
 // This constructor will only assign default values to properties that have it defined,
 // but it doesn't guarantee that properties required by API are set
-func NewRegistrationDataWithDefaults() *RegistrationData {
-	this := RegistrationData{}
+func NewLoginByUsernameDataWithDefaults() *LoginByUsernameData {
+	this := LoginByUsernameData{}
 	return &this
 }
 
 // GetType returns the Type field value
-func (o *RegistrationData) GetType() string {
+func (o *LoginByUsernameData) GetType() string {
 	if o == nil {
 		var ret string
 		return ret
@@ -58,7 +58,7 @@ func (o *RegistrationData) GetType() string {
 
 // GetTypeOk returns a tuple with the Type field value
 // and a boolean to check if the value has been set.
-func (o *RegistrationData) GetTypeOk() (*string, bool) {
+func (o *LoginByUsernameData) GetTypeOk() (*string, bool) {
 	if o == nil {
 		return nil, false
 	}
@@ -66,14 +66,14 @@ func (o *RegistrationData) GetTypeOk() (*string, bool) {
 }
 
 // SetType sets field value
-func (o *RegistrationData) SetType(v string) {
+func (o *LoginByUsernameData) SetType(v string) {
 	o.Type = v
 }
 
 // GetAttributes returns the Attributes field value
-func (o *RegistrationData) GetAttributes() RegistrationDataAttributes {
+func (o *LoginByUsernameData) GetAttributes() LoginByUsernameDataAttributes {
 	if o == nil {
-		var ret RegistrationDataAttributes
+		var ret LoginByUsernameDataAttributes
 		return ret
 	}
 
@@ -82,7 +82,7 @@ func (o *RegistrationData) GetAttributes() RegistrationDataAttributes {
 
 // GetAttributesOk returns a tuple with the Attributes field value
 // and a boolean to check if the value has been set.
-func (o *RegistrationData) GetAttributesOk() (*RegistrationDataAttributes, bool) {
+func (o *LoginByUsernameData) GetAttributesOk() (*LoginByUsernameDataAttributes, bool) {
 	if o == nil {
 		return nil, false
 	}
@@ -90,11 +90,11 @@ func (o *RegistrationData) GetAttributesOk() (*RegistrationDataAttributes, bool)
 }
 
 // SetAttributes sets field value
-func (o *RegistrationData) SetAttributes(v RegistrationDataAttributes) {
+func (o *LoginByUsernameData) SetAttributes(v LoginByUsernameDataAttributes) {
 	o.Attributes = v
 }
 
-func (o RegistrationData) MarshalJSON() ([]byte, error) {
+func (o LoginByUsernameData) MarshalJSON() ([]byte, error) {
 	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
@@ -102,14 +102,14 @@ func (o RegistrationData) MarshalJSON() ([]byte, error) {
 	return json.Marshal(toSerialize)
 }
 
-func (o RegistrationData) ToMap() (map[string]interface{}, error) {
+func (o LoginByUsernameData) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
 	toSerialize["type"] = o.Type
 	toSerialize["attributes"] = o.Attributes
 	return toSerialize, nil
 }
 
-func (o *RegistrationData) UnmarshalJSON(data []byte) (err error) {
+func (o *LoginByUsernameData) UnmarshalJSON(data []byte) (err error) {
 	// This validates that all required properties are included in the JSON object
 	// by unmarshalling the object into a generic map with string keys and checking
 	// that every required field exists as a key in the generic map.
@@ -132,53 +132,53 @@ func (o *RegistrationData) UnmarshalJSON(data []byte) (err error) {
 		}
 	}
 
-	varRegistrationData := _RegistrationData{}
+	varLoginByUsernameData := _LoginByUsernameData{}
 
 	decoder := json.NewDecoder(bytes.NewReader(data))
 	decoder.DisallowUnknownFields()
-	err = decoder.Decode(&varRegistrationData)
+	err = decoder.Decode(&varLoginByUsernameData)
 
 	if err != nil {
 		return err
 	}
 
-	*o = RegistrationData(varRegistrationData)
+	*o = LoginByUsernameData(varLoginByUsernameData)
 
 	return err
 }
 
-type NullableRegistrationData struct {
-	value *RegistrationData
+type NullableLoginByUsernameData struct {
+	value *LoginByUsernameData
 	isSet bool
 }
 
-func (v NullableRegistrationData) Get() *RegistrationData {
+func (v NullableLoginByUsernameData) Get() *LoginByUsernameData {
 	return v.value
 }
 
-func (v *NullableRegistrationData) Set(val *RegistrationData) {
+func (v *NullableLoginByUsernameData) Set(val *LoginByUsernameData) {
 	v.value = val
 	v.isSet = true
 }
 
-func (v NullableRegistrationData) IsSet() bool {
+func (v NullableLoginByUsernameData) IsSet() bool {
 	return v.isSet
 }
 
-func (v *NullableRegistrationData) Unset() {
+func (v *NullableLoginByUsernameData) Unset() {
 	v.value = nil
 	v.isSet = false
 }
 
-func NewNullableRegistrationData(val *RegistrationData) *NullableRegistrationData {
-	return &NullableRegistrationData{value: val, isSet: true}
+func NewNullableLoginByUsernameData(val *LoginByUsernameData) *NullableLoginByUsernameData {
+	return &NullableLoginByUsernameData{value: val, isSet: true}
 }
 
-func (v NullableRegistrationData) MarshalJSON() ([]byte, error) {
+func (v NullableLoginByUsernameData) MarshalJSON() ([]byte, error) {
 	return json.Marshal(v.value)
 }
 
-func (v *NullableRegistrationData) UnmarshalJSON(src []byte) error {
+func (v *NullableLoginByUsernameData) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }

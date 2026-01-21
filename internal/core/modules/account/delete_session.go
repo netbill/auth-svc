@@ -12,7 +12,9 @@ func (s Service) Logout(ctx context.Context, initiator InitiatorData) error {
 	err := s.repo.DeleteAccountSession(ctx, initiator.AccountID, initiator.SessionID)
 	if err != nil {
 		return errx.ErrorInternal.Raise(
-			fmt.Errorf("failed to delete session with id: %s, cause: %w", initiator.SessionID, err),
+			fmt.Errorf(
+				"failed to delete session with id: %s, cause: %w", initiator.SessionID, err,
+			),
 		)
 	}
 
@@ -20,7 +22,7 @@ func (s Service) Logout(ctx context.Context, initiator InitiatorData) error {
 }
 
 func (s Service) DeleteOwnSession(ctx context.Context, initiator InitiatorData, sessionID uuid.UUID) error {
-	_, _, err := s.ValidateSession(ctx, initiator)
+	_, _, err := s.validateSession(ctx, initiator)
 	if err != nil {
 		return err
 	}
@@ -36,7 +38,7 @@ func (s Service) DeleteOwnSession(ctx context.Context, initiator InitiatorData, 
 }
 
 func (s Service) DeleteOwnSessions(ctx context.Context, initiator InitiatorData) error {
-	_, _, err := s.ValidateSession(ctx, initiator)
+	_, _, err := s.validateSession(ctx, initiator)
 	if err != nil {
 		return err
 	}

@@ -6,6 +6,9 @@ import (
 
 var ErrorAccountNotFound = ape.DeclareError("ACCOUNT_NOT_FOUND")
 
+var ErrorUsernameAlreadyTaken = ape.DeclareError("USERNAME_ALREADY_TAKEN")
+var ErrorUsernameIsNotAllowed = ape.DeclareError("USERNAME_IS_NOT_ALLOWED")
+
 var ErrorInitiatorNotFound = ape.DeclareError("INITIATOR_NOT_FOUND")
 var ErrorInitiatorInvalidSession = ape.DeclareError("INITIATOR_INVALID_SESSION")
 

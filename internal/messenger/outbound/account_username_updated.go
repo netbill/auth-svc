@@ -11,16 +11,14 @@ import (
 	"github.com/segmentio/kafka-go"
 )
 
-func (p Producer) WriteAccountCreated(
+func (p Producer) WriteAccountUsernameUpdated(
 	ctx context.Context,
 	account models.Account,
-	email string,
 ) error {
-	payload, err := json.Marshal(contracts.AccountCreatedPayload{
-		AccountID: account.ID,
-		Username:  account.Username,
-		Role:      account.Role,
-		CreatedAt: account.CreatedAt,
+	payload, err := json.Marshal(contracts.AccountUsernameUpdatedPayload{
+		AccountID:   account.ID,
+		NewUsername: account.Username,
+		UpdatedAt:   account.UpdatedAt,
 	})
 	if err != nil {
 		return err
@@ -33,8 +31,8 @@ func (p Producer) WriteAccountCreated(
 			Key:   []byte(account.ID.String()),
 			Value: payload,
 			Headers: []kafka.Header{
-				{Key: header.EventID, Value: []byte(uuid.New().String())},
-				{Key: header.EventType, Value: []byte(contracts.AccountCreatedEvent)},
+				{Key: header.EventID, Value: []byte(uuid.New().String())}, // Outbox will fill this
+				{Key: header.EventType, Value: []byte(contracts.AccountUsernameUpdatedEvent)},
 				{Key: header.EventVersion, Value: []byte("1")},
 				{Key: header.Producer, Value: []byte(contracts.AuthSvcGroup)},
 				{Key: header.ContentType, Value: []byte("application/json")},
@@ -45,7 +43,7 @@ func (p Producer) WriteAccountCreated(
 		return err
 	}
 
-	p.log.Debugf("created outbox event %s for account %s, id %s", contracts.AccountCreatedEvent, event.ID.String(), account.ID.String())
+	p.log.Debugf("created outbox event %s for account %s, id %s", contracts.AccountUsernameUpdatedEvent, event.ID.String(), account.ID.String())
 
-	return nil
+	return err
 }

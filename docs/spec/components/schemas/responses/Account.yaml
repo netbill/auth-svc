@@ -20,12 +20,16 @@ properties:
         type: object
         required:
           - role
+          - username
           - created_at
           - updated_at
         properties:
           role:
             type: string
             description: "The role assigned to the account"
+          username:
+            type: string
+            description: "The username of the account"
           created_at:
             type: string
             format: date-time

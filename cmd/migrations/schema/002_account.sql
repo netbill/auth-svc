@@ -6,8 +6,9 @@ CREATE TYPE "account_role" AS ENUM (
 );
 
 CREATE TABLE accounts (
-    id         UUID           PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
-    role       account_role   DEFAULT 'user'   NOT NULL,
+    id         UUID         PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
+    role       account_role DEFAULT 'user'   NOT NULL,
+    username   VARCHAR(32)  NOT NULL UNIQUE,
 
     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
@@ -23,8 +24,8 @@ CREATE TABLE account_emails (
 );
 
 CREATE TABLE account_passwords (
-    account_id UUID      NOT NULL PRIMARY KEY NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
-    hash       TEXT      NOT NULL,
+    account_id UUID NOT NULL PRIMARY KEY NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
+    hash       TEXT NOT NULL,
 
     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT now()

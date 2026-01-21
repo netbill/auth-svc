@@ -32,6 +32,20 @@ func (s Service) LoginByGoogle(ctx context.Context, email string) (models.Tokens
 	return s.createSession(ctx, account)
 }
 
+func (s Service) LoginByUsername(ctx context.Context, username, password string) (models.TokensPair, error) {
+	account, err := s.GetAccountByUsername(ctx, username)
+	if err != nil {
+		return models.TokensPair{}, err
+	}
+
+	err = s.checkAccountPassword(ctx, account.ID, password)
+	if err != nil {
+		return models.TokensPair{}, err
+	}
+
+	return s.createSession(ctx, account)
+}
+
 func (s Service) checkAccountPassword(
 	ctx context.Context,
 	accountID uuid.UUID,

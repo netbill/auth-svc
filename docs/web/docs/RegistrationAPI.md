@@ -96,7 +96,7 @@ import (
 )
 
 func main() {
-	registration := *openapiclient.NewRegistration(*openapiclient.NewRegistrationData("Type_example", *openapiclient.NewLoginByEmailDataAttributes("example@gmail.com", "StrongP@ssw0rd!"))) // Registration | 
+	registration := *openapiclient.NewRegistration(*openapiclient.NewRegistrationData("Type_example", *openapiclient.NewRegistrationDataAttributes("example@gmail.com", "user123", "StrongP@ssw0rd!"))) // Registration | 
 
 	configuration := openapiclient.NewConfiguration()
 	apiClient := openapiclient.NewAPIClient(configuration)

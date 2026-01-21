@@ -82,9 +82,11 @@ Class | Method | HTTP request | Description
 *AccountsAPI* | [**AuthSvcV1MeEmailGet**](docs/AccountsAPI.md#authsvcv1meemailget) | **Get** /auth-svc/v1/me/email | Get my email data
 *AccountsAPI* | [**AuthSvcV1MeGet**](docs/AccountsAPI.md#authsvcv1meget) | **Get** /auth-svc/v1/me | Get my account
 *AccountsAPI* | [**AuthSvcV1MePasswordPatch**](docs/AccountsAPI.md#authsvcv1mepasswordpatch) | **Patch** /auth-svc/v1/me/password | Update password
+*AccountsAPI* | [**AuthSvcV1MeUsernamePatch**](docs/AccountsAPI.md#authsvcv1meusernamepatch) | **Patch** /auth-svc/v1/me/username | Update username
+*LoginAPI* | [**AuthSvcV1LoginEmailPost**](docs/LoginAPI.md#authsvcv1loginemailpost) | **Post** /auth-svc/v1/login/email | Login by email
 *LoginAPI* | [**AuthSvcV1LoginGoogleCallbackGet**](docs/LoginAPI.md#authsvcv1logingooglecallbackget) | **Get** /auth-svc/v1/login/google/callback | Google OAuth callback
 *LoginAPI* | [**AuthSvcV1LoginGooglePost**](docs/LoginAPI.md#authsvcv1logingooglepost) | **Post** /auth-svc/v1/login/google | Start Google OAuth login
-*LoginAPI* | [**AuthSvcV1LoginPost**](docs/LoginAPI.md#authsvcv1loginpost) | **Post** /auth-svc/v1/login/ | Login by email
+*LoginAPI* | [**AuthSvcV1LoginUsernamePost**](docs/LoginAPI.md#authsvcv1loginusernamepost) | **Post** /auth-svc/v1/login/username | Login by username
 *RegistrationAPI* | [**AuthSvcV1RegistrationAdminPost**](docs/RegistrationAPI.md#authsvcv1registrationadminpost) | **Post** /auth-svc/v1/registration/admin | Register a new admin account
 *RegistrationAPI* | [**AuthSvcV1RegistrationPost**](docs/RegistrationAPI.md#authsvcv1registrationpost) | **Post** /auth-svc/v1/registration/ | Register a new account
 *SessionsAPI* | [**AuthSvcV1MeLogoutPost**](docs/SessionsAPI.md#authsvcv1melogoutpost) | **Post** /auth-svc/v1/me/logout | Logout
@@ -115,6 +117,9 @@ Class | Method | HTTP request | Description
  - [LoginByEmail](docs/LoginByEmail.md)
  - [LoginByEmailData](docs/LoginByEmailData.md)
  - [LoginByEmailDataAttributes](docs/LoginByEmailDataAttributes.md)
+ - [LoginByUsername](docs/LoginByUsername.md)
+ - [LoginByUsernameData](docs/LoginByUsernameData.md)
+ - [LoginByUsernameDataAttributes](docs/LoginByUsernameDataAttributes.md)
  - [PaginationData](docs/PaginationData.md)
  - [RefreshSession](docs/RefreshSession.md)
  - [RefreshSessionData](docs/RefreshSessionData.md)
@@ -124,12 +129,16 @@ Class | Method | HTTP request | Description
  - [RegistrationAdminData](docs/RegistrationAdminData.md)
  - [RegistrationAdminDataAttributes](docs/RegistrationAdminDataAttributes.md)
  - [RegistrationData](docs/RegistrationData.md)
+ - [RegistrationDataAttributes](docs/RegistrationDataAttributes.md)
  - [TokensPair](docs/TokensPair.md)
  - [TokensPairData](docs/TokensPairData.md)
  - [TokensPairDataAttributes](docs/TokensPairDataAttributes.md)
  - [UpdatePassword](docs/UpdatePassword.md)
  - [UpdatePasswordData](docs/UpdatePasswordData.md)
  - [UpdatePasswordDataAttributes](docs/UpdatePasswordDataAttributes.md)
+ - [UpdateUsername](docs/UpdateUsername.md)
+ - [UpdateUsernameData](docs/UpdateUsernameData.md)
+ - [UpdateUsernameDataAttributes](docs/UpdateUsernameDataAttributes.md)
 
 
 ## Documentation For Authorization

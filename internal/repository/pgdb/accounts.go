@@ -14,11 +14,12 @@ import (
 
 const accountsTable = "accounts"
 
-const accountsColumns = "id, role, created_at, updated_at"
-const accountsColumnsA = "a.id, a.role, a.created_at, a.updated_at"
+const accountsColumns = "id, role, username, created_at, updated_at"
+const accountsColumnsA = "a.id, a.role, a.username, a.created_at, a.updated_at"
 
 type Account struct {
 	ID        uuid.UUID `db:"id"`
+	Username  string    `db:"username"`
 	Role      string    `db:"role"`
 	CreatedAt time.Time `db:"created_at"`
 	UpdatedAt time.Time `db:"updated_at"`
@@ -27,6 +28,7 @@ type Account struct {
 func (a *Account) scan(row sq.RowScanner) error {
 	err := row.Scan(
 		&a.ID,
+		&a.Username,
 		&a.Role,
 		&a.CreatedAt,
 		&a.UpdatedAt,
@@ -59,14 +61,16 @@ func NewAccountsQ(db pgx.DBTX) AccountsQ {
 }
 
 type InsertAccountParams struct {
-	ID   uuid.UUID
-	Role string
+	ID       uuid.UUID
+	Username string
+	Role     string
 }
 
 func (q AccountsQ) Insert(ctx context.Context, input InsertAccountParams) (Account, error) {
 	query, args, err := q.inserter.SetMap(map[string]interface{}{
-		"id":   input.ID,
-		"role": input.Role,
+		"id":       input.ID,
+		"username": input.Username,
+		"role":     input.Role,
 	}).Suffix("RETURNING accounts.*").ToSql()
 	if err != nil {
 		return Account{}, fmt.Errorf("building insert query for %s: %w", accountsTable, err)
@@ -144,6 +148,11 @@ func (q AccountsQ) UpdateRole(role string) AccountsQ {
 	return q
 }
 
+func (q AccountsQ) UpdateUsername(username string) AccountsQ {
+	q.updater = q.updater.Set("username", username)
+	return q
+}
+
 func (q AccountsQ) Select(ctx context.Context) ([]Account, error) {
 	query, args, err := q.selector.ToSql()
 	if err != nil {
@@ -195,6 +204,14 @@ func (q AccountsQ) FilterRole(role string) AccountsQ {
 	return q
 }
 
+func (q AccountsQ) FilterUsername(username string) AccountsQ {
+	q.selector = q.selector.Where(sq.Eq{"username": username})
+	q.counter = q.counter.Where(sq.Eq{"username": username})
+	q.deleter = q.deleter.Where(sq.Eq{"username": username})
+	q.updater = q.updater.Where(sq.Eq{"username": username})
+	return q
+}
+
 func (q AccountsQ) FilterEmail(email string) AccountsQ {
 	q.selector = q.selector.
 		Join("account_emails ae ON ae.account_id = accounts.id").
@@ -231,14 +248,5 @@ func (q AccountsQ) Count(ctx context.Context) (uint, error) {
 
 func (q AccountsQ) Page(limit, offset uint) AccountsQ {
 	q.selector = q.selector.Limit(uint64(limit)).Offset(uint64(offset))
-	return q
-}
-
-func (q AccountsQ) OrderCreatedAt(ascending bool) AccountsQ {
-	if ascending {
-		q.selector = q.selector.OrderBy("created_at ASC")
-	} else {
-		q.selector = q.selector.OrderBy("created_at DESC")
-	}
 	return q
 }

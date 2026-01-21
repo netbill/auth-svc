@@ -11,7 +11,7 @@ import (
 )
 
 func (s Service) GetOwnSession(ctx context.Context, initiator InitiatorData, sessionID uuid.UUID) (models.Session, error) {
-	_, _, err := s.ValidateSession(ctx, initiator)
+	_, _, err := s.validateSession(ctx, initiator)
 	if err != nil {
 		return models.Session{}, err
 	}
@@ -37,7 +37,7 @@ func (s Service) GetOwnSessions(
 	initiator InitiatorData,
 	limit, offset uint,
 ) (pagi.Page[[]models.Session], error) {
-	_, _, err := s.ValidateSession(ctx, initiator)
+	_, _, err := s.validateSession(ctx, initiator)
 	if err != nil {
 		return pagi.Page[[]models.Session]{}, err
 	}

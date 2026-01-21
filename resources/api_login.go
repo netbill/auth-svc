@@ -22,6 +22,137 @@ import (
 // LoginAPIService LoginAPI service
 type LoginAPIService service
 
+type ApiAuthSvcV1LoginEmailPostRequest struct {
+	ctx context.Context
+	ApiService *LoginAPIService
+	loginByEmail *LoginByEmail
+}
+
+func (r ApiAuthSvcV1LoginEmailPostRequest) LoginByEmail(loginByEmail LoginByEmail) ApiAuthSvcV1LoginEmailPostRequest {
+	r.loginByEmail = &loginByEmail
+	return r
+}
+
+func (r ApiAuthSvcV1LoginEmailPostRequest) Execute() (*TokensPair, *http.Response, error) {
+	return r.ApiService.AuthSvcV1LoginEmailPostExecute(r)
+}
+
+/*
+AuthSvcV1LoginEmailPost Login by email
+
+Endpoint to login a user using their email and password.
+
+ @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+ @return ApiAuthSvcV1LoginEmailPostRequest
+*/
+func (a *LoginAPIService) AuthSvcV1LoginEmailPost(ctx context.Context) ApiAuthSvcV1LoginEmailPostRequest {
+	return ApiAuthSvcV1LoginEmailPostRequest{
+		ApiService: a,
+		ctx: ctx,
+	}
+}
+
+// Execute executes the request
+//  @return TokensPair
+func (a *LoginAPIService) AuthSvcV1LoginEmailPostExecute(r ApiAuthSvcV1LoginEmailPostRequest) (*TokensPair, *http.Response, error) {
+	var (
+		localVarHTTPMethod   = http.MethodPost
+		localVarPostBody     interface{}
+		formFiles            []formFile
+		localVarReturnValue  *TokensPair
+	)
+
+	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "LoginAPIService.AuthSvcV1LoginEmailPost")
+	if err != nil {
+		return localVarReturnValue, nil, &GenericOpenAPIError{error: err.Error()}
+	}
+
+	localVarPath := localBasePath + "/auth-svc/v1/login/email"
+
+	localVarHeaderParams := make(map[string]string)
+	localVarQueryParams := url.Values{}
+	localVarFormParams := url.Values{}
+	if r.loginByEmail == nil {
+		return localVarReturnValue, nil, reportError("loginByEmail is required and must be specified")
+	}
+
+	// to determine the Content-Type header
+	localVarHTTPContentTypes := []string{"application/json"}
+
+	// set Content-Type header
+	localVarHTTPContentType := selectHeaderContentType(localVarHTTPContentTypes)
+	if localVarHTTPContentType != "" {
+		localVarHeaderParams["Content-Type"] = localVarHTTPContentType
+	}
+
+	// to determine the Accept header
+	localVarHTTPHeaderAccepts := []string{"application/json"}
+
+	// set Accept header
+	localVarHTTPHeaderAccept := selectHeaderAccept(localVarHTTPHeaderAccepts)
+	if localVarHTTPHeaderAccept != "" {
+		localVarHeaderParams["Accept"] = localVarHTTPHeaderAccept
+	}
+	// body params
+	localVarPostBody = r.loginByEmail
+	req, err := a.client.prepareRequest(r.ctx, localVarPath, localVarHTTPMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, formFiles)
+	if err != nil {
+		return localVarReturnValue, nil, err
+	}
+
+	localVarHTTPResponse, err := a.client.callAPI(req)
+	if err != nil || localVarHTTPResponse == nil {
+		return localVarReturnValue, localVarHTTPResponse, err
+	}
+
+	localVarBody, err := io.ReadAll(localVarHTTPResponse.Body)
+	localVarHTTPResponse.Body.Close()
+	localVarHTTPResponse.Body = io.NopCloser(bytes.NewBuffer(localVarBody))
+	if err != nil {
+		return localVarReturnValue, localVarHTTPResponse, err
+	}
+
+	if localVarHTTPResponse.StatusCode >= 300 {
+		newErr := &GenericOpenAPIError{
+			body:  localVarBody,
+			error: localVarHTTPResponse.Status,
+		}
+		if localVarHTTPResponse.StatusCode == 401 {
+			var v Errors
+			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+			if err != nil {
+				newErr.error = err.Error()
+				return localVarReturnValue, localVarHTTPResponse, newErr
+			}
+					newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+					newErr.model = v
+			return localVarReturnValue, localVarHTTPResponse, newErr
+		}
+		if localVarHTTPResponse.StatusCode == 500 {
+			var v Errors
+			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+			if err != nil {
+				newErr.error = err.Error()
+				return localVarReturnValue, localVarHTTPResponse, newErr
+			}
+					newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+					newErr.model = v
+		}
+		return localVarReturnValue, localVarHTTPResponse, newErr
+	}
+
+	err = a.client.decode(&localVarReturnValue, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+	if err != nil {
+		newErr := &GenericOpenAPIError{
+			body:  localVarBody,
+			error: err.Error(),
+		}
+		return localVarReturnValue, localVarHTTPResponse, newErr
+	}
+
+	return localVarReturnValue, localVarHTTPResponse, nil
+}
+
 type ApiAuthSvcV1LoginGoogleCallbackGetRequest struct {
 	ctx context.Context
 	ApiService *LoginAPIService
@@ -275,31 +406,31 @@ func (a *LoginAPIService) AuthSvcV1LoginGooglePostExecute(r ApiAuthSvcV1LoginGoo
 	return localVarHTTPResponse, nil
 }
 
-type ApiAuthSvcV1LoginPostRequest struct {
+type ApiAuthSvcV1LoginUsernamePostRequest struct {
 	ctx context.Context
 	ApiService *LoginAPIService
-	loginByEmail *LoginByEmail
+	loginByUsername *LoginByUsername
 }
 
-func (r ApiAuthSvcV1LoginPostRequest) LoginByEmail(loginByEmail LoginByEmail) ApiAuthSvcV1LoginPostRequest {
-	r.loginByEmail = &loginByEmail
+func (r ApiAuthSvcV1LoginUsernamePostRequest) LoginByUsername(loginByUsername LoginByUsername) ApiAuthSvcV1LoginUsernamePostRequest {
+	r.loginByUsername = &loginByUsername
 	return r
 }
 
-func (r ApiAuthSvcV1LoginPostRequest) Execute() (*TokensPair, *http.Response, error) {
-	return r.ApiService.AuthSvcV1LoginPostExecute(r)
+func (r ApiAuthSvcV1LoginUsernamePostRequest) Execute() (*TokensPair, *http.Response, error) {
+	return r.ApiService.AuthSvcV1LoginUsernamePostExecute(r)
 }
 
 /*
-AuthSvcV1LoginPost Login by email
+AuthSvcV1LoginUsernamePost Login by username
 
-Endpoint to login a user using their email and password.
+Endpoint to login a user using their username and password.
 
  @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
- @return ApiAuthSvcV1LoginPostRequest
+ @return ApiAuthSvcV1LoginUsernamePostRequest
 */
-func (a *LoginAPIService) AuthSvcV1LoginPost(ctx context.Context) ApiAuthSvcV1LoginPostRequest {
-	return ApiAuthSvcV1LoginPostRequest{
+func (a *LoginAPIService) AuthSvcV1LoginUsernamePost(ctx context.Context) ApiAuthSvcV1LoginUsernamePostRequest {
+	return ApiAuthSvcV1LoginUsernamePostRequest{
 		ApiService: a,
 		ctx: ctx,
 	}
@@ -307,7 +438,7 @@ func (a *LoginAPIService) AuthSvcV1LoginPost(ctx context.Context) ApiAuthSvcV1Lo
 
 // Execute executes the request
 //  @return TokensPair
-func (a *LoginAPIService) AuthSvcV1LoginPostExecute(r ApiAuthSvcV1LoginPostRequest) (*TokensPair, *http.Response, error) {
+func (a *LoginAPIService) AuthSvcV1LoginUsernamePostExecute(r ApiAuthSvcV1LoginUsernamePostRequest) (*TokensPair, *http.Response, error) {
 	var (
 		localVarHTTPMethod   = http.MethodPost
 		localVarPostBody     interface{}
@@ -315,18 +446,18 @@ func (a *LoginAPIService) AuthSvcV1LoginPostExecute(r ApiAuthSvcV1LoginPostReque
 		localVarReturnValue  *TokensPair
 	)
 
-	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "LoginAPIService.AuthSvcV1LoginPost")
+	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "LoginAPIService.AuthSvcV1LoginUsernamePost")
 	if err != nil {
 		return localVarReturnValue, nil, &GenericOpenAPIError{error: err.Error()}
 	}
 
-	localVarPath := localBasePath + "/auth-svc/v1/login/"
+	localVarPath := localBasePath + "/auth-svc/v1/login/username"
 
 	localVarHeaderParams := make(map[string]string)
 	localVarQueryParams := url.Values{}
 	localVarFormParams := url.Values{}
-	if r.loginByEmail == nil {
-		return localVarReturnValue, nil, reportError("loginByEmail is required and must be specified")
+	if r.loginByUsername == nil {
+		return localVarReturnValue, nil, reportError("loginByUsername is required and must be specified")
 	}
 
 	// to determine the Content-Type header
@@ -347,7 +478,7 @@ func (a *LoginAPIService) AuthSvcV1LoginPostExecute(r ApiAuthSvcV1LoginPostReque
 		localVarHeaderParams["Accept"] = localVarHTTPHeaderAccept
 	}
 	// body params
-	localVarPostBody = r.loginByEmail
+	localVarPostBody = r.loginByUsername
 	req, err := a.client.prepareRequest(r.ctx, localVarPath, localVarHTTPMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, formFiles)
 	if err != nil {
 		return localVarReturnValue, nil, err

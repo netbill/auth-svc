@@ -8,7 +8,7 @@ import (
 )
 
 func (s Service) DeleteOwnAccount(ctx context.Context, initiator InitiatorData) error {
-	account, _, err := s.ValidateSession(ctx, initiator)
+	account, _, err := s.validateSession(ctx, initiator)
 	if err != nil {
 		return err
 	}

@@ -43,7 +43,24 @@ func (s Service) GetAccountByEmail(ctx context.Context, email string) (models.Ac
 	return account, nil
 }
 
-func (s Service) AccountExistsByEmail(ctx context.Context, email string) (bool, error) {
+func (s Service) GetAccountByUsername(ctx context.Context, username string) (models.Account, error) {
+	account, err := s.repo.GetAccountByUsername(ctx, username)
+	if err != nil {
+		return models.Account{}, errx.ErrorInternal.Raise(
+			fmt.Errorf("failed to get account with username '%s', cause: %w", username, err),
+		)
+	}
+
+	if account.IsNil() {
+		return models.Account{}, errx.ErrorAccountNotFound.Raise(
+			fmt.Errorf("account with username '%s' not found", username),
+		)
+	}
+
+	return account, nil
+}
+
+func (s Service) accountExistsByEmail(ctx context.Context, email string) (bool, error) {
 	account, err := s.repo.GetAccountByEmail(ctx, email)
 	if err != nil {
 		return false, errx.ErrorInternal.Raise(

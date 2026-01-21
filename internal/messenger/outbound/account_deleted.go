@@ -16,24 +16,21 @@ func (p Producer) WriteAccountDeleted(
 	accountID uuid.UUID,
 ) error {
 	payload, err := json.Marshal(contracts.AccountDeletedPayload{
-		Data: contracts.AccountDeletedPayloadData{
-			AccountID: accountID,
-		},
-		Timestamp: time.Now().UTC(),
+		AccountID: accountID,
+		DeletedAt: time.Now().UTC(),
 	})
 	if err != nil {
 		return err
 	}
 
-	eventID := uuid.New().String()
-	_, err = p.outbox.CreateOutboxEvent(
+	event, err := p.outbox.CreateOutboxEvent(
 		ctx,
 		kafka.Message{
 			Topic: contracts.AccountsTopicV1,
 			Key:   []byte(accountID.String()),
 			Value: payload,
 			Headers: []kafka.Header{
-				{Key: header.EventID, Value: []byte(eventID)}, // Outbox will fill this
+				{Key: header.EventID, Value: []byte(uuid.New().String())}, // Outbox will fill this
 				{Key: header.EventType, Value: []byte(contracts.AccountDeletedEvent)},
 				{Key: header.EventVersion, Value: []byte("1")},
 				{Key: header.Producer, Value: []byte(contracts.AuthSvcGroup)},
@@ -41,8 +38,11 @@ func (p Producer) WriteAccountDeleted(
 			},
 		},
 	)
+	if err != nil {
+		return err
+	}
 
-	p.log.Debugf("created outbox event %s for account %s, id %s", contracts.AccountDeletedEvent, eventID, accountID.String())
+	p.log.Debugf("created outbox event %s for account %s, id %s", contracts.AccountDeletedEvent, event.ID.String(), accountID.String())
 
 	return err
 }

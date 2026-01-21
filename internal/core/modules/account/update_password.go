@@ -13,7 +13,7 @@ func (s Service) UpdatePassword(
 	initiator InitiatorData,
 	oldPassword, newPassword string,
 ) error {
-	account, _, err := s.ValidateSession(ctx, initiator)
+	account, _, err := s.validateSession(ctx, initiator)
 	if err != nil {
 		return err
 	}
@@ -38,7 +38,7 @@ func (s Service) UpdatePassword(
 		return err
 	}
 
-	if err = s.CheckPasswordRequirements(newPassword); err != nil {
+	if err = s.checkPasswordRequirements(newPassword); err != nil {
 		return err
 	}
 

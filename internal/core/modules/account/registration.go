@@ -13,6 +13,7 @@ import (
 
 type RegistrationParams struct {
 	Email    string
+	Username string
 	Password string
 	Role     string
 }
@@ -21,7 +22,7 @@ func (s Service) Registration(
 	ctx context.Context,
 	params RegistrationParams,
 ) (models.Account, error) {
-	check, err := s.AccountExistsByEmail(ctx, params.Email)
+	check, err := s.accountExistsByEmail(ctx, params.Email)
 	if err != nil {
 		return models.Account{}, err
 	}
@@ -38,7 +39,12 @@ func (s Service) Registration(
 		)
 	}
 
-	err = s.CheckPasswordRequirements(params.Password)
+	err = s.checkPasswordRequirements(params.Password)
+	if err != nil {
+		return models.Account{}, err
+	}
+
+	err = s.checkUsernameRequirements(ctx, params.Username)
 	if err != nil {
 		return models.Account{}, err
 	}
@@ -55,6 +61,7 @@ func (s Service) Registration(
 		account, err = s.repo.CreateAccount(ctx, CreateAccountParams{
 			Role:         params.Role,
 			Email:        params.Email,
+			Username:     params.Username,
 			PasswordHash: string(hash),
 		})
 		if err != nil {
@@ -63,8 +70,7 @@ func (s Service) Registration(
 			)
 		}
 
-		err = s.messenger.WriteAccountCreated(ctx, account, params.Email)
-		if err != nil {
+		if err = s.messenger.WriteAccountCreated(ctx, account, params.Email); err != nil {
 			return errx.ErrorInternal.Raise(
 				fmt.Errorf("failed to publish account created messenger for account '%s', cause: %w", account.ID, err),
 			)

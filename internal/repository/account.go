@@ -17,8 +17,9 @@ func (r Repository) CreateAccount(ctx context.Context, params account.CreateAcco
 	accountID := uuid.New()
 
 	acc, err := r.accountsQ(ctx).Insert(ctx, pgdb.InsertAccountParams{
-		ID:   accountID,
-		Role: params.Role,
+		ID:       accountID,
+		Username: params.Username,
+		Role:     params.Role,
 	})
 	if err != nil {
 		return models.Account{}, err
@@ -76,6 +77,18 @@ func (r Repository) GetAccountByEmail(ctx context.Context, email string) (models
 	return acc.ToModel(), nil
 }
 
+func (r Repository) GetAccountByUsername(ctx context.Context, username string) (models.Account, error) {
+	acc, err := r.accountsQ(ctx).FilterUsername(username).Get(ctx)
+	switch {
+	case errors.Is(err, sql.ErrNoRows):
+		return models.Account{}, nil
+	case err != nil:
+		return models.Account{}, err
+	}
+
+	return acc.ToModel(), nil
+}
+
 func (r Repository) GetAccountEmail(ctx context.Context, accountID uuid.UUID) (models.AccountEmail, error) {
 	acc, err := r.emailsQ(ctx).FilterAccountID(accountID).Get(ctx)
 	switch {
@@ -111,6 +124,22 @@ func (r Repository) UpdateAccountPassword(
 		UpdateOne(ctx)
 	if err != nil {
 		return models.AccountPassword{}, err
+	}
+
+	return acc.ToModel(), nil
+}
+
+func (r Repository) UpdateAccountUsername(
+	ctx context.Context,
+	accountID uuid.UUID,
+	username string,
+) (models.Account, error) {
+	acc, err := r.accountsQ(ctx).
+		FilterID(accountID).
+		UpdateUsername(username).
+		UpdateOne(ctx)
+	if err != nil {
+		return models.Account{}, err
 	}
 
 	return acc.ToModel(), nil
