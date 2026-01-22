@@ -53,8 +53,8 @@ github.com/mattn/go-sqlite3 v1.14.19 h1:fhGleo2h1p8tVChob4I9HpmVFIAkKGpiukdrgQbW
 github.com/mattn/go-sqlite3 v1.14.19/go.mod h1:2eHXhiwb8IkHr+BDWZGa96P6+rkvnG63S2DGjv9HUNg=
 github.com/netbill/ape v0.1.0 h1:CIAkTYIPedm7hqFPt9N64mOrTEJaDvAJnOvElLwWB5w=
 github.com/netbill/ape v0.1.0/go.mod h1:0VOAEb/M94S4L/tby8PhN3QcG/4nJeXQN5loloLmXWk=
-github.com/netbill/evebox v0.2.8 h1:swl6NEF5a+TmOwbiSSPMQyYddJup3EVV9Bu+jI8vbMc=
-github.com/netbill/evebox v0.2.8/go.mod h1:ZVCQvH6T3Dn+tD4zARzOgYMaKvgYGJ02hWuGVbVkXFo=
+github.com/netbill/evebox v0.3.2 h1:usz1FMPSYxfrR/CnkC3/iy/WJ7eAiVndAVkvoVHbFDA=
+github.com/netbill/evebox v0.3.2/go.mod h1:Ue7Wn87aR8K7zs+UcLFlWFtvnsDqzN7nK8A+BFdXoeU=
 github.com/netbill/logium v0.1.0 h1:Cq1iT1RtRFQdd4XggWQHBpa/fc+c0BYCqSeuqRB0IZM=
 github.com/netbill/logium v0.1.0/go.mod h1:4c8Cbzv2iGdDY+bx34xo8Xy4L78jUVOJrTATZqwGUEs=
 github.com/netbill/pgx v0.1.0 h1:4keP+ykB5Xe5+G+8lK7yVvs3UDWG4keehpPVRz5v8PE=

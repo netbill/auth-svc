@@ -36,6 +36,7 @@ func (s *Service) RegistrationByAdmin(w http.ResponseWriter, r *http.Request) {
 		initiator.ID,
 		account.RegistrationParams{
 			Email:    req.Data.Attributes.Email,
+			Username: req.Data.Attributes.Username,
 			Password: req.Data.Attributes.Password,
 			Role:     req.Data.Attributes.Role,
 		},

@@ -7,11 +7,11 @@ CREATE TYPE "account_role" AS ENUM (
 
 CREATE TABLE accounts (
     id         UUID         PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
-    role       account_role DEFAULT 'user'   NOT NULL,
     username   VARCHAR(32)  NOT NULL UNIQUE,
+    role       account_role DEFAULT 'user'   NOT NULL,
 
     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-    updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
 CREATE TABLE account_emails (

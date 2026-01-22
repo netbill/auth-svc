@@ -34,6 +34,10 @@ func (r Repository) emailsQ(ctx context.Context) pgdb.AccountEmailsQ {
 	return pgdb.NewAccountEmailsQ(pgx.Exec(r.db, ctx))
 }
 
+func (r Repository) orgMembersQ(ctx context.Context) pgdb.OrganizationMembersQ {
+	return pgdb.NewOrganizationMembersQ(pgx.Exec(r.db, ctx))
+}
+
 func (r Repository) Transaction(ctx context.Context, fn func(ctx context.Context) error) error {
 	return pgx.Transaction(r.db, ctx, fn)
 }

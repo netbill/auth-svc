@@ -26,6 +26,7 @@ func (s *Service) Registration(w http.ResponseWriter, r *http.Request) {
 	_, err = s.core.Registration(r.Context(), account.RegistrationParams{
 		Email:    req.Data.Attributes.Email,
 		Password: req.Data.Attributes.Password,
+		Username: req.Data.Attributes.Username,
 		Role:     roles.SystemUser,
 	})
 	if err != nil {

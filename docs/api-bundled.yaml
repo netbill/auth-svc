@@ -1149,6 +1149,7 @@ components:
               type: object
               required:
                 - email
+                - username
                 - password
                 - role
               properties:
@@ -1157,6 +1158,10 @@ components:
                   format: email
                   description: The account's email address.
                   example: example1312@gmail.com
+                username:
+                  type: string
+                  description: The account's username.
+                  example: adminUser
                 password:
                   type: string
                   format: password

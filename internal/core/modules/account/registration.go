@@ -60,8 +60,8 @@ func (s Service) Registration(
 	err = s.repo.Transaction(ctx, func(ctx context.Context) error {
 		account, err = s.repo.CreateAccount(ctx, CreateAccountParams{
 			Role:         params.Role,
-			Email:        params.Email,
 			Username:     params.Username,
+			Email:        params.Email,
 			PasswordHash: string(hash),
 		})
 		if err != nil {
@@ -70,7 +70,7 @@ func (s Service) Registration(
 			)
 		}
 
-		if err = s.messenger.WriteAccountCreated(ctx, account, params.Email); err != nil {
+		if err = s.messenger.WriteAccountCreated(ctx, account); err != nil {
 			return errx.ErrorInternal.Raise(
 				fmt.Errorf("failed to publish account created messenger for account '%s', cause: %w", account.ID, err),
 			)
@@ -113,7 +113,12 @@ func (s Service) RegistrationByAdmin(
 		return models.Account{}, err
 	}
 
-	err = s.messenger.WriteAccountCreated(ctx, account, params.Email)
+	err = s.checkUsernameRequirements(ctx, params.Username)
+	if err != nil {
+		return models.Account{}, err
+	}
+
+	err = s.messenger.WriteAccountCreated(ctx, account)
 	if err != nil {
 		return models.Account{}, errx.ErrorInternal.Raise(
 			fmt.Errorf("failed to publish admin created messenger for account '%s', cause: %w", account.ID, err),

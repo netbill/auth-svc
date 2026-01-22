@@ -5,6 +5,7 @@
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **Email** | **string** | The account&#39;s email address. | 
+**Username** | **string** | The account&#39;s username. | 
 **Password** | **string** | The account&#39;s password. | 
 **Role** | **string** | The role assigned to the registering account. | 
 
@@ -12,7 +13,7 @@ Name | Type | Description | Notes
 
 ### NewRegistrationAdminDataAttributes
 
-`func NewRegistrationAdminDataAttributes(email string, password string, role string, ) *RegistrationAdminDataAttributes`
+`func NewRegistrationAdminDataAttributes(email string, username string, password string, role string, ) *RegistrationAdminDataAttributes`
 
 NewRegistrationAdminDataAttributes instantiates a new RegistrationAdminDataAttributes object
 This constructor will assign default values to properties that have it defined,
@@ -45,6 +46,26 @@ and a boolean to check if the value has been set.
 `func (o *RegistrationAdminDataAttributes) SetEmail(v string)`
 
 SetEmail sets Email field to given value.
+
+
+### GetUsername
+
+`func (o *RegistrationAdminDataAttributes) GetUsername() string`
+
+GetUsername returns the Username field if non-nil, zero value otherwise.
+
+### GetUsernameOk
+
+`func (o *RegistrationAdminDataAttributes) GetUsernameOk() (*string, bool)`
+
+GetUsernameOk returns a tuple with the Username field if it's non-nil, zero value otherwise
+and a boolean to check if the value has been set.
+
+### SetUsername
+
+`func (o *RegistrationAdminDataAttributes) SetUsername(v string)`
+
+SetUsername sets Username field to given value.
 
 
 ### GetPassword

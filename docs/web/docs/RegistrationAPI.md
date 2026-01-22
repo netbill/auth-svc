@@ -30,7 +30,7 @@ import (
 )
 
 func main() {
-	registrationAdmin := *openapiclient.NewRegistrationAdmin(*openapiclient.NewRegistrationAdminData("Type_example", *openapiclient.NewRegistrationAdminDataAttributes("example1312@gmail.com", "StrongP@ssw0rd!", "admin"))) // RegistrationAdmin | 
+	registrationAdmin := *openapiclient.NewRegistrationAdmin(*openapiclient.NewRegistrationAdminData("Type_example", *openapiclient.NewRegistrationAdminDataAttributes("example1312@gmail.com", "adminUser", "StrongP@ssw0rd!", "admin"))) // RegistrationAdmin | 
 
 	configuration := openapiclient.NewConfiguration()
 	apiClient := openapiclient.NewAPIClient(configuration)

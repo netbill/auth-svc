@@ -23,6 +23,8 @@ var _ MappedNullable = &RegistrationAdminDataAttributes{}
 type RegistrationAdminDataAttributes struct {
 	// The account's email address.
 	Email string `json:"email"`
+	// The account's username.
+	Username string `json:"username"`
 	// The account's password.
 	Password string `json:"password"`
 	// The role assigned to the registering account.
@@ -35,9 +37,10 @@ type _RegistrationAdminDataAttributes RegistrationAdminDataAttributes
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewRegistrationAdminDataAttributes(email string, password string, role string) *RegistrationAdminDataAttributes {
+func NewRegistrationAdminDataAttributes(email string, username string, password string, role string) *RegistrationAdminDataAttributes {
 	this := RegistrationAdminDataAttributes{}
 	this.Email = email
+	this.Username = username
 	this.Password = password
 	this.Role = role
 	return &this
@@ -73,6 +76,30 @@ func (o *RegistrationAdminDataAttributes) GetEmailOk() (*string, bool) {
 // SetEmail sets field value
 func (o *RegistrationAdminDataAttributes) SetEmail(v string) {
 	o.Email = v
+}
+
+// GetUsername returns the Username field value
+func (o *RegistrationAdminDataAttributes) GetUsername() string {
+	if o == nil {
+		var ret string
+		return ret
+	}
+
+	return o.Username
+}
+
+// GetUsernameOk returns a tuple with the Username field value
+// and a boolean to check if the value has been set.
+func (o *RegistrationAdminDataAttributes) GetUsernameOk() (*string, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return &o.Username, true
+}
+
+// SetUsername sets field value
+func (o *RegistrationAdminDataAttributes) SetUsername(v string) {
+	o.Username = v
 }
 
 // GetPassword returns the Password field value
@@ -134,6 +161,7 @@ func (o RegistrationAdminDataAttributes) MarshalJSON() ([]byte, error) {
 func (o RegistrationAdminDataAttributes) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
 	toSerialize["email"] = o.Email
+	toSerialize["username"] = o.Username
 	toSerialize["password"] = o.Password
 	toSerialize["role"] = o.Role
 	return toSerialize, nil
@@ -145,6 +173,7 @@ func (o *RegistrationAdminDataAttributes) UnmarshalJSON(data []byte) (err error)
 	// that every required field exists as a key in the generic map.
 	requiredProperties := []string{
 		"email",
+		"username",
 		"password",
 		"role",
 	}

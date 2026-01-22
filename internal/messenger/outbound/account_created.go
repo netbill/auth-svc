@@ -14,7 +14,6 @@ import (
 func (p Producer) WriteAccountCreated(
 	ctx context.Context,
 	account models.Account,
-	email string,
 ) error {
 	payload, err := json.Marshal(contracts.AccountCreatedPayload{
 		AccountID: account.ID,

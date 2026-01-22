@@ -1,6 +1,8 @@
 package outbound
 
 import (
+	"database/sql"
+
 	"github.com/netbill/evebox/box/outbox"
 	"github.com/netbill/logium"
 )
@@ -10,9 +12,9 @@ type Producer struct {
 	outbox outbox.Box
 }
 
-func New(log logium.Logger, ob outbox.Box) *Producer {
+func New(log logium.Logger, db *sql.DB) *Producer {
 	return &Producer{
 		log:    log,
-		outbox: ob,
+		outbox: outbox.New(db),
 	}
 }

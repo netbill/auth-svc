@@ -1110,6 +1110,7 @@ components:
             password: StrongP@ssw0rd!
             role: admin
             email: example1312@gmail.com
+            username: adminUser
           type: registration_account_by_admin
       properties:
         data:
@@ -1441,11 +1442,16 @@ components:
         password: StrongP@ssw0rd!
         role: admin
         email: example1312@gmail.com
+        username: adminUser
       properties:
         email:
           description: The account's email address.
           example: example1312@gmail.com
           format: email
+          type: string
+        username:
+          description: The account's username.
+          example: adminUser
           type: string
         password:
           description: The account's password.
@@ -1463,12 +1469,14 @@ components:
       - email
       - password
       - role
+      - username
     RegistrationAdmin_data:
       example:
         attributes:
           password: StrongP@ssw0rd!
           role: admin
           email: example1312@gmail.com
+          username: adminUser
         type: registration_account_by_admin
       properties:
         type:

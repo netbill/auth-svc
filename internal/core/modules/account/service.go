@@ -47,7 +47,7 @@ type JWTManager interface {
 }
 
 type messenger interface {
-	WriteAccountCreated(ctx context.Context, account models.Account, email string) error
+	WriteAccountCreated(ctx context.Context, account models.Account) error
 	WriteAccountUsernameUpdated(ctx context.Context, account models.Account) error
 	WriteAccountDeleted(ctx context.Context, accountID uuid.UUID) error
 }
@@ -106,6 +106,8 @@ type repo interface {
 	DeleteSession(ctx context.Context, sessionID uuid.UUID) error
 	DeleteSessionsForAccount(ctx context.Context, accountID uuid.UUID) error
 	DeleteAccountSession(ctx context.Context, accountID, sessionID uuid.UUID) error
+
+	ExistOrgMemberByAccount(ctx context.Context, accountID uuid.UUID) (bool, error)
 
 	Transaction(ctx context.Context, fn func(ctx context.Context) error) error
 }

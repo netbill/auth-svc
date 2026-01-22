@@ -72,7 +72,7 @@ func (s *Service) Run(ctx context.Context, cfg internal.Config) {
 
 	// CORS for swagger UI documentation need to delete after configuring nginx
 	r.Use(cors.Handler(cors.Options{
-		AllowedOrigins:   []string{"http://localhost:5555"},
+		AllowedOrigins:   []string{"http://localhost:5001"},
 		AllowedMethods:   []string{"GET", "POST", "PATCH", "DELETE", "OPTIONS"},
 		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type"},
 		ExposedHeaders:   []string{"Link"},
