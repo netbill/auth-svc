@@ -1,13 +1,13 @@
-package token
+package tokenmanger
 
 import (
 	"github.com/google/uuid"
 	"github.com/netbill/auth-svc/internal/core/models"
-	"github.com/netbill/restkit/auth"
+	"github.com/netbill/restkit/tokens"
 )
 
 func (s Service) GenerateAccess(account models.Account, sessionID uuid.UUID) (string, error) {
-	return auth.GenerateAccountJWT(auth.GenerateAccountJwtRequest{
+	return tokens.GenerateAccountJWT(tokens.GenerateAccountJwtRequest{
 		Issuer:    s.iss,
 		Audience:  []string{s.iss},
 		AccountID: account.ID,
@@ -17,6 +17,6 @@ func (s Service) GenerateAccess(account models.Account, sessionID uuid.UUID) (st
 	}, s.accessSK)
 }
 
-func (s Service) ParseAccessClaims(tokenStr string) (auth.AccountClaims, error) {
-	return auth.VerifyAccountJWT(tokenStr, s.accessSK)
+func (s Service) ParseAccessClaims(tokenStr string) (tokens.AccountJwtData, error) {
+	return tokens.ParseAccountJWT(tokenStr, s.accessSK)
 }

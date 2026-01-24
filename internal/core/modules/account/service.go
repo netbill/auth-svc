@@ -9,8 +9,8 @@ import (
 	"github.com/google/uuid"
 	"github.com/netbill/auth-svc/internal/core/errx"
 	"github.com/netbill/auth-svc/internal/core/models"
-	"github.com/netbill/restkit/auth"
 	"github.com/netbill/restkit/pagi"
+	"github.com/netbill/restkit/tokens"
 )
 
 type Service struct {
@@ -32,8 +32,8 @@ func NewService(
 }
 
 type JWTManager interface {
-	ParseAccessClaims(tokenStr string) (auth.AccountClaims, error)
-	ParseRefreshClaims(enc string) (auth.AccountClaims, error)
+	ParseAccessClaims(tokenStr string) (tokens.AccountJwtData, error)
+	ParseRefreshClaims(enc string) (tokens.AccountJwtData, error)
 
 	HashRefresh(rawRefresh string) (string, error)
 

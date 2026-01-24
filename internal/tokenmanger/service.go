@@ -1,4 +1,4 @@
-package token
+package tokenmanger
 
 import (
 	"crypto/hmac"

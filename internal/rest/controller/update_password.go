@@ -32,7 +32,7 @@ func (s *Service) UpdatePassword(w http.ResponseWriter, r *http.Request) {
 	}
 
 	err = s.core.UpdatePassword(r.Context(), account.InitiatorData{
-		AccountID: initiator.ID,
+		AccountID: initiator.AccountID,
 		SessionID: initiator.SessionID,
 	}, req.Data.Attributes.OldPassword, req.Data.Attributes.NewPassword)
 	if err != nil {

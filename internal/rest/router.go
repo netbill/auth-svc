@@ -10,7 +10,7 @@ import (
 	"github.com/go-chi/cors"
 	"github.com/netbill/auth-svc/internal"
 	"github.com/netbill/logium"
-	"github.com/netbill/restkit/auth/roles"
+	"github.com/netbill/restkit/tokens/roles"
 )
 
 type Handlers interface {
@@ -40,8 +40,8 @@ type Handlers interface {
 }
 
 type Middlewares interface {
-	Auth() func(http.Handler) http.Handler
-	RoleGrant(allowedRoles map[string]bool) func(http.Handler) http.Handler
+	AccountAuth() func(http.Handler) http.Handler
+	AccountRoleGrant(allowedRoles map[string]bool) func(http.Handler) http.Handler
 }
 
 type Service struct {
@@ -63,8 +63,8 @@ func New(
 }
 
 func (s *Service) Run(ctx context.Context, cfg internal.Config) {
-	auth := s.middlewares.Auth()
-	sysadmin := s.middlewares.RoleGrant(map[string]bool{
+	auth := s.middlewares.AccountAuth()
+	sysadmin := s.middlewares.AccountRoleGrant(map[string]bool{
 		roles.SystemAdmin: true,
 	})
 

@@ -13,7 +13,7 @@ require (
 	github.com/netbill/evebox v0.3.2
 	github.com/netbill/logium v0.1.0
 	github.com/netbill/pgx v0.1.0
-	github.com/netbill/restkit v0.1.5
+	github.com/netbill/restkit v0.1.7
 	github.com/pkg/errors v0.9.1
 	github.com/rubenv/sql-migrate v1.8.1
 	github.com/segmentio/kafka-go v0.4.49

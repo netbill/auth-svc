@@ -37,7 +37,7 @@ func (s *Service) GetMySession(w http.ResponseWriter, r *http.Request) {
 	}
 
 	session, err := s.core.GetOwnSession(r.Context(), account.InitiatorData{
-		AccountID: initiator.ID,
+		AccountID: initiator.AccountID,
 		SessionID: initiator.SessionID,
 	}, sessionId)
 	if err != nil {

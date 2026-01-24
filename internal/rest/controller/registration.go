@@ -9,7 +9,7 @@ import (
 	"github.com/netbill/auth-svc/internal/rest/requests"
 	"github.com/netbill/restkit/ape"
 	"github.com/netbill/restkit/ape/problems"
-	"github.com/netbill/restkit/auth/roles"
+	"github.com/netbill/restkit/tokens/roles"
 
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 )

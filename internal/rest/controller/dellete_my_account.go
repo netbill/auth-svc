@@ -21,11 +21,11 @@ func (s *Service) DeleteMyAccount(w http.ResponseWriter, r *http.Request) {
 	}
 
 	err = s.core.DeleteOwnAccount(r.Context(), account.InitiatorData{
-		AccountID: initiator.ID,
+		AccountID: initiator.AccountID,
 		SessionID: initiator.SessionID,
 	})
 	if err != nil {
-		s.log.WithError(err).Errorf("failed to delete my account with id: %s", initiator.ID)
+		s.log.WithError(err).Errorf("failed to delete my account with id: %s", initiator.AccountID)
 		switch {
 		case errors.Is(err, errx.ErrorInitiatorNotFound):
 			ape.RenderErr(w, problems.Unauthorized("initiator account not found by credentials"))

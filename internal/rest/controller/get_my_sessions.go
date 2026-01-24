@@ -24,7 +24,7 @@ func (s *Service) GetMySessions(w http.ResponseWriter, r *http.Request) {
 
 	limit, offset := pagi.GetPagination(r)
 	sessions, err := s.core.GetOwnSessions(r.Context(), account.InitiatorData{
-		AccountID: initiator.ID,
+		AccountID: initiator.AccountID,
 		SessionID: initiator.SessionID,
 	}, limit, offset)
 	if err != nil {

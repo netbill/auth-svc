@@ -33,7 +33,7 @@ func (s *Service) UpdateUsername(w http.ResponseWriter, r *http.Request) {
 	}
 
 	res, err := s.core.UpdateUsername(r.Context(), account.InitiatorData{
-		AccountID: initiator.ID,
+		AccountID: initiator.AccountID,
 		SessionID: initiator.SessionID,
 	}, req.Data.Attributes.NewUsername)
 	if err != nil {

@@ -14,9 +14,9 @@ import (
 	"github.com/netbill/auth-svc/internal/repository"
 	"github.com/netbill/auth-svc/internal/rest"
 	"github.com/netbill/auth-svc/internal/rest/controller"
-	"github.com/netbill/auth-svc/internal/token"
+	"github.com/netbill/auth-svc/internal/rest/middlewares"
+	"github.com/netbill/auth-svc/internal/tokenmanger"
 	"github.com/netbill/logium"
-	"github.com/netbill/restkit/mdlv"
 )
 
 func StartServices(ctx context.Context, cfg internal.Config, log logium.Logger, wg *sync.WaitGroup) {
@@ -35,7 +35,7 @@ func StartServices(ctx context.Context, cfg internal.Config, log logium.Logger, 
 
 	repo := repository.New(pg)
 
-	jwtTokenManager := token.NewManager(token.Config{
+	jwtTokenManager := tokenmanger.NewManager(tokenmanger.Config{
 		AccessSK:   cfg.JWT.User.AccessToken.SecretKey,
 		RefreshSK:  cfg.JWT.User.RefreshToken.SecretKey,
 		RefreshHK:  cfg.JWT.User.RefreshToken.HashKey,
@@ -50,7 +50,7 @@ func StartServices(ctx context.Context, cfg internal.Config, log logium.Logger, 
 	orgCore := organization.New(repo)
 
 	ctrl := controller.New(log, cfg.GoogleOAuth(), accountCore)
-	mdll := mdlv.New(cfg.JWT.User.AccessToken.SecretKey, rest.AccountDataCtxKey, log)
+	mdll := middlewares.New(log, cfg.JWT.User.AccessToken.SecretKey)
 	router := rest.New(log, mdll, ctrl)
 
 	msgx := messenger.New(log, pg, cfg.Kafka.Brokers...)

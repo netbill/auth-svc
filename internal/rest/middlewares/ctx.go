@@ -1,4 +1,4 @@
-package rest
+package middlewares
 
 import (
 	"context"
@@ -7,10 +7,8 @@ import (
 	"github.com/netbill/restkit/tokens"
 )
 
-type ctxKey int
-
 const (
-	AccountDataCtxKey ctxKey = iota
+	accountDataCtxKey = iota
 )
 
 func AccountData(ctx context.Context) (tokens.AccountJwtData, error) {
@@ -18,7 +16,7 @@ func AccountData(ctx context.Context) (tokens.AccountJwtData, error) {
 		return tokens.AccountJwtData{}, fmt.Errorf("missing context")
 	}
 
-	userData, ok := ctx.Value(AccountDataCtxKey).(tokens.AccountJwtData)
+	userData, ok := ctx.Value(accountDataCtxKey).(tokens.AccountJwtData)
 	if !ok {
 		return tokens.AccountJwtData{}, fmt.Errorf("missing context")
 	}

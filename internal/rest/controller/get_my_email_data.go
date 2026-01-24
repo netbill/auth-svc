@@ -20,9 +20,9 @@ func (s *Service) GetMyEmailData(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	emailData, err := s.core.GetAccountEmail(r.Context(), initiator.ID)
+	emailData, err := s.core.GetAccountEmail(r.Context(), initiator.AccountID)
 	if err != nil {
-		s.log.WithError(err).Errorf("failed to get email repo by id: %s", initiator.ID)
+		s.log.WithError(err).Errorf("failed to get email repo by id: %s", initiator.AccountID)
 		switch {
 		case errors.Is(err, errx.ErrorInitiatorNotFound):
 			ape.RenderErr(w, problems.Unauthorized("initiator account not found by credentials"))

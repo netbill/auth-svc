@@ -35,7 +35,7 @@ func (s *Service) DeleteMySession(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err = s.core.DeleteOwnSession(r.Context(), account.InitiatorData{
-		AccountID: initiator.ID,
+		AccountID: initiator.AccountID,
 		SessionID: initiator.SessionID,
 	}, sessionID); err != nil {
 		s.log.WithError(err).Errorf("failed to delete My session")

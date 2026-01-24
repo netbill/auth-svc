@@ -7,7 +7,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/netbill/auth-svc/internal/core/errx"
 	"github.com/netbill/auth-svc/internal/core/models"
-	"github.com/netbill/restkit/auth/roles"
+	"github.com/netbill/restkit/tokens/roles"
 	"golang.org/x/crypto/bcrypt"
 )
 

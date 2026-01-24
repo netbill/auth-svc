@@ -19,7 +19,7 @@ func (s *Service) Logout(w http.ResponseWriter, r *http.Request) {
 	}
 
 	err = s.core.Logout(r.Context(), account.InitiatorData{
-		AccountID: initiator.ID,
+		AccountID: initiator.AccountID,
 		SessionID: initiator.SessionID,
 	})
 	if err != nil {

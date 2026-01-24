@@ -33,7 +33,7 @@ func (s *Service) RegistrationByAdmin(w http.ResponseWriter, r *http.Request) {
 	}
 
 	u, err := s.core.RegistrationByAdmin(r.Context(),
-		initiator.ID,
+		initiator.AccountID,
 		account.RegistrationParams{
 			Email:    req.Data.Attributes.Email,
 			Username: req.Data.Attributes.Username,
