@@ -1,7 +1,7 @@
 package errx
 
 import (
-	"github.com/netbill/restkit/ape"
+	"github.com/netbill/ape"
 )
 
 var ErrorSessionNotFound = ape.DeclareError("SESSION_NOT_FOUND")

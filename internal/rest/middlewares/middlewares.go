@@ -10,7 +10,7 @@ import (
 type Service struct {
 	accountAccessSK string
 
-	log logium.Logger
+	log *logium.Logger
 }
 
 type Config struct {
@@ -18,7 +18,7 @@ type Config struct {
 }
 
 func New(
-	log logium.Logger,
+	log *logium.Logger,
 	accountAccessSK string,
 ) Service {
 	return Service{

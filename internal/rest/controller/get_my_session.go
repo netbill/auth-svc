@@ -5,12 +5,12 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/netbill/ape"
+	"github.com/netbill/ape/problems"
 	"github.com/netbill/auth-svc/internal/core/errx"
 	"github.com/netbill/auth-svc/internal/core/modules/account"
 	"github.com/netbill/auth-svc/internal/rest"
 	"github.com/netbill/auth-svc/internal/rest/responses"
-	"github.com/netbill/restkit/ape"
-	"github.com/netbill/restkit/ape/problems"
 
 	"github.com/go-chi/chi/v5"
 	validation "github.com/go-ozzo/ozzo-validation/v4"

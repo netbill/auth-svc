@@ -47,11 +47,11 @@ type Middlewares interface {
 type Service struct {
 	handlers    Handlers
 	middlewares Middlewares
-	log         logium.Logger
+	log         *logium.Logger
 }
 
 func New(
-	log logium.Logger,
+	log *logium.Logger,
 	middlewares Middlewares,
 	handlers Handlers,
 ) *Service {

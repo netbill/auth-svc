@@ -10,10 +10,11 @@ require (
 	github.com/go-ozzo/ozzo-validation/v4 v4.3.0
 	github.com/google/uuid v1.6.0
 	github.com/lib/pq v1.10.9
-	github.com/netbill/evebox v0.3.2
-	github.com/netbill/logium v0.1.0
+	github.com/netbill/ape v0.1.1
+	github.com/netbill/evebox v0.3.3
+	github.com/netbill/logium v0.1.1
 	github.com/netbill/pgx v0.1.0
-	github.com/netbill/restkit v0.1.7
+	github.com/netbill/restkit v0.1.10
 	github.com/pkg/errors v0.9.1
 	github.com/rubenv/sql-migrate v1.8.1
 	github.com/segmentio/kafka-go v0.4.49
@@ -36,7 +37,6 @@ require (
 	github.com/klauspost/compress v1.15.9 // indirect
 	github.com/lann/builder v0.0.0-20180802200727-47ae307949d0 // indirect
 	github.com/lann/ps v0.0.0-20150810152359-62de8c46ede0 // indirect
-	github.com/netbill/ape v0.1.0 // indirect
 	github.com/pelletier/go-toml/v2 v2.2.4 // indirect
 	github.com/pierrec/lz4/v4 v4.1.15 // indirect
 	github.com/sagikazarmark/locafero v0.11.0 // indirect

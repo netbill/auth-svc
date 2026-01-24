@@ -9,11 +9,11 @@ import (
 type Messenger struct {
 	addr []string
 	db   *sql.DB
-	log  logium.Logger
+	log  *logium.Logger
 }
 
 func New(
-	log logium.Logger,
+	log *logium.Logger,
 	db *sql.DB,
 	addr ...string,
 ) Messenger {

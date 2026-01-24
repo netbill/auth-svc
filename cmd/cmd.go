@@ -19,7 +19,7 @@ import (
 	"github.com/netbill/logium"
 )
 
-func StartServices(ctx context.Context, cfg internal.Config, log logium.Logger, wg *sync.WaitGroup) {
+func StartServices(ctx context.Context, cfg internal.Config, log *logium.Logger, wg *sync.WaitGroup) {
 	run := func(f func()) {
 		wg.Add(1)
 		go func() {

@@ -59,10 +59,10 @@ type core interface {
 type Service struct {
 	google oauth2.Config
 	core   core
-	log    logium.Logger
+	log    *logium.Logger
 }
 
-func New(log logium.Logger, google oauth2.Config, domain core) *Service {
+func New(log *logium.Logger, google oauth2.Config, domain core) *Service {
 	return &Service{
 		log:    log,
 		google: google,

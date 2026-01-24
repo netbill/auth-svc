@@ -8,11 +8,11 @@ import (
 )
 
 type Producer struct {
-	log    logium.Logger
+	log    *logium.Logger
 	outbox outbox.Box
 }
 
-func New(log logium.Logger, db *sql.DB) *Producer {
+func New(log *logium.Logger, db *sql.DB) *Producer {
 	return &Producer{
 		log:    log,
 		outbox: outbox.New(db),

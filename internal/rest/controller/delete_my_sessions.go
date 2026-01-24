@@ -4,11 +4,11 @@ import (
 	"errors"
 	"net/http"
 
+	"github.com/netbill/ape"
+	"github.com/netbill/ape/problems"
 	"github.com/netbill/auth-svc/internal/core/errx"
 	"github.com/netbill/auth-svc/internal/core/modules/account"
 	"github.com/netbill/auth-svc/internal/rest"
-	"github.com/netbill/restkit/ape"
-	"github.com/netbill/restkit/ape/problems"
 )
 
 func (s *Service) DeleteMySessions(w http.ResponseWriter, r *http.Request) {
