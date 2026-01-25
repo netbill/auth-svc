@@ -32,8 +32,8 @@ func (s *Service) RegistrationByAdmin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	u, err := s.core.RegistrationByAdmin(r.Context(),
-		initiator.AccountID,
+	u, err := s.core.Registration(
+		r.Context(),
 		account.RegistrationParams{
 			Email:    req.Data.Attributes.Email,
 			Username: req.Data.Attributes.Username,
@@ -44,8 +44,6 @@ func (s *Service) RegistrationByAdmin(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		s.log.WithError(err).Errorf("failed to register by admin")
 		switch {
-		case errors.Is(err, errx.ErrorInitiatorNotFound):
-			ape.RenderErr(w, problems.Unauthorized("failed to register admin user not found"))
 		case errors.Is(err, errx.ErrorNotEnoughRights):
 			ape.RenderErr(w, problems.Forbidden("only admins can register new admin accounts"))
 		case errors.Is(err, errx.ErrorEmailAlreadyExist):

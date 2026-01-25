@@ -6,23 +6,23 @@ import (
 	"github.com/netbill/auth-svc/internal/core/models"
 )
 
-func (s Service) UpdateUsername(ctx context.Context, initiator InitiatorData, newUsername string) (account models.Account, err error) {
-	account, _, err = s.validateSession(ctx, initiator)
+func (m Module) UpdateUsername(ctx context.Context, initiator InitiatorData, newUsername string) (account models.Account, err error) {
+	account, _, err = m.validateInitiatorSession(ctx, initiator)
 	if err != nil {
 		return models.Account{}, err
 	}
 
-	if err = s.checkUsernameRequirements(ctx, newUsername); err != nil {
+	if err = m.checkUsernameRequirements(ctx, newUsername); err != nil {
 		return models.Account{}, err
 	}
 
-	err = s.repo.Transaction(ctx, func(txCtx context.Context) error {
-		account, err = s.repo.UpdateAccountUsername(ctx, initiator.AccountID, newUsername)
+	err = m.repo.Transaction(ctx, func(txCtx context.Context) error {
+		account, err = m.repo.UpdateAccountUsername(ctx, initiator.AccountID, newUsername)
 		if err != nil {
 			return err
 		}
 
-		if err = s.messenger.WriteAccountUsernameUpdated(ctx, account); err != nil {
+		if err = m.messenger.WriteAccountUsernameUpdated(ctx, account); err != nil {
 			return err
 		}
 

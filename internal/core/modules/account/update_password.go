@@ -8,17 +8,17 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-func (s Service) UpdatePassword(
+func (m Module) UpdatePassword(
 	ctx context.Context,
 	initiator InitiatorData,
 	oldPassword, newPassword string,
 ) error {
-	account, _, err := s.validateSession(ctx, initiator)
+	account, _, err := m.validateInitiatorSession(ctx, initiator)
 	if err != nil {
 		return err
 	}
 
-	passData, err := s.repo.GetAccountPassword(ctx, initiator.AccountID)
+	passData, err := m.repo.GetAccountPassword(ctx, initiator.AccountID)
 	if err != nil {
 		return err
 	}
@@ -27,11 +27,11 @@ func (s Service) UpdatePassword(
 		return err
 	}
 
-	if err = s.checkAccountPassword(ctx, initiator.AccountID, oldPassword); err != nil {
+	if err = m.checkAccountPassword(ctx, initiator.AccountID, oldPassword); err != nil {
 		return err
 	}
 
-	if err = s.checkPasswordRequirements(newPassword); err != nil {
+	if err = m.checkPasswordRequirements(newPassword); err != nil {
 		return err
 	}
 
@@ -43,13 +43,13 @@ func (s Service) UpdatePassword(
 		)
 	}
 
-	return s.repo.Transaction(ctx, func(txCtx context.Context) error {
-		_, err = s.repo.UpdateAccountPassword(ctx, initiator.AccountID, string(hash))
+	return m.repo.Transaction(ctx, func(txCtx context.Context) error {
+		_, err = m.repo.UpdateAccountPassword(ctx, initiator.AccountID, string(hash))
 		if err != nil {
 			return err
 		}
 
-		err = s.repo.DeleteSessionsForAccount(ctx, account.ID)
+		err = m.repo.DeleteSessionsForAccount(ctx, account.ID)
 		if err != nil {
 			return err
 		}

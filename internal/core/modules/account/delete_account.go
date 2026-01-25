@@ -7,13 +7,13 @@ import (
 	"github.com/netbill/auth-svc/internal/core/errx"
 )
 
-func (s Service) DeleteOwnAccount(ctx context.Context, initiator InitiatorData) error {
-	account, _, err := s.validateSession(ctx, initiator)
+func (m Module) DeleteOwnAccount(ctx context.Context, initiator InitiatorData) error {
+	account, _, err := m.validateInitiatorSession(ctx, initiator)
 	if err != nil {
 		return err
 	}
 
-	exists, err := s.repo.ExistOrgMemberByAccount(ctx, initiator.AccountID)
+	exists, err := m.repo.ExistOrgMemberByAccount(ctx, initiator.AccountID)
 	if err != nil {
 		return err
 	}
@@ -23,13 +23,13 @@ func (s Service) DeleteOwnAccount(ctx context.Context, initiator InitiatorData) 
 		)
 	}
 
-	return s.repo.Transaction(ctx, func(txCtx context.Context) error {
-		err = s.repo.DeleteAccount(ctx, initiator.AccountID)
+	return m.repo.Transaction(ctx, func(txCtx context.Context) error {
+		err = m.repo.DeleteAccount(ctx, initiator.AccountID)
 		if err != nil {
 			return err
 		}
 
-		err = s.messenger.WriteAccountDeleted(ctx, account.ID)
+		err = m.messenger.WriteAccountDeleted(ctx, account.ID)
 		if err != nil {
 			return err
 		}

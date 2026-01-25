@@ -7,49 +7,49 @@ import (
 	"github.com/netbill/auth-svc/internal/core/models"
 )
 
-func (s Service) LoginByEmail(ctx context.Context, email, password string) (models.TokensPair, error) {
-	account, err := s.GetAccountByEmail(ctx, email)
+func (m Module) LoginByEmail(ctx context.Context, email, password string) (models.TokensPair, error) {
+	account, err := m.GetAccountByEmail(ctx, email)
 	if err != nil {
 		return models.TokensPair{}, err
 	}
 
-	err = s.checkAccountPassword(ctx, account.ID, password)
+	err = m.checkAccountPassword(ctx, account.ID, password)
 	if err != nil {
 		return models.TokensPair{}, err
 	}
 
-	return s.createSession(ctx, account)
+	return m.createSession(ctx, account)
 }
 
-func (s Service) LoginByGoogle(ctx context.Context, email string) (models.TokensPair, error) {
-	account, err := s.GetAccountByEmail(ctx, email)
+func (m Module) LoginByGoogle(ctx context.Context, email string) (models.TokensPair, error) {
+	account, err := m.GetAccountByEmail(ctx, email)
 	if err != nil {
 		return models.TokensPair{}, err
 	}
 
-	return s.createSession(ctx, account)
+	return m.createSession(ctx, account)
 }
 
-func (s Service) LoginByUsername(ctx context.Context, username, password string) (models.TokensPair, error) {
-	account, err := s.GetAccountByUsername(ctx, username)
+func (m Module) LoginByUsername(ctx context.Context, username, password string) (models.TokensPair, error) {
+	account, err := m.GetAccountByUsername(ctx, username)
 	if err != nil {
 		return models.TokensPair{}, err
 	}
 
-	err = s.checkAccountPassword(ctx, account.ID, password)
+	err = m.checkAccountPassword(ctx, account.ID, password)
 	if err != nil {
 		return models.TokensPair{}, err
 	}
 
-	return s.createSession(ctx, account)
+	return m.createSession(ctx, account)
 }
 
-func (s Service) checkAccountPassword(
+func (m Module) checkAccountPassword(
 	ctx context.Context,
 	accountID uuid.UUID,
 	password string,
 ) error {
-	passData, err := s.repo.GetAccountPassword(ctx, accountID)
+	passData, err := m.repo.GetAccountPassword(ctx, accountID)
 	if err != nil {
 		return err
 	}
@@ -61,23 +61,23 @@ func (s Service) checkAccountPassword(
 	return nil
 }
 
-func (s Service) createSession(
+func (m Module) createSession(
 	ctx context.Context,
 	account models.Account,
 ) (models.TokensPair, error) {
 	sessionID := uuid.New()
 
-	pair, err := s.createTokensPair(sessionID, account)
+	pair, err := m.createTokensPair(sessionID, account)
 	if err != nil {
 		return models.TokensPair{}, err
 	}
 
-	refreshHash, err := s.jwt.HashRefresh(pair.Refresh)
+	refreshHash, err := m.jwt.HashRefresh(pair.Refresh)
 	if err != nil {
 		return models.TokensPair{}, err
 	}
 
-	_, err = s.repo.CreateSession(ctx, sessionID, account.ID, refreshHash)
+	_, err = m.repo.CreateSession(ctx, sessionID, account.ID, refreshHash)
 	if err != nil {
 		return models.TokensPair{}, err
 	}
@@ -89,16 +89,16 @@ func (s Service) createSession(
 	}, nil
 }
 
-func (s Service) createTokensPair(
+func (m Module) createTokensPair(
 	sessionID uuid.UUID,
 	account models.Account,
 ) (models.TokensPair, error) {
-	access, err := s.jwt.GenerateAccess(account, sessionID)
+	access, err := m.jwt.GenerateAccess(account, sessionID)
 	if err != nil {
 		return models.TokensPair{}, err
 	}
 
-	refresh, err := s.jwt.GenerateRefresh(account, sessionID)
+	refresh, err := m.jwt.GenerateRefresh(account, sessionID)
 	if err != nil {
 		return models.TokensPair{}, err
 	}

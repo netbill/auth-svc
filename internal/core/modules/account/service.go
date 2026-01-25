@@ -14,7 +14,7 @@ import (
 	"github.com/netbill/restkit/tokens"
 )
 
-type Service struct {
+type Module struct {
 	repo      repo
 	jwt       JWTManager
 	messenger messenger
@@ -24,8 +24,8 @@ func NewService(
 	db repo,
 	jwt JWTManager,
 	event messenger,
-) *Service {
-	return &Service{
+) *Module {
+	return &Module{
 		repo:      db,
 		jwt:       jwt,
 		messenger: event,
@@ -117,8 +117,8 @@ type repo interface {
 	Transaction(ctx context.Context, fn func(ctx context.Context) error) error
 }
 
-func (s Service) checkUsernameRequirements(ctx context.Context, username string) error {
-	_, err := s.repo.GetAccountByUsername(ctx, username)
+func (m Module) checkUsernameRequirements(ctx context.Context, username string) error {
+	_, err := m.repo.GetAccountByUsername(ctx, username)
 	if err != nil {
 		return err
 	}
@@ -140,7 +140,7 @@ func (s Service) checkUsernameRequirements(ctx context.Context, username string)
 	return nil
 }
 
-func (s Service) checkPasswordRequirements(password string) error {
+func (m Module) checkPasswordRequirements(password string) error {
 	if len(password) < 8 || len(password) > 32 {
 		return errx.ErrorPasswordIsNotAllowed.Raise(
 			fmt.Errorf("password must be between 8 and 32 characters"),
@@ -199,11 +199,11 @@ type InitiatorData struct {
 	SessionID uuid.UUID
 }
 
-func (s Service) validateSession(
+func (m Module) validateInitiatorSession(
 	ctx context.Context,
 	initiator InitiatorData,
 ) (models.Account, models.Session, error) {
-	account, err := s.repo.GetAccountByID(ctx, initiator.AccountID)
+	account, err := m.repo.GetAccountByID(ctx, initiator.AccountID)
 	switch {
 	case errors.Is(err, errx.ErrorAccountNotFound):
 		return models.Account{}, models.Session{}, errx.ErrorInitiatorNotFound.Raise(
@@ -215,7 +215,7 @@ func (s Service) validateSession(
 		)
 	}
 
-	session, err := s.repo.GetSession(ctx, initiator.SessionID)
+	session, err := m.repo.GetSession(ctx, initiator.SessionID)
 	switch {
 	case errors.Is(err, errx.ErrorSessionNotFound):
 		return models.Account{}, models.Session{}, errx.ErrorInitiatorInvalidSession.Raise(

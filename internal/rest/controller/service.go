@@ -16,11 +16,6 @@ type core interface {
 		ctx context.Context,
 		params account.RegistrationParams,
 	) (models.Account, error)
-	RegistrationByAdmin(
-		ctx context.Context,
-		initiatorID uuid.UUID,
-		params account.RegistrationParams,
-	) (models.Account, error)
 
 	LoginByEmail(ctx context.Context, email, password string) (models.TokensPair, error)
 	LoginByGoogle(ctx context.Context, email string) (models.TokensPair, error)

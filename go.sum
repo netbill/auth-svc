@@ -61,8 +61,12 @@ github.com/mattn/go-sqlite3 v1.14.19 h1:fhGleo2h1p8tVChob4I9HpmVFIAkKGpiukdrgQbW
 github.com/mattn/go-sqlite3 v1.14.19/go.mod h1:2eHXhiwb8IkHr+BDWZGa96P6+rkvnG63S2DGjv9HUNg=
 github.com/netbill/ape v0.1.1 h1:c09GAXms8UCEs8GEXdtOIBCNDiKYHRhSDNFmbbQBGyk=
 github.com/netbill/ape v0.1.1/go.mod h1:0VOAEb/M94S4L/tby8PhN3QcG/4nJeXQN5loloLmXWk=
+github.com/netbill/evebox v0.4.0 h1:RQxWQfe+cyBoJJEiXkckgYva44zAgGs+vHnEFr7mZfk=
+github.com/netbill/evebox v0.4.0/go.mod h1:sSGeN4L1JCbf5012tYObXfMpmIa7b/BWTSEISwjbTVM=
 github.com/netbill/logium v0.1.1 h1:bDhiDWRnOU07G4eMSnTYx0dT3Yh/hcYQyBLA/NVe6q0=
 github.com/netbill/logium v0.1.1/go.mod h1:jfhtUS4NyR2az5gWNuKYkmyaYZLNMZLma9DyYSLmnqc=
+github.com/netbill/pgxtx v0.2.0 h1:NHF/+dmMnkLJpwHOd18rWQ7EAnxWLzruXMTG0VxDnRA=
+github.com/netbill/pgxtx v0.2.0/go.mod h1:ViF35mxHx2dcHjXxzliUoIdzAx5PxGCOqPZxGYIRfZ0=
 github.com/netbill/restkit v0.1.11 h1:3Aj6WxRsB3HWhY2tKFbGAc24RuSrQ1bX/Sf5UgVVLNI=
 github.com/netbill/restkit v0.1.11/go.mod h1:6QPcBn8LxykzyIe6jCz6EqdpaT1EYOsmlFey9nVLOKM=
 github.com/pelletier/go-toml/v2 v2.2.4 h1:mye9XuhQ6gvn5h28+VilKrrPoQVanw5PMw/TB0t5Ec4=

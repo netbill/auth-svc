@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/google/uuid"
 	"github.com/netbill/auth-svc/internal/core/errx"
 	"github.com/netbill/auth-svc/internal/core/models"
 	"github.com/netbill/restkit/tokens/roles"
@@ -18,11 +17,11 @@ type RegistrationParams struct {
 	Role     string
 }
 
-func (s Service) Registration(
+func (m Module) Registration(
 	ctx context.Context,
 	params RegistrationParams,
 ) (models.Account, error) {
-	check, err := s.repo.ExistsAccountByEmail(ctx, params.Email)
+	check, err := m.repo.ExistsAccountByEmail(ctx, params.Email)
 	if err != nil {
 		return models.Account{}, err
 	}
@@ -32,7 +31,7 @@ func (s Service) Registration(
 		)
 	}
 
-	check, err = s.repo.ExistsAccountByUsername(ctx, params.Username)
+	check, err = m.repo.ExistsAccountByUsername(ctx, params.Username)
 	if err != nil {
 		return models.Account{}, err
 	}
@@ -47,12 +46,12 @@ func (s Service) Registration(
 		return models.Account{}, err
 	}
 
-	err = s.checkPasswordRequirements(params.Password)
+	err = m.checkPasswordRequirements(params.Password)
 	if err != nil {
 		return models.Account{}, err
 	}
 
-	err = s.checkUsernameRequirements(ctx, params.Username)
+	err = m.checkUsernameRequirements(ctx, params.Username)
 	if err != nil {
 		return models.Account{}, err
 	}
@@ -63,8 +62,8 @@ func (s Service) Registration(
 	}
 
 	var account models.Account
-	err = s.repo.Transaction(ctx, func(ctx context.Context) error {
-		account, err = s.repo.CreateAccount(ctx, CreateAccountParams{
+	err = m.repo.Transaction(ctx, func(ctx context.Context) error {
+		account, err = m.repo.CreateAccount(ctx, CreateAccountParams{
 			Role:         params.Role,
 			Username:     params.Username,
 			Email:        params.Email,
@@ -74,46 +73,12 @@ func (s Service) Registration(
 			return err
 		}
 
-		if err = s.messenger.WriteAccountCreated(ctx, account); err != nil {
+		if err = m.messenger.WriteAccountCreated(ctx, account); err != nil {
 			return err
 		}
 
 		return nil
 	})
-	if err != nil {
-		return models.Account{}, err
-	}
-
-	return account, nil
-}
-
-func (s Service) RegistrationByAdmin(
-	ctx context.Context,
-	initiatorID uuid.UUID,
-	params RegistrationParams,
-) (models.Account, error) {
-	initiator, err := s.repo.GetAccountByID(ctx, initiatorID)
-	if err != nil {
-		return models.Account{}, err
-	}
-
-	if initiator.Role != roles.SystemAdmin {
-		return models.Account{}, errx.ErrorNotEnoughRights.Raise(
-			fmt.Errorf("account %s has insufficient permissions to register admin accounts", initiatorID),
-		)
-	}
-
-	account, err := s.Registration(ctx, params)
-	if err != nil {
-		return models.Account{}, err
-	}
-
-	err = s.checkUsernameRequirements(ctx, params.Username)
-	if err != nil {
-		return models.Account{}, err
-	}
-
-	err = s.messenger.WriteAccountCreated(ctx, account)
 	if err != nil {
 		return models.Account{}, err
 	}

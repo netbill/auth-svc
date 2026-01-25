@@ -6,8 +6,8 @@ import (
 	"github.com/google/uuid"
 )
 
-func (s Service) Logout(ctx context.Context, initiator InitiatorData) error {
-	err := s.repo.DeleteAccountSession(ctx, initiator.AccountID, initiator.SessionID)
+func (m Module) Logout(ctx context.Context, initiator InitiatorData) error {
+	err := m.repo.DeleteAccountSession(ctx, initiator.AccountID, initiator.SessionID)
 	if err != nil {
 		return err
 	}
@@ -15,13 +15,13 @@ func (s Service) Logout(ctx context.Context, initiator InitiatorData) error {
 	return nil
 }
 
-func (s Service) DeleteOwnSession(ctx context.Context, initiator InitiatorData, sessionID uuid.UUID) error {
-	_, _, err := s.validateSession(ctx, initiator)
+func (m Module) DeleteOwnSession(ctx context.Context, initiator InitiatorData, sessionID uuid.UUID) error {
+	_, _, err := m.validateInitiatorSession(ctx, initiator)
 	if err != nil {
 		return err
 	}
 
-	err = s.repo.DeleteAccountSession(ctx, initiator.AccountID, sessionID)
+	err = m.repo.DeleteAccountSession(ctx, initiator.AccountID, sessionID)
 	if err != nil {
 		return err
 	}
@@ -29,13 +29,13 @@ func (s Service) DeleteOwnSession(ctx context.Context, initiator InitiatorData, 
 	return nil
 }
 
-func (s Service) DeleteOwnSessions(ctx context.Context, initiator InitiatorData) error {
-	_, _, err := s.validateSession(ctx, initiator)
+func (m Module) DeleteOwnSessions(ctx context.Context, initiator InitiatorData) error {
+	_, _, err := m.validateInitiatorSession(ctx, initiator)
 	if err != nil {
 		return err
 	}
 
-	err = s.repo.DeleteSessionsForAccount(ctx, initiator.AccountID)
+	err = m.repo.DeleteSessionsForAccount(ctx, initiator.AccountID)
 	if err != nil {
 		return err
 	}

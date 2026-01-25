@@ -65,9 +65,9 @@ func Run(args []string) bool {
 	case serviceCmd.FullCommand():
 		cmd.StartServices(ctx, cfg, log, &wg)
 	case migrateUpCmd.FullCommand():
-		err = migrations.MigrateUp(cfg.Database.SQL.URL)
+		err = migrations.MigrateUp(ctx, cfg.Database.SQL.URL)
 	case migrateDownCmd.FullCommand():
-		err = migrations.MigrateDown(cfg.Database.SQL.URL)
+		err = migrations.MigrateDown(ctx, cfg.Database.SQL.URL)
 	default:
 		log.Errorf("unknown command %s", c)
 		return false
