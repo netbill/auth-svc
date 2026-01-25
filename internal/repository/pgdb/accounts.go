@@ -15,8 +15,8 @@ import (
 
 const accountsTable = "accounts"
 
-const accountsColumns = "id, role, username, created_at, updated_at"
-const accountsColumnsA = "a.id, a.role, a.username, a.created_at, a.updated_at"
+const accountsColumns = "id, username, role, created_at, updated_at"
+const accountsColumnsA = "a.id, a.username, a.role, a.created_at, a.updated_at"
 
 type Account struct {
 	ID        pgtype.UUID        `db:"id"`
