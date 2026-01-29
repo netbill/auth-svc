@@ -1,19 +1,19 @@
 package messenger
 
 import (
-	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/netbill/logium"
+	"github.com/netbill/pgdbx"
 )
 
 type Messenger struct {
 	addr []string
-	pool *pgxpool.Pool
+	pool *pgdbx.DB
 	log  *logium.Logger
 }
 
 func New(
 	log *logium.Logger,
-	pool *pgxpool.Pool,
+	pool *pgdbx.DB,
 	addr ...string,
 ) Messenger {
 	return Messenger{

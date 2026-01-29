@@ -1,4 +1,4 @@
-package pgdb
+package pg
 
 import (
 	"context"
@@ -10,37 +10,34 @@ import (
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
-	"github.com/netbill/pgxtx"
+	"github.com/netbill/auth-svc/internal/repository"
+	"github.com/netbill/pgdbx"
 )
 
 const accountEmailsTable = "account_emails"
 
 const accountEmailsColumns = "account_id, email, verified, created_at, updated_at"
 
-type AccountEmail struct {
-	AccountID pgtype.UUID        `db:"account_id"`
-	Email     pgtype.Text        `db:"email"`
-	Verified  pgtype.Bool        `db:"verified"`
-	UpdatedAt pgtype.Timestamptz `db:"updated_at"`
-	CreatedAt pgtype.Timestamptz `db:"created_at"`
-}
-
-func (e *AccountEmail) scan(row sq.RowScanner) error {
-	err := row.Scan(
-		&e.AccountID,
-		&e.Email,
-		&e.Verified,
-		&e.CreatedAt,
-		&e.UpdatedAt,
+func scanAccountEmail(row sq.RowScanner) (r repository.AccountEmailRow, err error) {
+	err = row.Scan(
+		&r.AccountID,
+		&r.Email,
+		&r.Verified,
+		&r.CreatedAt,
+		&r.UpdatedAt,
 	)
-	if err != nil {
-		return fmt.Errorf("scanning account email: %w", err)
+	switch {
+	case errors.Is(err, pgx.ErrNoRows):
+		return repository.AccountEmailRow{}, nil
+	case err != nil:
+		return repository.AccountEmailRow{}, fmt.Errorf("scanning account_email: %w", err)
 	}
-	return nil
+
+	return r, nil
 }
 
-type AccountEmailsQ struct {
-	db       pgxtx.DBTX
+type accountEmails struct {
+	db       *pgdbx.DB
 	selector sq.SelectBuilder
 	inserter sq.InsertBuilder
 	updater  sq.UpdateBuilder
@@ -48,9 +45,9 @@ type AccountEmailsQ struct {
 	counter  sq.SelectBuilder
 }
 
-func NewAccountEmailsQ(db pgxtx.DBTX) AccountEmailsQ {
+func NewAccountEmailsQ(db *pgdbx.DB) repository.AccountEmailsQ {
 	builder := sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
-	return AccountEmailsQ{
+	return accountEmails{
 		db:       db,
 		selector: builder.Select("account_emails.*").From(accountEmailsTable),
 		inserter: builder.Insert(accountEmailsTable),
@@ -60,26 +57,24 @@ func NewAccountEmailsQ(db pgxtx.DBTX) AccountEmailsQ {
 	}
 }
 
-func (q AccountEmailsQ) Insert(ctx context.Context, input AccountEmail) (AccountEmail, error) {
+func (q accountEmails) New() repository.AccountEmailsQ {
+	return NewAccountEmailsQ(q.db)
+}
+
+func (q accountEmails) Insert(ctx context.Context, input repository.AccountEmailRow) (repository.AccountEmailRow, error) {
 	query, args, err := q.inserter.SetMap(map[string]interface{}{
 		"account_id": input.AccountID,
 		"email":      input.Email,
 		"verified":   input.Verified,
-		"updated_at": input.UpdatedAt,
-		"created_at": input.CreatedAt,
 	}).Suffix("RETURNING " + accountEmailsColumns).ToSql()
 	if err != nil {
-		return AccountEmail{}, fmt.Errorf("building insert query for %s: %w", accountEmailsTable, err)
+		return repository.AccountEmailRow{}, fmt.Errorf("building insert query for %s: %w", accountEmailsTable, err)
 	}
 
-	var out AccountEmail
-	if err = out.scan(q.db.QueryRow(ctx, query, args...)); err != nil {
-		return AccountEmail{}, err
-	}
-	return out, nil
+	return scanAccountEmail(q.db.QueryRow(ctx, query, args...))
 }
 
-func (q AccountEmailsQ) UpdateMany(ctx context.Context) (int64, error) {
+func (q accountEmails) UpdateMany(ctx context.Context) (int64, error) {
 	q.updater = q.updater.Set("updated_at", pgtype.Timestamptz{Time: time.Now().UTC(), Valid: true})
 
 	query, args, err := q.updater.ToSql()
@@ -94,53 +89,37 @@ func (q AccountEmailsQ) UpdateMany(ctx context.Context) (int64, error) {
 	return tag.RowsAffected(), nil
 }
 
-func (q AccountEmailsQ) UpdateOne(ctx context.Context) (AccountEmail, error) {
+func (q accountEmails) UpdateOne(ctx context.Context) (repository.AccountEmailRow, error) {
 	q.updater = q.updater.Set("updated_at", pgtype.Timestamptz{Time: time.Now().UTC(), Valid: true})
 
 	query, args, err := q.updater.Suffix("RETURNING " + accountEmailsColumns).ToSql()
 	if err != nil {
-		return AccountEmail{}, fmt.Errorf("building update query for %s: %w", accountEmailsTable, err)
+		return repository.AccountEmailRow{}, fmt.Errorf("building update query for %s: %w", accountEmailsTable, err)
 	}
 
-	var updated AccountEmail
-	if err = updated.scan(q.db.QueryRow(ctx, query, args...)); err != nil {
-		return AccountEmail{}, err
-	}
-
-	return updated, nil
+	return scanAccountEmail(q.db.QueryRow(ctx, query, args...))
 }
 
-func (q AccountEmailsQ) UpdateEmail(email string) AccountEmailsQ {
+func (q accountEmails) UpdateEmail(email string) repository.AccountEmailsQ {
 	q.updater = q.updater.Set("email", pgtype.Text{String: email, Valid: true})
 	return q
 }
 
-func (q AccountEmailsQ) UpdateVerified(verified bool) AccountEmailsQ {
+func (q accountEmails) UpdateVerified(verified bool) repository.AccountEmailsQ {
 	q.updater = q.updater.Set("verified", pgtype.Bool{Bool: verified, Valid: true})
 	return q
 }
 
-func (q AccountEmailsQ) Get(ctx context.Context) (AccountEmail, error) {
+func (q accountEmails) Get(ctx context.Context) (repository.AccountEmailRow, error) {
 	query, args, err := q.selector.Limit(1).ToSql()
 	if err != nil {
-		return AccountEmail{}, fmt.Errorf("building get query for %s: %w", accountEmailsTable, err)
+		return repository.AccountEmailRow{}, fmt.Errorf("building get query for %s: %w", accountEmailsTable, err)
 	}
 
-	row := q.db.QueryRow(ctx, query, args...)
-
-	var e AccountEmail
-	err = e.scan(row)
-	if err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
-			return AccountEmail{}, nil
-		}
-		return AccountEmail{}, err
-	}
-
-	return e, nil
+	return scanAccountEmail(q.db.QueryRow(ctx, query, args...))
 }
 
-func (q AccountEmailsQ) Select(ctx context.Context) ([]AccountEmail, error) {
+func (q accountEmails) Select(ctx context.Context) ([]repository.AccountEmailRow, error) {
 	query, args, err := q.selector.ToSql()
 	if err != nil {
 		return nil, fmt.Errorf("building select query for %s: %w", accountEmailsTable, err)
@@ -152,20 +131,19 @@ func (q AccountEmailsQ) Select(ctx context.Context) ([]AccountEmail, error) {
 	}
 	defer rows.Close()
 
-	var out []AccountEmail
+	var out []repository.AccountEmailRow
 	for rows.Next() {
-		var e AccountEmail
-		err = e.scan(rows)
+		r, err := scanAccountEmail(rows)
 		if err != nil {
-			return nil, fmt.Errorf("scanning account_email: %w", err)
+			return nil, err
 		}
-		out = append(out, e)
+		out = append(out, r)
 	}
 
 	return out, nil
 }
 
-func (q AccountEmailsQ) Exists(ctx context.Context) (bool, error) {
+func (q accountEmails) Exists(ctx context.Context) (bool, error) {
 	query, args, err := q.selector.
 		Columns("1").
 		Limit(1).
@@ -186,7 +164,7 @@ func (q AccountEmailsQ) Exists(ctx context.Context) (bool, error) {
 	return true, nil
 }
 
-func (q AccountEmailsQ) Delete(ctx context.Context) error {
+func (q accountEmails) Delete(ctx context.Context) error {
 	query, args, err := q.deleter.ToSql()
 	if err != nil {
 		return fmt.Errorf("building delete query for %s: %w", accountEmailsTable, err)
@@ -196,7 +174,7 @@ func (q AccountEmailsQ) Delete(ctx context.Context) error {
 	return err
 }
 
-func (q AccountEmailsQ) FilterAccountID(accountID uuid.UUID) AccountEmailsQ {
+func (q accountEmails) FilterAccountID(accountID uuid.UUID) repository.AccountEmailsQ {
 	q.selector = q.selector.Where(sq.Eq{"account_id": accountID})
 	q.counter = q.counter.Where(sq.Eq{"account_id": accountID})
 	q.deleter = q.deleter.Where(sq.Eq{"account_id": accountID})
@@ -204,7 +182,7 @@ func (q AccountEmailsQ) FilterAccountID(accountID uuid.UUID) AccountEmailsQ {
 	return q
 }
 
-func (q AccountEmailsQ) FilterEmail(email string) AccountEmailsQ {
+func (q accountEmails) FilterEmail(email string) repository.AccountEmailsQ {
 	q.selector = q.selector.Where(sq.Eq{"email": email})
 	q.counter = q.counter.Where(sq.Eq{"email": email})
 	q.deleter = q.deleter.Where(sq.Eq{"email": email})
@@ -212,7 +190,7 @@ func (q AccountEmailsQ) FilterEmail(email string) AccountEmailsQ {
 	return q
 }
 
-func (q AccountEmailsQ) FilterVerified(verified bool) AccountEmailsQ {
+func (q accountEmails) FilterVerified(verified bool) repository.AccountEmailsQ {
 	q.selector = q.selector.Where(sq.Eq{"verified": verified})
 	q.counter = q.counter.Where(sq.Eq{"verified": verified})
 	q.deleter = q.deleter.Where(sq.Eq{"verified": verified})
@@ -220,7 +198,7 @@ func (q AccountEmailsQ) FilterVerified(verified bool) AccountEmailsQ {
 	return q
 }
 
-func (q AccountEmailsQ) Count(ctx context.Context) (uint, error) {
+func (q accountEmails) Count(ctx context.Context) (uint, error) {
 	query, args, err := q.counter.ToSql()
 	if err != nil {
 		return 0, fmt.Errorf("building count query for %s: %w", accountEmailsTable, err)
@@ -235,7 +213,7 @@ func (q AccountEmailsQ) Count(ctx context.Context) (uint, error) {
 	return count, nil
 }
 
-func (q AccountEmailsQ) Page(limit, offset uint) AccountEmailsQ {
+func (q accountEmails) Page(limit, offset uint) repository.AccountEmailsQ {
 	q.selector = q.selector.Limit(uint64(limit)).Offset(uint64(offset))
 	return q
 }

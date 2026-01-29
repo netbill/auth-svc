@@ -11,11 +11,13 @@ import (
 	"github.com/netbill/auth-svc/internal/messenger/inbound"
 	"github.com/netbill/auth-svc/internal/messenger/outbound"
 	"github.com/netbill/auth-svc/internal/repository"
+	"github.com/netbill/auth-svc/internal/repository/pg"
 	"github.com/netbill/auth-svc/internal/rest"
 	"github.com/netbill/auth-svc/internal/rest/controller"
 	"github.com/netbill/auth-svc/internal/rest/middlewares"
 	"github.com/netbill/auth-svc/internal/tokenmanger"
 	"github.com/netbill/logium"
+	"github.com/netbill/pgdbx"
 )
 
 func StartServices(ctx context.Context, cfg Config, log *logium.Logger, wg *sync.WaitGroup) {
@@ -31,8 +33,7 @@ func StartServices(ctx context.Context, cfg Config, log *logium.Logger, wg *sync
 	if err != nil {
 		log.Fatal("failed to connect to database", "error", err)
 	}
-
-	repo := repository.New(pool)
+	db := pgdbx.NewDB(pool)
 
 	jwtTokenManager := tokenmanger.NewManager(tokenmanger.Config{
 		AccessSK:   cfg.JWT.User.AccessToken.SecretKey,
@@ -43,7 +44,23 @@ func StartServices(ctx context.Context, cfg Config, log *logium.Logger, wg *sync
 		Iss:        cfg.Service.Name,
 	})
 
-	kafkaOutbound := outbound.New(log, pool)
+	accountsSqlQ := pg.NewAccountsQ(db)
+	accountEmailsSqlQ := pg.NewAccountEmailsQ(db)
+	accountPasswordsSqlQ := pg.NewAccountPasswordsQ(db)
+	sessionsSqlQ := pg.NewSessionsQ(db)
+	orgMembersSqlQ := pg.NewOrganizationMembersQ(db)
+	transactionerSql := pg.NewTransaction(db)
+
+	repo := repository.NewRepository(
+		transactionerSql,
+		accountsSqlQ,
+		accountEmailsSqlQ,
+		accountPasswordsSqlQ,
+		sessionsSqlQ,
+		orgMembersSqlQ,
+	)
+
+	kafkaOutbound := outbound.New(log, db)
 
 	accountCore := account.NewService(repo, jwtTokenManager, kafkaOutbound)
 	orgCore := organization.New(repo)
@@ -52,7 +69,7 @@ func StartServices(ctx context.Context, cfg Config, log *logium.Logger, wg *sync
 	mdll := middlewares.New(log, cfg.JWT.User.AccessToken.SecretKey)
 	router := rest.New(log, mdll, ctrl)
 
-	msgx := messenger.New(log, pool, cfg.Kafka.Brokers...)
+	msgx := messenger.New(log, db, cfg.Kafka.Brokers...)
 
 	run(func() {
 		router.Run(ctx, rest.Config{

@@ -1,4 +1,4 @@
-package pgdb
+package pg
 
 import (
 	"context"
@@ -10,35 +10,32 @@ import (
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
-	"github.com/netbill/pgxtx"
+	"github.com/netbill/auth-svc/internal/repository"
+	"github.com/netbill/pgdbx"
 )
 
 const sessionsTable = "sessions"
 
-type Session struct {
-	ID        pgtype.UUID        `db:"id"`
-	AccountID pgtype.UUID        `db:"account_id"`
-	HashToken pgtype.Text        `db:"hash_token"`
-	LastUsed  pgtype.Timestamptz `db:"last_used"`
-	CreatedAt pgtype.Timestamptz `db:"created_at"`
-}
-
-func (s *Session) scan(row sq.RowScanner) error {
-	err := row.Scan(
-		&s.ID,
-		&s.AccountID,
-		&s.HashToken,
-		&s.LastUsed,
-		&s.CreatedAt,
+func scanSession(row sq.RowScanner) (r repository.SessionRow, err error) {
+	err = row.Scan(
+		&r.ID,
+		&r.AccountID,
+		&r.HashToken,
+		&r.LastUsed,
+		&r.CreatedAt,
 	)
-	if err != nil {
-		return fmt.Errorf("scanning session: %w", err)
+	switch {
+	case errors.Is(err, pgx.ErrNoRows):
+		return repository.SessionRow{}, nil
+	case err != nil:
+		return repository.SessionRow{}, fmt.Errorf("scanning session: %w", err)
 	}
-	return nil
+
+	return r, nil
 }
 
-type SessionsQ struct {
-	db       pgxtx.DBTX
+type sessions struct {
+	db       *pgdbx.DB
 	selector sq.SelectBuilder
 	inserter sq.InsertBuilder
 	updater  sq.UpdateBuilder
@@ -46,9 +43,9 @@ type SessionsQ struct {
 	counter  sq.SelectBuilder
 }
 
-func NewSessionsQ(db pgxtx.DBTX) SessionsQ {
+func NewSessionsQ(db *pgdbx.DB) repository.SessionsQ {
 	builder := sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
-	return SessionsQ{
+	return sessions{
 		db:       db,
 		selector: builder.Select(sessionsTable + ".*").From(sessionsTable),
 		inserter: builder.Insert(sessionsTable),
@@ -58,32 +55,24 @@ func NewSessionsQ(db pgxtx.DBTX) SessionsQ {
 	}
 }
 
-type InsertSessionParams struct {
-	ID        uuid.UUID
-	AccountID uuid.UUID
-	HashToken string
+func (q sessions) New() repository.SessionsQ {
+	return NewSessionsQ(q.db)
 }
 
-func (q SessionsQ) Insert(ctx context.Context, input InsertSessionParams) (Session, error) {
+func (q sessions) Insert(ctx context.Context, input repository.SessionRow) (repository.SessionRow, error) {
 	query, args, err := q.inserter.SetMap(map[string]interface{}{
-		"id":         pgtype.UUID{Bytes: [16]byte(input.ID), Valid: true},
-		"account_id": pgtype.UUID{Bytes: [16]byte(input.AccountID), Valid: true},
+		"id":         pgtype.UUID{Bytes: input.ID, Valid: true},
+		"account_id": pgtype.UUID{Bytes: input.AccountID, Valid: true},
 		"hash_token": pgtype.Text{String: input.HashToken, Valid: true},
 	}).Suffix("RETURNING id, account_id, hash_token, last_used, created_at").ToSql()
 	if err != nil {
-		return Session{}, fmt.Errorf("building insert query for %s: %w", sessionsTable, err)
+		return repository.SessionRow{}, fmt.Errorf("building insert query for %s: %w", sessionsTable, err)
 	}
 
-	var sess Session
-	err = sess.scan(q.db.QueryRow(ctx, query, args...))
-	if err != nil {
-		return Session{}, err
-	}
-
-	return sess, nil
+	return scanSession(q.db.QueryRow(ctx, query, args...))
 }
 
-func (q SessionsQ) Update(ctx context.Context) ([]Session, error) {
+func (q sessions) Update(ctx context.Context) ([]repository.SessionRow, error) {
 	q.updater = q.updater.
 		Set("last_used", pgtype.Timestamptz{Time: time.Now().UTC(), Valid: true}).
 		Suffix("RETURNING " + sessionsTable + ".*")
@@ -99,14 +88,13 @@ func (q SessionsQ) Update(ctx context.Context) ([]Session, error) {
 	}
 	defer rows.Close()
 
-	var out []Session
+	var out []repository.SessionRow
 	for rows.Next() {
-		var s Session
-		err = s.scan(rows)
+		r, err := scanSession(rows)
 		if err != nil {
 			return nil, fmt.Errorf("scanning updated session: %w", err)
 		}
-		out = append(out, s)
+		out = append(out, r)
 	}
 
 	if err = rows.Err(); err != nil {
@@ -116,35 +104,47 @@ func (q SessionsQ) Update(ctx context.Context) ([]Session, error) {
 	return out, nil
 }
 
-func (q SessionsQ) UpdateToken(token string) SessionsQ {
+func (q sessions) UpdateToken(token string) repository.SessionsQ {
 	q.updater = q.updater.Set("hash_token", pgtype.Text{String: token, Valid: true})
 	return q
 }
 
-func (q SessionsQ) UpdateLastUsed(lastUsed time.Time) SessionsQ {
+func (q sessions) UpdateLastUsed(lastUsed time.Time) repository.SessionsQ {
 	q.updater = q.updater.Set("last_used", pgtype.Timestamptz{Time: lastUsed.UTC(), Valid: true})
 	return q
 }
 
-func (q SessionsQ) Get(ctx context.Context) (Session, error) {
+func (q sessions) Get(ctx context.Context) (repository.SessionRow, error) {
 	query, args, err := q.selector.Limit(1).ToSql()
 	if err != nil {
-		return Session{}, fmt.Errorf("building get query for sessions: %w", err)
+		return repository.SessionRow{}, fmt.Errorf("building get query for sessions: %w", err)
 	}
 
-	var sess Session
-	err = sess.scan(q.db.QueryRow(ctx, query, args...))
-	if err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
-			return Session{}, nil
-		}
-		return Session{}, err
-	}
-
-	return sess, nil
+	return scanSession(q.db.QueryRow(ctx, query, args...))
 }
 
-func (q SessionsQ) Select(ctx context.Context) ([]Session, error) {
+func (q sessions) GetHashToken(ctx context.Context) (string, error) {
+	query, args, err := q.selector.
+		Columns("hash_token").
+		Limit(1).
+		ToSql()
+	if err != nil {
+		return "", fmt.Errorf("building get hash token query for sessions: %w", err)
+	}
+
+	var token string
+	err = q.db.QueryRow(ctx, query, args...).Scan(&token)
+	switch {
+	case errors.Is(err, pgx.ErrNoRows):
+		return "", nil
+	case err != nil:
+		return "", fmt.Errorf("scanning hash token for sessions: %w", err)
+	}
+
+	return token, nil
+}
+
+func (q sessions) Select(ctx context.Context) ([]repository.SessionRow, error) {
 	query, args, err := q.selector.ToSql()
 	if err != nil {
 		return nil, fmt.Errorf("building select query for sessions: %w", err)
@@ -156,24 +156,23 @@ func (q SessionsQ) Select(ctx context.Context) ([]Session, error) {
 	}
 	defer rows.Close()
 
-	var sessions []Session
+	var out []repository.SessionRow
 	for rows.Next() {
-		var sess Session
-		err = sess.scan(rows)
+		r, err := scanSession(rows)
 		if err != nil {
 			return nil, fmt.Errorf("scanning session row: %w", err)
 		}
-		sessions = append(sessions, sess)
+		out = append(out, r)
 	}
 
 	if err = rows.Err(); err != nil {
 		return nil, err
 	}
 
-	return sessions, nil
+	return out, nil
 }
 
-func (q SessionsQ) Exists(ctx context.Context) (bool, error) {
+func (q sessions) Exists(ctx context.Context) (bool, error) {
 	query, args, err := q.selector.
 		Columns("1").
 		Limit(1).
@@ -194,7 +193,7 @@ func (q SessionsQ) Exists(ctx context.Context) (bool, error) {
 	return true, nil
 }
 
-func (q SessionsQ) Delete(ctx context.Context) error {
+func (q sessions) Delete(ctx context.Context) error {
 	query, args, err := q.deleter.ToSql()
 	if err != nil {
 		return fmt.Errorf("building delete query for sessions: %w", err)
@@ -204,7 +203,7 @@ func (q SessionsQ) Delete(ctx context.Context) error {
 	return err
 }
 
-func (q SessionsQ) FilterID(ID uuid.UUID) SessionsQ {
+func (q sessions) FilterID(ID uuid.UUID) repository.SessionsQ {
 	pid := pgtype.UUID{Bytes: [16]byte(ID), Valid: true}
 
 	q.selector = q.selector.Where(sq.Eq{"id": pid})
@@ -215,7 +214,7 @@ func (q SessionsQ) FilterID(ID uuid.UUID) SessionsQ {
 	return q
 }
 
-func (q SessionsQ) FilterAccountID(accountID uuid.UUID) SessionsQ {
+func (q sessions) FilterAccountID(accountID uuid.UUID) repository.SessionsQ {
 	pid := pgtype.UUID{Bytes: [16]byte(accountID), Valid: true}
 
 	q.selector = q.selector.Where(sq.Eq{"account_id": pid})
@@ -226,7 +225,7 @@ func (q SessionsQ) FilterAccountID(accountID uuid.UUID) SessionsQ {
 	return q
 }
 
-func (q SessionsQ) OrderCreatedAt(ascending bool) SessionsQ {
+func (q sessions) OrderCreatedAt(ascending bool) repository.SessionsQ {
 	if ascending {
 		q.selector = q.selector.OrderBy("created_at ASC")
 	} else {
@@ -235,7 +234,7 @@ func (q SessionsQ) OrderCreatedAt(ascending bool) SessionsQ {
 	return q
 }
 
-func (q SessionsQ) Count(ctx context.Context) (uint, error) {
+func (q sessions) Count(ctx context.Context) (uint, error) {
 	query, args, err := q.counter.ToSql()
 	if err != nil {
 		return 0, fmt.Errorf("building count query for sessions: %w", err)
@@ -253,7 +252,7 @@ func (q SessionsQ) Count(ctx context.Context) (uint, error) {
 	return uint(count), nil
 }
 
-func (q SessionsQ) Page(limit, offset uint) SessionsQ {
+func (q sessions) Page(limit, offset uint) repository.SessionsQ {
 	q.selector = q.selector.Limit(uint64(limit)).Offset(uint64(offset))
 	return q
 }

@@ -1,4 +1,4 @@
-package pgdb
+package pg
 
 import (
 	"context"
@@ -10,7 +10,8 @@ import (
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
-	"github.com/netbill/pgxtx"
+	"github.com/netbill/auth-svc/internal/repository"
+	"github.com/netbill/pgdbx"
 )
 
 const accountsTable = "accounts"
@@ -18,30 +19,25 @@ const accountsTable = "accounts"
 const accountsColumns = "id, username, role, created_at, updated_at"
 const accountsColumnsA = "a.id, a.username, a.role, a.created_at, a.updated_at"
 
-type Account struct {
-	ID        pgtype.UUID        `db:"id"`
-	Username  pgtype.Text        `db:"username"`
-	Role      pgtype.Text        `db:"role"`
-	CreatedAt pgtype.Timestamptz `db:"created_at"`
-	UpdatedAt pgtype.Timestamptz `db:"updated_at"`
-}
-
-func (a *Account) scan(row sq.RowScanner) error {
-	err := row.Scan(
-		&a.ID,
-		&a.Username,
-		&a.Role,
-		&a.CreatedAt,
-		&a.UpdatedAt,
+func scanAccount(row sq.RowScanner) (r repository.AccountRow, err error) {
+	err = row.Scan(
+		&r.ID,
+		&r.Username,
+		&r.Role,
+		&r.CreatedAt,
+		&r.UpdatedAt,
 	)
-	if err != nil {
-		return fmt.Errorf("scanning account: %w", err)
+	switch {
+	case errors.Is(err, pgx.ErrNoRows):
+		return repository.AccountRow{}, nil
+	case err != nil:
+		return repository.AccountRow{}, fmt.Errorf("scanning account: %w", err)
 	}
-	return nil
+	return r, nil
 }
 
-type AccountsQ struct {
-	db       pgxtx.DBTX
+type accounts struct {
+	db       *pgdbx.DB
 	selector sq.SelectBuilder
 	inserter sq.InsertBuilder
 	updater  sq.UpdateBuilder
@@ -49,9 +45,9 @@ type AccountsQ struct {
 	counter  sq.SelectBuilder
 }
 
-func NewAccountsQ(db pgxtx.DBTX) AccountsQ {
+func NewAccountsQ(db *pgdbx.DB) repository.AccountsQ {
 	builder := sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
-	return AccountsQ{
+	return accounts{
 		db:       db,
 		selector: builder.Select(accountsTable + ".*").From(accountsTable),
 		inserter: builder.Insert(accountsTable),
@@ -61,48 +57,74 @@ func NewAccountsQ(db pgxtx.DBTX) AccountsQ {
 	}
 }
 
-type InsertAccountParams struct {
-	ID       uuid.UUID
-	Username string
-	Role     string
+func (q accounts) New() repository.AccountsQ {
+	return NewAccountsQ(q.db)
 }
 
-func (q AccountsQ) Insert(ctx context.Context, input InsertAccountParams) (Account, error) {
+func (q accounts) Insert(ctx context.Context, input repository.AccountRow) (repository.AccountRow, error) {
+	id := pgtype.UUID{Bytes: [16]byte(input.ID), Valid: true}
+
 	query, args, err := q.inserter.SetMap(map[string]interface{}{
-		"id":       pgtype.UUID{Bytes: input.ID, Valid: true},
+		"id":       id,
 		"username": pgtype.Text{String: input.Username, Valid: true},
 		"role":     pgtype.Text{String: input.Role, Valid: true},
 	}).Suffix("RETURNING " + accountsTable + ".*").ToSql()
 	if err != nil {
-		return Account{}, fmt.Errorf("building insert query for %s: %w", accountsTable, err)
+		return repository.AccountRow{}, fmt.Errorf("building insert query for %s: %w", accountsTable, err)
 	}
 
-	var out Account
-	if err = out.scan(q.db.QueryRow(ctx, query, args...)); err != nil {
-		return Account{}, err
-	}
-	return out, nil
+	return scanAccount(q.db.QueryRow(ctx, query, args...))
 }
 
-func (q AccountsQ) Get(ctx context.Context) (Account, error) {
+func (q accounts) Get(ctx context.Context) (repository.AccountRow, error) {
 	query, args, err := q.selector.Limit(1).ToSql()
 	if err != nil {
-		return Account{}, fmt.Errorf("building get query for %s: %w", accountsTable, err)
+		return repository.AccountRow{}, fmt.Errorf("building get query for %s: %w", accountsTable, err)
 	}
 
-	var a Account
-	err = a.scan(q.db.QueryRow(ctx, query, args...))
-	if err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
-			return Account{}, nil
-		}
-		return Account{}, err
-	}
-
-	return a, nil
+	return scanAccount(q.db.QueryRow(ctx, query, args...))
 }
 
-func (q AccountsQ) Select(ctx context.Context) ([]Account, error) {
+func (q accounts) UpdateMany(ctx context.Context) (int64, error) {
+	q.updater = q.updater.Set("updated_at", pgtype.Timestamptz{Time: time.Now().UTC(), Valid: true})
+
+	query, args, err := q.updater.ToSql()
+	if err != nil {
+		return 0, fmt.Errorf("building update query for %s: %w", accountsTable, err)
+	}
+
+	tag, err := q.db.Exec(ctx, query, args...)
+	if err != nil {
+		return 0, fmt.Errorf("executing update query for %s: %w", accountsTable, err)
+	}
+
+	return tag.RowsAffected(), nil
+}
+
+func (q accounts) UpdateOne(ctx context.Context) (repository.AccountRow, error) {
+	q.updater = q.updater.Set("updated_at", pgtype.Timestamptz{Time: time.Now().UTC(), Valid: true})
+
+	query, args, err := q.updater.
+		Suffix("RETURNING " + accountsColumns).
+		ToSql()
+	if err != nil {
+		return repository.AccountRow{}, fmt.Errorf("building update query for %s: %w", accountsTable, err)
+	}
+
+	return scanAccount(q.db.QueryRow(ctx, query, args...))
+}
+
+func (q accounts) UpdateRole(role string) repository.AccountsQ {
+	q.updater = q.updater.Set("role", pgtype.Text{String: role, Valid: true})
+	return q
+}
+
+func (q accounts) UpdateUsername(username string) repository.AccountsQ {
+	q.updater = q.updater.Set("username", pgtype.Text{String: username, Valid: true})
+	return q
+}
+
+func (q accounts) Select(ctx context.Context) ([]repository.AccountRow, error) {
 	query, args, err := q.selector.ToSql()
 	if err != nil {
 		return nil, fmt.Errorf("building select query for %s: %w", accountsTable, err)
@@ -114,14 +136,13 @@ func (q AccountsQ) Select(ctx context.Context) ([]Account, error) {
 	}
 	defer rows.Close()
 
-	out := make([]Account, 0)
+	out := make([]repository.AccountRow, 0)
 	for rows.Next() {
-		var a Account
-		err = a.scan(rows)
+		r, err := scanAccount(rows)
 		if err != nil {
-			return nil, fmt.Errorf("scanning account: %w", err)
+			return nil, err
 		}
-		out = append(out, a)
+		out = append(out, r)
 	}
 
 	if err = rows.Err(); err != nil {
@@ -131,7 +152,7 @@ func (q AccountsQ) Select(ctx context.Context) ([]Account, error) {
 	return out, nil
 }
 
-func (q AccountsQ) Exists(ctx context.Context) (bool, error) {
+func (q accounts) Exists(ctx context.Context) (bool, error) {
 	query, args, err := q.selector.
 		Columns("1").
 		Limit(1).
@@ -152,51 +173,7 @@ func (q AccountsQ) Exists(ctx context.Context) (bool, error) {
 	return true, nil
 }
 
-func (q AccountsQ) UpdateMany(ctx context.Context) (int64, error) {
-	q.updater = q.updater.Set("updated_at", pgtype.Timestamptz{Time: time.Now().UTC(), Valid: true})
-
-	query, args, err := q.updater.ToSql()
-	if err != nil {
-		return 0, fmt.Errorf("building update query for %s: %w", accountsTable, err)
-	}
-
-	tag, err := q.db.Exec(ctx, query, args...)
-	if err != nil {
-		return 0, fmt.Errorf("executing update query for %s: %w", accountsTable, err)
-	}
-
-	return tag.RowsAffected(), nil
-}
-
-func (q AccountsQ) UpdateOne(ctx context.Context) (Account, error) {
-	q.updater = q.updater.Set("updated_at", pgtype.Timestamptz{Time: time.Now().UTC(), Valid: true})
-
-	query, args, err := q.updater.
-		Suffix("RETURNING " + accountsColumns).
-		ToSql()
-	if err != nil {
-		return Account{}, fmt.Errorf("building update query for %s: %w", accountsTable, err)
-	}
-
-	var updated Account
-	if err = updated.scan(q.db.QueryRow(ctx, query, args...)); err != nil {
-		return Account{}, err
-	}
-
-	return updated, nil
-}
-
-func (q AccountsQ) UpdateRole(role string) AccountsQ {
-	q.updater = q.updater.Set("role", pgtype.Text{String: role, Valid: true})
-	return q
-}
-
-func (q AccountsQ) UpdateUsername(username string) AccountsQ {
-	q.updater = q.updater.Set("username", pgtype.Text{String: username, Valid: true})
-	return q
-}
-
-func (q AccountsQ) Delete(ctx context.Context) error {
+func (q accounts) Delete(ctx context.Context) error {
 	query, args, err := q.deleter.ToSql()
 	if err != nil {
 		return fmt.Errorf("building delete query for %s: %w", accountsTable, err)
@@ -206,7 +183,7 @@ func (q AccountsQ) Delete(ctx context.Context) error {
 	return err
 }
 
-func (q AccountsQ) FilterID(id uuid.UUID) AccountsQ {
+func (q accounts) FilterID(id uuid.UUID) repository.AccountsQ {
 	pid := pgtype.UUID{Bytes: [16]byte(id), Valid: true}
 
 	q.selector = q.selector.Where(sq.Eq{"id": pid})
@@ -216,7 +193,7 @@ func (q AccountsQ) FilterID(id uuid.UUID) AccountsQ {
 	return q
 }
 
-func (q AccountsQ) FilterRole(role string) AccountsQ {
+func (q accounts) FilterRole(role string) repository.AccountsQ {
 	val := pgtype.Text{String: role, Valid: true}
 
 	q.selector = q.selector.Where(sq.Eq{"role": val})
@@ -226,7 +203,7 @@ func (q AccountsQ) FilterRole(role string) AccountsQ {
 	return q
 }
 
-func (q AccountsQ) FilterUsername(username string) AccountsQ {
+func (q accounts) FilterUsername(username string) repository.AccountsQ {
 	val := pgtype.Text{String: username, Valid: true}
 
 	q.selector = q.selector.Where(sq.Eq{"username": val})
@@ -236,7 +213,7 @@ func (q AccountsQ) FilterUsername(username string) AccountsQ {
 	return q
 }
 
-func (q AccountsQ) FilterEmail(email string) AccountsQ {
+func (q accounts) FilterEmail(email string) repository.AccountsQ {
 	em := pgtype.Text{String: email, Valid: true}
 
 	q.selector = q.selector.
@@ -257,7 +234,7 @@ func (q AccountsQ) FilterEmail(email string) AccountsQ {
 	return q
 }
 
-func (q AccountsQ) Count(ctx context.Context) (uint, error) {
+func (q accounts) Count(ctx context.Context) (uint, error) {
 	query, args, err := q.counter.ToSql()
 	if err != nil {
 		return 0, fmt.Errorf("building count query for %s: %w", accountsTable, err)
@@ -275,7 +252,7 @@ func (q AccountsQ) Count(ctx context.Context) (uint, error) {
 	return uint(count), nil
 }
 
-func (q AccountsQ) Page(limit, offset uint) AccountsQ {
+func (q accounts) Page(limit, offset uint) repository.AccountsQ {
 	q.selector = q.selector.Limit(uint64(limit)).Offset(uint64(offset))
 	return q
 }

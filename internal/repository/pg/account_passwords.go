@@ -1,4 +1,4 @@
-package pgdb
+package pg
 
 import (
 	"context"
@@ -10,35 +10,33 @@ import (
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
-	"github.com/netbill/pgxtx"
+	"github.com/netbill/auth-svc/internal/repository"
+	"github.com/netbill/pgdbx"
 )
 
 const accountPasswordsTable = "account_passwords"
 
 const accountPasswordsColumns = "account_id, hash, created_at, updated_at"
 
-type AccountPassword struct {
-	AccountID pgtype.UUID        `db:"account_id"`
-	Hash      pgtype.Text        `db:"hash"`
-	UpdatedAt pgtype.Timestamptz `db:"updated_at"`
-	CreatedAt pgtype.Timestamptz `db:"created_at"`
-}
-
-func (a *AccountPassword) scan(row sq.RowScanner) error {
-	err := row.Scan(
-		&a.AccountID,
-		&a.Hash,
-		&a.CreatedAt,
-		&a.UpdatedAt,
+func scanAccountPassword(row sq.RowScanner) (r repository.AccountPasswordRow, err error) {
+	err = row.Scan(
+		&r.AccountID,
+		&r.Hash,
+		&r.CreatedAt,
+		&r.UpdatedAt,
 	)
-	if err != nil {
-		return fmt.Errorf("scanning account password: %w", err)
+	switch {
+	case errors.Is(err, pgx.ErrNoRows):
+		return repository.AccountPasswordRow{}, nil
+	case err != nil:
+		return repository.AccountPasswordRow{}, fmt.Errorf("scanning account_password: %w", err)
 	}
-	return nil
+
+	return r, nil
 }
 
-type AccountPasswordsQ struct {
-	db       pgxtx.DBTX
+type accountPasswords struct {
+	db       *pgdbx.DB
 	selector sq.SelectBuilder
 	inserter sq.InsertBuilder
 	updater  sq.UpdateBuilder
@@ -46,9 +44,9 @@ type AccountPasswordsQ struct {
 	counter  sq.SelectBuilder
 }
 
-func NewAccountPasswordsQ(db pgxtx.DBTX) AccountPasswordsQ {
+func NewAccountPasswordsQ(db *pgdbx.DB) repository.AccountPasswordsQ {
 	builder := sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
-	return AccountPasswordsQ{
+	return accountPasswords{
 		db:       db,
 		selector: builder.Select(accountPasswordsTable + ".*").From(accountPasswordsTable),
 		inserter: builder.Insert(accountPasswordsTable),
@@ -58,26 +56,23 @@ func NewAccountPasswordsQ(db pgxtx.DBTX) AccountPasswordsQ {
 	}
 }
 
-func (q AccountPasswordsQ) Insert(ctx context.Context, input AccountPassword) (AccountPassword, error) {
+func (q accountPasswords) New() repository.AccountPasswordsQ {
+	return NewAccountPasswordsQ(q.db)
+}
+
+func (q accountPasswords) Insert(ctx context.Context, input repository.AccountPasswordRow) (repository.AccountPasswordRow, error) {
 	query, args, err := q.inserter.SetMap(map[string]interface{}{
 		"account_id": input.AccountID,
 		"hash":       input.Hash,
-		"updated_at": input.UpdatedAt,
-		"created_at": input.CreatedAt,
 	}).Suffix("RETURNING " + accountPasswordsColumns).ToSql()
 	if err != nil {
-		return AccountPassword{}, fmt.Errorf("building insert query for %s: %w", accountPasswordsTable, err)
+		return repository.AccountPasswordRow{}, fmt.Errorf("building insert query for %s: %w", accountPasswordsTable, err)
 	}
 
-	var inserted AccountPassword
-	if err = inserted.scan(q.db.QueryRow(ctx, query, args...)); err != nil {
-		return AccountPassword{}, err
-	}
-
-	return inserted, nil
+	return scanAccountPassword(q.db.QueryRow(ctx, query, args...))
 }
 
-func (q AccountPasswordsQ) UpdateMany(ctx context.Context) (int64, error) {
+func (q accountPasswords) UpdateMany(ctx context.Context) (int64, error) {
 	q.updater = q.updater.Set("updated_at", pgtype.Timestamptz{Time: time.Now().UTC(), Valid: true})
 
 	query, args, err := q.updater.ToSql()
@@ -93,48 +88,34 @@ func (q AccountPasswordsQ) UpdateMany(ctx context.Context) (int64, error) {
 	return tag.RowsAffected(), nil
 }
 
-func (q AccountPasswordsQ) UpdateOne(ctx context.Context) (AccountPassword, error) {
+func (q accountPasswords) UpdateOne(ctx context.Context) (repository.AccountPasswordRow, error) {
 	q.updater = q.updater.Set("updated_at", pgtype.Timestamptz{Time: time.Now().UTC(), Valid: true})
 
 	query, args, err := q.updater.
 		Suffix("RETURNING " + accountPasswordsColumns).
 		ToSql()
 	if err != nil {
-		return AccountPassword{}, fmt.Errorf("building update query for %s: %w", accountPasswordsTable, err)
+		return repository.AccountPasswordRow{}, fmt.Errorf("building update query for %s: %w", accountPasswordsTable, err)
 	}
 
-	var updated AccountPassword
-	if err = updated.scan(q.db.QueryRow(ctx, query, args...)); err != nil {
-		return AccountPassword{}, err
-	}
-
-	return updated, nil
+	return scanAccountPassword(q.db.QueryRow(ctx, query, args...))
 }
 
-func (q AccountPasswordsQ) UpdateHash(hash string) AccountPasswordsQ {
+func (q accountPasswords) UpdateHash(hash string) repository.AccountPasswordsQ {
 	q.updater = q.updater.Set("hash", pgtype.Text{String: hash, Valid: true})
 	return q
 }
 
-func (q AccountPasswordsQ) Get(ctx context.Context) (AccountPassword, error) {
+func (q accountPasswords) Get(ctx context.Context) (repository.AccountPasswordRow, error) {
 	query, args, err := q.selector.Limit(1).ToSql()
 	if err != nil {
-		return AccountPassword{}, fmt.Errorf("building get query for %s: %w", accountPasswordsTable, err)
+		return repository.AccountPasswordRow{}, fmt.Errorf("building get query for %s: %w", accountPasswordsTable, err)
 	}
 
-	var p AccountPassword
-	err = p.scan(q.db.QueryRow(ctx, query, args...))
-	if err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
-			return AccountPassword{}, nil
-		}
-		return AccountPassword{}, err
-	}
-
-	return p, nil
+	return scanAccountPassword(q.db.QueryRow(ctx, query, args...))
 }
 
-func (q AccountPasswordsQ) Select(ctx context.Context) ([]AccountPassword, error) {
+func (q accountPasswords) Select(ctx context.Context) ([]repository.AccountPasswordRow, error) {
 	query, args, err := q.selector.ToSql()
 	if err != nil {
 		return nil, fmt.Errorf("building select query for %s: %w", accountPasswordsTable, err)
@@ -146,14 +127,13 @@ func (q AccountPasswordsQ) Select(ctx context.Context) ([]AccountPassword, error
 	}
 	defer rows.Close()
 
-	var out []AccountPassword
+	var out []repository.AccountPasswordRow
 	for rows.Next() {
-		var p AccountPassword
-		err = p.scan(rows)
+		r, err := scanAccountPassword(rows)
 		if err != nil {
-			return nil, fmt.Errorf("scanning account_password: %w", err)
+			return nil, err
 		}
-		out = append(out, p)
+		out = append(out, r)
 	}
 
 	if err = rows.Err(); err != nil {
@@ -163,7 +143,7 @@ func (q AccountPasswordsQ) Select(ctx context.Context) ([]AccountPassword, error
 	return out, nil
 }
 
-func (q AccountPasswordsQ) Exists(ctx context.Context) (bool, error) {
+func (q accountPasswords) Exists(ctx context.Context) (bool, error) {
 	query, args, err := q.selector.
 		Columns("1").
 		Limit(1).
@@ -184,7 +164,7 @@ func (q AccountPasswordsQ) Exists(ctx context.Context) (bool, error) {
 	return true, nil
 }
 
-func (q AccountPasswordsQ) Delete(ctx context.Context) error {
+func (q accountPasswords) Delete(ctx context.Context) error {
 	query, args, err := q.deleter.ToSql()
 	if err != nil {
 		return fmt.Errorf("building delete query for %s: %w", accountPasswordsTable, err)
@@ -194,7 +174,7 @@ func (q AccountPasswordsQ) Delete(ctx context.Context) error {
 	return err
 }
 
-func (q AccountPasswordsQ) FilterAccountID(accountID uuid.UUID) AccountPasswordsQ {
+func (q accountPasswords) FilterAccountID(accountID uuid.UUID) repository.AccountPasswordsQ {
 	id := pgtype.UUID{Bytes: [16]byte(accountID), Valid: true}
 
 	q.selector = q.selector.Where(sq.Eq{"account_id": id})
@@ -204,7 +184,7 @@ func (q AccountPasswordsQ) FilterAccountID(accountID uuid.UUID) AccountPasswords
 	return q
 }
 
-func (q AccountPasswordsQ) Count(ctx context.Context) (uint, error) {
+func (q accountPasswords) Count(ctx context.Context) (uint, error) {
 	query, args, err := q.counter.ToSql()
 	if err != nil {
 		return 0, fmt.Errorf("building count query for %s: %w", accountPasswordsTable, err)
@@ -222,7 +202,7 @@ func (q AccountPasswordsQ) Count(ctx context.Context) (uint, error) {
 	return uint(count), nil
 }
 
-func (q AccountPasswordsQ) Page(limit, offset uint) AccountPasswordsQ {
+func (q accountPasswords) Page(limit, offset uint) repository.AccountPasswordsQ {
 	q.selector = q.selector.Limit(uint64(limit)).Offset(uint64(offset))
 	return q
 }

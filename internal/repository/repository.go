@@ -2,40 +2,56 @@ package repository
 
 import (
 	"context"
-
-	"github.com/jackc/pgx/v5/pgxpool"
-	"github.com/netbill/auth-svc/internal/repository/pgdb"
-	"github.com/netbill/pgxtx"
 )
 
 type Repository struct {
-	pool *pgxpool.Pool
+	accountSql       AccountsQ
+	accountEmails    AccountEmailsQ
+	accountPasswords AccountPasswordsQ
+	sessionsSql      SessionsQ
+	orgMemberSql     OrganizationMembersQ
+
+	Transactioner
 }
 
-func New(pool *pgxpool.Pool) Repository {
-	return Repository{pool: pool}
+type Transactioner interface {
+	Transaction(ctx context.Context, fn func(ctx context.Context) error) error
 }
 
-func (r Repository) accountsQ(ctx context.Context) pgdb.AccountsQ {
-	return pgdb.NewAccountsQ(pgxtx.Exec(r.pool, ctx))
+func NewRepository(
+	transactioner Transactioner,
+	accountSql AccountsQ,
+	accountEmails AccountEmailsQ,
+	accountPasswords AccountPasswordsQ,
+	sessionsSql SessionsQ,
+	orgMemberSql OrganizationMembersQ,
+) Repository {
+	return Repository{
+		accountSql:       accountSql,
+		accountEmails:    accountEmails,
+		accountPasswords: accountPasswords,
+		sessionsSql:      sessionsSql,
+		orgMemberSql:     orgMemberSql,
+		Transactioner:    transactioner,
+	}
 }
 
-func (r Repository) sessionsQ(ctx context.Context) pgdb.SessionsQ {
-	return pgdb.NewSessionsQ(pgxtx.Exec(r.pool, ctx))
+func (r Repository) accountsQ() AccountsQ {
+	return r.accountSql.New()
 }
 
-func (r Repository) passwordsQ(ctx context.Context) pgdb.AccountPasswordsQ {
-	return pgdb.NewAccountPasswordsQ(pgxtx.Exec(r.pool, ctx))
+func (r Repository) accountEmailsQ() AccountEmailsQ {
+	return r.accountEmails.New()
 }
 
-func (r Repository) emailsQ(ctx context.Context) pgdb.AccountEmailsQ {
-	return pgdb.NewAccountEmailsQ(pgxtx.Exec(r.pool, ctx))
+func (r Repository) accountPasswordsQ() AccountPasswordsQ {
+	return r.accountPasswords.New()
 }
 
-func (r Repository) orgMembersQ(ctx context.Context) pgdb.OrganizationMembersQ {
-	return pgdb.NewOrganizationMembersQ(pgxtx.Exec(r.pool, ctx))
+func (r Repository) sessionsQ() SessionsQ {
+	return r.sessionsSql.New()
 }
 
-func (r Repository) Transaction(ctx context.Context, fn func(ctx context.Context) error) error {
-	return pgxtx.Transaction(r.pool, ctx, fn)
+func (r Repository) orgMembersQ() OrganizationMembersQ {
+	return r.orgMemberSql.New()
 }

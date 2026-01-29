@@ -10,8 +10,9 @@ import (
 
 func (s Service) GenerateRefresh(account models.Account, sessionID uuid.UUID) (string, error) {
 	tkn, err := tokens.GenerateAccountJWT(tokens.GenerateAccountJwtRequest{
-		Issuer:    s.iss,
-		Audience:  []string{s.iss},
+		Issuer: s.iss,
+		//TODO add audience when needed for refresh tokens this may be useful
+		//Audience:  []string{s.iss},
 		AccountID: account.ID,
 		SessionID: sessionID,
 		Role:      account.Role,
