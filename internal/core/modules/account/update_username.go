@@ -16,7 +16,7 @@ func (m Module) UpdateUsername(ctx context.Context, initiator InitiatorData, new
 		return models.Account{}, err
 	}
 
-	err = m.repo.Transaction(ctx, func(txCtx context.Context) error {
+	err = m.repo.Transaction(ctx, func(ctx context.Context) error {
 		account, err = m.repo.UpdateAccountUsername(ctx, initiator.AccountID, newUsername)
 		if err != nil {
 			return err

@@ -43,7 +43,7 @@ func (m Module) UpdatePassword(
 		)
 	}
 
-	return m.repo.Transaction(ctx, func(txCtx context.Context) error {
+	return m.repo.Transaction(ctx, func(ctx context.Context) error {
 		_, err = m.repo.UpdateAccountPassword(ctx, initiator.AccountID, string(hash))
 		if err != nil {
 			return err

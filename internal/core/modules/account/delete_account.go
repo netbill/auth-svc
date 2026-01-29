@@ -23,7 +23,7 @@ func (m Module) DeleteOwnAccount(ctx context.Context, initiator InitiatorData) e
 		)
 	}
 
-	return m.repo.Transaction(ctx, func(txCtx context.Context) error {
+	return m.repo.Transaction(ctx, func(ctx context.Context) error {
 		err = m.repo.DeleteAccount(ctx, initiator.AccountID)
 		if err != nil {
 			return err
