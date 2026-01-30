@@ -8,6 +8,7 @@ import (
 	"github.com/netbill/auth-svc/internal/messenger/contracts"
 	"github.com/netbill/evebox/box/inbox"
 	"github.com/netbill/evebox/consumer"
+	"github.com/segmentio/kafka-go"
 )
 
 type handlers interface {
@@ -31,12 +32,22 @@ func (m Messenger) RunConsumer(ctx context.Context, handlers handlers) {
 		}()
 	}
 
-	orgConsumer := consumer.New(m.log, m.pool, "auth-svc-org-consumer", consumer.OnUnknownDoNothing, m.addr...)
+	orgConsumer := consumer.New(consumer.NewConsumerParams{
+		Log:  m.log,
+		DB:   m.db,
+		Name: "auth-svc-org-consumer",
+		Addr: m.addr,
+		OnUnknown: func(ctx context.Context, m kafka.Message, eventType string) error {
+			return nil
+		},
+	})
 
 	orgConsumer.Handle(contracts.OrgMemberCreatedEvent, handlers.OrgMemberCreated)
 	orgConsumer.Handle(contracts.OrgMemberDeletedEvent, handlers.OrgMemberDeleted)
 
-	inboxer1 := consumer.NewInboxer(m.log, m.pool, consumer.ConfigInboxer{
+	inboxer1 := consumer.NewInboxer(consumer.NewInboxerParams{
+		Log:        m.log,
+		Pool:       m.db,
 		Name:       "auth-svc-inbox-worker-1",
 		BatchSize:  10,
 		RetryDelay: 1 * time.Minute,

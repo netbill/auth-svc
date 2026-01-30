@@ -7,18 +7,18 @@ import (
 
 type Messenger struct {
 	addr []string
-	pool *pgdbx.DB
+	db   *pgdbx.DB
 	log  *logium.Logger
 }
 
 func New(
 	log *logium.Logger,
-	pool *pgdbx.DB,
+	db *pgdbx.DB,
 	addr ...string,
 ) Messenger {
 	return Messenger{
 		addr: addr,
-		pool: pool,
+		db:   db,
 		log:  log,
 	}
 }

@@ -20,9 +20,11 @@ func (m Messenger) RunProducer(ctx context.Context) {
 		}()
 	}
 
-	worker1 := producer.New(m.log, m.pool, producer.Config{
+	worker1 := producer.New(producer.NewProducerParams{
 		Name:            "outbox-worker-1",
-		Addr:            m.addr,
+		KafkaAddr:       m.addr,
+		Log:             m.log,
+		DB:              m.db,
 		BatchLimit:      10,
 		LockTTL:         30 * time.Second,
 		EventRetryDelay: 1 * time.Minute,
@@ -34,9 +36,11 @@ func (m Messenger) RunProducer(ctx context.Context) {
 		Balancer:        &kafka.LeastBytes{},
 	})
 
-	worker2 := producer.New(m.log, m.pool, producer.Config{
+	worker2 := producer.New(producer.NewProducerParams{
 		Name:            "outbox-worker-2",
-		Addr:            m.addr,
+		KafkaAddr:       m.addr,
+		Log:             m.log,
+		DB:              m.db,
 		BatchLimit:      10,
 		LockTTL:         30 * time.Second,
 		EventRetryDelay: 1 * time.Minute,
