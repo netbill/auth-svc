@@ -8,7 +8,7 @@ import (
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 	"github.com/go-ozzo/ozzo-validation/v4/is"
 	"github.com/netbill/auth-svc/resources"
-	"github.com/netbill/restkit/tokens/roles"
+	"github.com/netbill/restkit/tokens"
 )
 
 func newDecodeError(what string, err error) error {

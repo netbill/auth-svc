@@ -9,6 +9,10 @@ import (
 	"time"
 )
 
+const (
+	AuthActor = "auth-svc"
+)
+
 type Service struct {
 	accessSK  string
 	refreshSK string

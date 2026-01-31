@@ -4,34 +4,33 @@ import (
 	"errors"
 	"net/http"
 
-	"github.com/netbill/ape"
-	"github.com/netbill/ape/problems"
 	"github.com/netbill/auth-svc/internal/core/errx"
-	"github.com/netbill/auth-svc/internal/rest/middlewares"
+	"github.com/netbill/auth-svc/internal/rest/contexter"
 	"github.com/netbill/auth-svc/internal/rest/responses"
+	"github.com/netbill/restkit/problems"
 )
 
-func (s *Service) GetMyEmailData(w http.ResponseWriter, r *http.Request) {
-	initiator, err := middlewares.AccountData(r.Context())
+func (c *Controller) GetMyEmailData(w http.ResponseWriter, r *http.Request) {
+	initiator, err := contexter.AccountData(r.Context())
 	if err != nil {
-		s.log.WithError(err).Error("failed to get user from context")
-		ape.RenderErr(w, problems.Unauthorized("failed to get user from context"))
+		c.log.WithError(err).Error("failed to get user from context")
+		c.responser.RenderErr(w, problems.Unauthorized("failed to get user from context"))
 
 		return
 	}
 
-	emailData, err := s.core.GetAccountEmail(r.Context(), initiator.AccountID)
+	emailData, err := c.core.GetAccountEmail(r.Context(), initiator.GetAccountID())
 	if err != nil {
-		s.log.WithError(err).Errorf("failed to get email repo by id: %s", initiator.AccountID)
+		c.log.WithError(err).Errorf("failed to get email repo by id: %s", initiator.GetAccountID())
 		switch {
 		case errors.Is(err, errx.ErrorAccountEmailNotFound):
-			ape.RenderErr(w, problems.Unauthorized("initiator account not found by credentials"))
+			c.responser.RenderErr(w, problems.Unauthorized("initiator account not found by credentials"))
 		default:
-			ape.RenderErr(w, problems.InternalError())
+			c.responser.RenderErr(w, problems.InternalError())
 		}
 
 		return
 	}
 
-	ape.Render(w, http.StatusOK, responses.AccountEmailData(emailData))
+	c.responser.Render(w, http.StatusOK, responses.AccountEmailData(emailData))
 }

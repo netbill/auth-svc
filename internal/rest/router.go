@@ -9,7 +9,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/cors"
 	"github.com/netbill/logium"
-	"github.com/netbill/restkit/tokens/roles"
+	"github.com/netbill/restkit/tokens"
 )
 
 type Handlers interface {
@@ -39,8 +39,9 @@ type Handlers interface {
 }
 
 type Middlewares interface {
-	AccountAuth() func(http.Handler) http.Handler
-	AccountRoleGrant(allowedRoles map[string]bool) func(http.Handler) http.Handler
+	AccountAuth(
+		allowedRoles ...string,
+	) func(next http.Handler) http.Handler
 }
 
 type Service struct {
@@ -71,9 +72,7 @@ type Config struct {
 
 func (s *Service) Run(ctx context.Context, cfg Config) {
 	auth := s.middlewares.AccountAuth()
-	sysadmin := s.middlewares.AccountRoleGrant(map[string]bool{
-		roles.SystemAdmin: true,
-	})
+	sysadmin := s.middlewares.AccountAuth(tokens.RoleSystemAdmin)
 
 	r := chi.NewRouter()
 

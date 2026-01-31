@@ -8,48 +8,47 @@ import (
 	"github.com/go-chi/chi/v5"
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 	"github.com/google/uuid"
-	"github.com/netbill/ape"
-	"github.com/netbill/ape/problems"
 	"github.com/netbill/auth-svc/internal/core/errx"
 	"github.com/netbill/auth-svc/internal/core/modules/account"
-	"github.com/netbill/auth-svc/internal/rest/middlewares"
+	"github.com/netbill/auth-svc/internal/rest/contexter"
+	"github.com/netbill/restkit/problems"
 )
 
-func (s *Service) DeleteMySession(w http.ResponseWriter, r *http.Request) {
-	initiator, err := middlewares.AccountData(r.Context())
+func (c *Controller) DeleteMySession(w http.ResponseWriter, r *http.Request) {
+	initiator, err := contexter.AccountData(r.Context())
 	if err != nil {
-		s.log.WithError(err).Error("failed to get user from context")
-		ape.RenderErr(w, problems.Unauthorized("failed to get user from context"))
+		c.log.WithError(err).Error("failed to get user from context")
+		c.responser.RenderErr(w, problems.Unauthorized("failed to get user from context"))
 
 		return
 	}
 
 	sessionID, err := uuid.Parse(chi.URLParam(r, "session_id"))
 	if err != nil {
-		s.log.WithError(err).Errorf("invalid session id: %s", chi.URLParam(r, "session_id"))
-		ape.RenderErr(w, problems.BadRequest(validation.Errors{
+		c.log.WithError(err).Errorf("invalid session id: %s", chi.URLParam(r, "session_id"))
+		c.responser.RenderErr(w, problems.BadRequest(validation.Errors{
 			"query": fmt.Errorf("invalid session id: %s", chi.URLParam(r, "session_id")),
 		})...)
 
 		return
 	}
 
-	if err = s.core.DeleteOwnSession(r.Context(), account.InitiatorData{
-		AccountID: initiator.AccountID,
-		SessionID: initiator.SessionID,
+	if err = c.core.DeleteOwnSession(r.Context(), account.InitiatorData{
+		AccountID: initiator.GetAccountID(),
+		SessionID: initiator.GetSessionID(),
 	}, sessionID); err != nil {
-		s.log.WithError(err).Errorf("failed to delete My session")
+		c.log.WithError(err).Errorf("failed to delete My session")
 		switch {
 		case errors.Is(err, errx.ErrorInitiatorNotFound):
-			ape.RenderErr(w, problems.Unauthorized("initiator account not found by credentials"))
+			c.responser.RenderErr(w, problems.Unauthorized("initiator account not found by credentials"))
 		case errors.Is(err, errx.ErrorInitiatorInvalidSession):
-			ape.RenderErr(w, problems.Unauthorized("initiator session is invalid"))
+			c.responser.RenderErr(w, problems.Unauthorized("initiator session is invalid"))
 		default:
-			ape.RenderErr(w, problems.InternalError())
+			c.responser.RenderErr(w, problems.InternalError())
 		}
 
 		return
 	}
 
-	ape.Render(w, http.StatusNoContent)
+	c.responser.Render(w, http.StatusNoContent)
 }

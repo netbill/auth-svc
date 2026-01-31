@@ -2,6 +2,7 @@ package controller
 
 import (
 	"context"
+	"net/http"
 
 	"github.com/google/uuid"
 	"github.com/netbill/auth-svc/internal/core/models"
@@ -51,16 +52,24 @@ type core interface {
 	DeleteOwnSessions(ctx context.Context, initiator account.InitiatorData) error
 }
 
-type Service struct {
-	google oauth2.Config
-	core   core
-	log    *logium.Logger
+type responser interface {
+	Render(w http.ResponseWriter, status int, res ...interface{})
+	RenderErr(w http.ResponseWriter, errs ...error)
 }
 
-func New(log *logium.Logger, google oauth2.Config, domain core) *Service {
-	return &Service{
-		log:    log,
-		google: google,
-		core:   domain,
+type Controller struct {
+	log    *logium.Logger
+	google oauth2.Config
+
+	core      core
+	responser responser
+}
+
+func New(log *logium.Logger, google oauth2.Config, core core, responser responser) *Controller {
+	return &Controller{
+		log:       log,
+		google:    google,
+		core:      core,
+		responser: responser,
 	}
 }

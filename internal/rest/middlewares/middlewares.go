@@ -1,38 +1,67 @@
 package middlewares
 
 import (
+	"context"
 	"net/http"
 
+	"github.com/netbill/auth-svc/internal/rest/contexter"
 	"github.com/netbill/logium"
-	"github.com/netbill/restkit/mdlv"
+	"github.com/netbill/restkit/grants"
+	"github.com/netbill/restkit/problems"
 )
 
-type Service struct {
-	accountAccessSK string
+type responser interface {
+	Render(w http.ResponseWriter, status int, res ...interface{})
+	RenderErr(w http.ResponseWriter, errs ...error)
+}
 
-	log *logium.Logger
+type Provider struct {
+	log             *logium.Logger
+	accountAccessSK string
+	uploadFilesSK   string
+
+	responser responser
 }
 
 type Config struct {
 	AccountAccessSK string
+	UploadFilesSK   string
 }
 
 func New(
 	log *logium.Logger,
-	accountAccessSK string,
-) Service {
-	return Service{
-		accountAccessSK: accountAccessSK,
+	cfg Config,
+	responser responser,
+) Provider {
+	return Provider{
+		accountAccessSK: cfg.AccountAccessSK,
+		uploadFilesSK:   cfg.UploadFilesSK,
 		log:             log,
+		responser:       responser,
 	}
 }
 
-func (s Service) AccountAuth() func(next http.Handler) http.Handler {
-	return mdlv.AccountAuth(s.log, accountDataCtxKey, s.accountAccessSK)
-}
+func (p Provider) AccountAuth(
+	allowedRoles ...string,
+) func(next http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			res, err := grants.AccountAuthToken(
+				r,
+				p.accountAccessSK,
+				"",
+				allowedRoles...,
+			)
+			if err != nil {
+				p.log.WithError(err).Errorf("account authentication failed")
+				p.responser.RenderErr(w, problems.Unauthorized("account authentication failed"))
 
-func (s Service) AccountRoleGrant(
-	allowedRoles map[string]bool,
-) func(http.Handler) http.Handler {
-	return mdlv.AccountRoleGrant(s.log, accountDataCtxKey, allowedRoles)
+				return
+			}
+
+			next.ServeHTTP(w, r.WithContext(
+				context.WithValue(r.Context(), contexter.AccountDataCtxKey, res)),
+			)
+		})
+	}
 }
