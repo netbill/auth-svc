@@ -10,10 +10,6 @@ import (
 	"golang.org/x/oauth2/google"
 )
 
-type ServerConfig struct {
-	Name string `mapstructure:"name"`
-}
-
 type LogConfig struct {
 	Level  string `mapstructure:"level"`
 	Format string `mapstructure:"format"`
@@ -62,7 +58,6 @@ type JWTConfig struct {
 }
 
 type Config struct {
-	Service  ServerConfig   `mapstructure:"service"`
 	Log      LogConfig      `mapstructure:"log"`
 	Rest     RestConfig     `mapstructure:"rest"`
 	JWT      JWTConfig      `mapstructure:"jwt"`

@@ -13,8 +13,8 @@ type Inbound struct {
 	domain domain
 }
 
-func New(log *logium.Logger, domain domain) Inbound {
-	return Inbound{
+func New(log *logium.Logger, domain domain) *Inbound {
+	return &Inbound{
 		log:    log,
 		domain: domain,
 	}

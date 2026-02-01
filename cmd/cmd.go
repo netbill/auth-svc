@@ -18,6 +18,7 @@ import (
 	"github.com/netbill/auth-svc/internal/tokenmanger"
 	"github.com/netbill/logium"
 	"github.com/netbill/pgdbx"
+	"github.com/netbill/restkit"
 )
 
 func StartServices(ctx context.Context, cfg Config, log *logium.Logger, wg *sync.WaitGroup) {
@@ -35,13 +36,12 @@ func StartServices(ctx context.Context, cfg Config, log *logium.Logger, wg *sync
 	}
 	db := pgdbx.NewDB(pool)
 
-	jwtTokenManager := tokenmanger.NewManager(tokenmanger.Config{
+	jwtTokenManager := tokenmanger.NewManager(tokenmanger.NewParams{
 		AccessSK:   cfg.JWT.User.AccessToken.SecretKey,
 		RefreshSK:  cfg.JWT.User.RefreshToken.SecretKey,
 		RefreshHK:  cfg.JWT.User.RefreshToken.HashKey,
 		AccessTTL:  cfg.JWT.User.AccessToken.TokenLifetime,
 		RefreshTTL: cfg.JWT.User.RefreshToken.TokenLifetime,
-		Iss:        cfg.Service.Name,
 	})
 
 	accountsSqlQ := pg.NewAccountsQ(db)
@@ -65,8 +65,9 @@ func StartServices(ctx context.Context, cfg Config, log *logium.Logger, wg *sync
 	accountCore := account.NewService(repo, jwtTokenManager, kafkaOutbound)
 	orgCore := organization.New(repo)
 
-	ctrl := controller.New(log, cfg.GoogleOAuth(), accountCore)
-	mdll := middlewares.New(log, cfg.JWT.User.AccessToken.SecretKey)
+	responser := restkit.NewResponser()
+	ctrl := controller.New(log, cfg.GoogleOAuth(), accountCore, responser)
+	mdll := middlewares.New(log, cfg.JWT.User.AccessToken.SecretKey, responser)
 	router := rest.New(log, mdll, ctrl)
 
 	msgx := messenger.New(log, db, cfg.Kafka.Brokers...)

@@ -7,7 +7,7 @@ import (
 	"github.com/netbill/auth-svc/internal/core/errx"
 )
 
-func (m Module) DeleteOwnAccount(ctx context.Context, initiator InitiatorData) error {
+func (m *Module) DeleteOwnAccount(ctx context.Context, initiator InitiatorData) error {
 	account, _, err := m.validateInitiatorSession(ctx, initiator)
 	if err != nil {
 		return err

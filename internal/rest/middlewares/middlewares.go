@@ -18,30 +18,27 @@ type responser interface {
 type Provider struct {
 	log             *logium.Logger
 	accountAccessSK string
-	uploadFilesSK   string
 
 	responser responser
 }
 
 type Config struct {
 	AccountAccessSK string
-	UploadFilesSK   string
 }
 
 func New(
 	log *logium.Logger,
-	cfg Config,
+	accountAccessSK string,
 	responser responser,
-) Provider {
-	return Provider{
-		accountAccessSK: cfg.AccountAccessSK,
-		uploadFilesSK:   cfg.UploadFilesSK,
+) *Provider {
+	return &Provider{
+		accountAccessSK: accountAccessSK,
 		log:             log,
 		responser:       responser,
 	}
 }
 
-func (p Provider) AccountAuth(
+func (p *Provider) AccountAuth(
 	allowedRoles ...string,
 ) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {

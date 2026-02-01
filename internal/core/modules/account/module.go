@@ -33,8 +33,8 @@ func NewService(
 }
 
 type JWTManager interface {
-	ParseAccessClaims(tokenStr string) (tokens.AccountJwtData, error)
-	ParseRefreshClaims(enc string) (tokens.AccountJwtData, error)
+	ParseAccessClaims(tokenStr string) (tokens.AccountClaims, error)
+	ParseRefreshClaims(enc string) (tokens.AccountClaims, error)
 
 	HashRefresh(rawRefresh string) (string, error)
 
@@ -117,7 +117,7 @@ type repo interface {
 	Transaction(ctx context.Context, fn func(ctx context.Context) error) error
 }
 
-func (m Module) checkUsernameRequirements(ctx context.Context, username string) error {
+func (m *Module) checkUsernameRequirements(ctx context.Context, username string) error {
 	_, err := m.repo.GetAccountByUsername(ctx, username)
 	if err != nil {
 		return err
@@ -140,7 +140,7 @@ func (m Module) checkUsernameRequirements(ctx context.Context, username string) 
 	return nil
 }
 
-func (m Module) checkPasswordRequirements(password string) error {
+func (m *Module) checkPasswordRequirements(password string) error {
 	if len(password) < 8 || len(password) > 32 {
 		return errx.ErrorPasswordIsNotAllowed.Raise(
 			fmt.Errorf("password must be between 8 and 32 characters"),
@@ -199,7 +199,7 @@ type InitiatorData struct {
 	SessionID uuid.UUID
 }
 
-func (m Module) validateInitiatorSession(
+func (m *Module) validateInitiatorSession(
 	ctx context.Context,
 	initiator InitiatorData,
 ) (models.Account, models.Session, error) {

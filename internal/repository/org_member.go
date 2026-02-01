@@ -42,7 +42,7 @@ type OrganizationMembersQ interface {
 	Exists(ctx context.Context) (bool, error)
 }
 
-func (r Repository) CreateOrgMember(ctx context.Context, member models.Member) error {
+func (r *Repository) CreateOrgMember(ctx context.Context, member models.Member) error {
 	_, err := r.orgMembersQ().Insert(ctx, OrganizationMemberRow{
 		ID:              member.ID,
 		AccountID:       member.AccountID,
@@ -56,7 +56,7 @@ func (r Repository) CreateOrgMember(ctx context.Context, member models.Member) e
 	return err
 }
 
-func (r Repository) DeleteOrgMember(ctx context.Context, memberID uuid.UUID) error {
+func (r *Repository) DeleteOrgMember(ctx context.Context, memberID uuid.UUID) error {
 	err := r.orgMembersQ().FilterByID(memberID).Delete(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to delete organization member with id %s, cause: %w", memberID, err)
@@ -65,7 +65,7 @@ func (r Repository) DeleteOrgMember(ctx context.Context, memberID uuid.UUID) err
 	return nil
 }
 
-func (r Repository) ExistOrgMemberByAccount(ctx context.Context, accountID uuid.UUID) (bool, error) {
+func (r *Repository) ExistOrgMemberByAccount(ctx context.Context, accountID uuid.UUID) (bool, error) {
 	exist, err := r.orgMembersQ().FilterByID(accountID).Exists(ctx)
 	if err != nil {
 		return false, fmt.Errorf("failed to check existence of organization member with account id %s, cause: %w", accountID, err)

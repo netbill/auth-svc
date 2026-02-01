@@ -11,7 +11,7 @@ import (
 	"github.com/netbill/evebox/box/inbox"
 )
 
-func (i Inbound) OrgMemberCreated(
+func (i *Inbound) OrgMemberCreated(
 	ctx context.Context,
 	event inbox.Event,
 ) inbox.EventStatus {

@@ -15,8 +15,8 @@ func New(
 	log *logium.Logger,
 	db *pgdbx.DB,
 	addr ...string,
-) Messenger {
-	return Messenger{
+) *Messenger {
+	return &Messenger{
 		addr: addr,
 		db:   db,
 		log:  log,

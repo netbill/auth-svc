@@ -8,13 +8,13 @@ import (
 	"github.com/netbill/auth-svc/internal/core/models"
 )
 
-func (m Module) Refresh(ctx context.Context, oldRefreshToken string) (models.TokensPair, error) {
+func (m *Module) Refresh(ctx context.Context, oldRefreshToken string) (models.TokensPair, error) {
 	tokenData, err := m.jwt.ParseRefreshClaims(oldRefreshToken)
 	if err != nil {
 		return models.TokensPair{}, err
 	}
 
-	account, err := m.GetAccountByID(ctx, tokenData.AccountID)
+	account, err := m.GetAccountByID(ctx, tokenData.GetAccountID())
 	if err != nil {
 		return models.TokensPair{}, err
 	}
@@ -33,7 +33,7 @@ func (m Module) Refresh(ctx context.Context, oldRefreshToken string) (models.Tok
 		return models.TokensPair{}, errx.ErrorSessionTokenMismatch.Raise(
 			fmt.Errorf(
 				"refresh token does not match for session %s and account %s, cause: %w",
-				tokenData.SessionID, tokenData.AccountID, err,
+				tokenData.SessionID, tokenData.GetAccountID(), err,
 			),
 		)
 	}

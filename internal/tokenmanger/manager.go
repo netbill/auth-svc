@@ -13,7 +13,7 @@ const (
 	AuthActor = "auth-svc"
 )
 
-type Service struct {
+type Manager struct {
 	accessSK  string
 	refreshSK string
 	refreshHK string
@@ -24,25 +24,22 @@ type Service struct {
 	iss string
 }
 
-type Config struct {
+type NewParams struct {
 	AccessSK  string
 	RefreshSK string
 	RefreshHK string
 
 	AccessTTL  time.Duration
 	RefreshTTL time.Duration
-
-	Iss string
 }
 
-func NewManager(cfg Config) Service {
-	return Service{
-		accessSK:   cfg.AccessSK,
-		refreshSK:  cfg.RefreshSK,
-		refreshHK:  cfg.RefreshHK,
-		accessTTL:  cfg.AccessTTL,
-		refreshTTL: cfg.RefreshTTL,
-		iss:        cfg.Iss,
+func NewManager(params NewParams) *Manager {
+	return &Manager{
+		accessSK:   params.AccessSK,
+		refreshSK:  params.RefreshSK,
+		refreshHK:  params.RefreshHK,
+		accessTTL:  params.AccessTTL,
+		refreshTTL: params.RefreshTTL,
 	}
 }
 

@@ -25,8 +25,8 @@ func NewRepository(
 	accountPasswords AccountPasswordsQ,
 	sessionsSql SessionsQ,
 	orgMemberSql OrganizationMembersQ,
-) Repository {
-	return Repository{
+) *Repository {
+	return &Repository{
 		accountSql:       accountSql,
 		accountEmails:    accountEmails,
 		accountPasswords: accountPasswords,
@@ -36,22 +36,22 @@ func NewRepository(
 	}
 }
 
-func (r Repository) accountsQ() AccountsQ {
+func (r *Repository) accountsQ() AccountsQ {
 	return r.accountSql.New()
 }
 
-func (r Repository) accountEmailsQ() AccountEmailsQ {
+func (r *Repository) accountEmailsQ() AccountEmailsQ {
 	return r.accountEmails.New()
 }
 
-func (r Repository) accountPasswordsQ() AccountPasswordsQ {
+func (r *Repository) accountPasswordsQ() AccountPasswordsQ {
 	return r.accountPasswords.New()
 }
 
-func (r Repository) sessionsQ() SessionsQ {
+func (r *Repository) sessionsQ() SessionsQ {
 	return r.sessionsSql.New()
 }
 
-func (r Repository) orgMembersQ() OrganizationMembersQ {
+func (r *Repository) orgMembersQ() OrganizationMembersQ {
 	return r.orgMemberSql.New()
 }

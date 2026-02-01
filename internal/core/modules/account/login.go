@@ -7,7 +7,7 @@ import (
 	"github.com/netbill/auth-svc/internal/core/models"
 )
 
-func (m Module) LoginByEmail(ctx context.Context, email, password string) (models.TokensPair, error) {
+func (m *Module) LoginByEmail(ctx context.Context, email, password string) (models.TokensPair, error) {
 	account, err := m.GetAccountByEmail(ctx, email)
 	if err != nil {
 		return models.TokensPair{}, err
@@ -21,7 +21,7 @@ func (m Module) LoginByEmail(ctx context.Context, email, password string) (model
 	return m.createSession(ctx, account)
 }
 
-func (m Module) LoginByGoogle(ctx context.Context, email string) (models.TokensPair, error) {
+func (m *Module) LoginByGoogle(ctx context.Context, email string) (models.TokensPair, error) {
 	account, err := m.GetAccountByEmail(ctx, email)
 	if err != nil {
 		return models.TokensPair{}, err
@@ -30,7 +30,7 @@ func (m Module) LoginByGoogle(ctx context.Context, email string) (models.TokensP
 	return m.createSession(ctx, account)
 }
 
-func (m Module) LoginByUsername(ctx context.Context, username, password string) (models.TokensPair, error) {
+func (m *Module) LoginByUsername(ctx context.Context, username, password string) (models.TokensPair, error) {
 	account, err := m.GetAccountByUsername(ctx, username)
 	if err != nil {
 		return models.TokensPair{}, err
@@ -44,7 +44,7 @@ func (m Module) LoginByUsername(ctx context.Context, username, password string) 
 	return m.createSession(ctx, account)
 }
 
-func (m Module) checkAccountPassword(
+func (m *Module) checkAccountPassword(
 	ctx context.Context,
 	accountID uuid.UUID,
 	password string,
@@ -61,7 +61,7 @@ func (m Module) checkAccountPassword(
 	return nil
 }
 
-func (m Module) createSession(
+func (m *Module) createSession(
 	ctx context.Context,
 	account models.Account,
 ) (models.TokensPair, error) {
@@ -89,7 +89,7 @@ func (m Module) createSession(
 	}, nil
 }
 
-func (m Module) createTokensPair(
+func (m *Module) createTokensPair(
 	sessionID uuid.UUID,
 	account models.Account,
 ) (models.TokensPair, error) {

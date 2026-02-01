@@ -51,7 +51,7 @@ type AccountPasswordsQ interface {
 	Exists(ctx context.Context) (bool, error)
 }
 
-func (r Repository) GetAccountPassword(ctx context.Context, accountID uuid.UUID) (models.AccountPassword, error) {
+func (r *Repository) GetAccountPassword(ctx context.Context, accountID uuid.UUID) (models.AccountPassword, error) {
 	acc, err := r.accountPasswordsQ().FilterAccountID(accountID).Get(ctx)
 	switch {
 	case errors.Is(err, pgx.ErrNoRows):
@@ -67,7 +67,7 @@ func (r Repository) GetAccountPassword(ctx context.Context, accountID uuid.UUID)
 	return acc.ToModel(), nil
 }
 
-func (r Repository) UpdateAccountPassword(
+func (r *Repository) UpdateAccountPassword(
 	ctx context.Context,
 	accountID uuid.UUID,
 	passwordHash string,

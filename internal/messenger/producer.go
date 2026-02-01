@@ -9,7 +9,7 @@ import (
 	"github.com/segmentio/kafka-go"
 )
 
-func (m Messenger) RunProducer(ctx context.Context) {
+func (m *Messenger) RunProducer(ctx context.Context) {
 	wg := &sync.WaitGroup{}
 
 	run := func(f func()) {

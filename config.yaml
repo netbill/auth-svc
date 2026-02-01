@@ -1,6 +1,3 @@
-service:
-  name: "auth-svc"
-
 rest:
   port: ":8001"
   timeouts:

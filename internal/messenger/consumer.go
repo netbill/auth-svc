@@ -22,7 +22,7 @@ type handlers interface {
 	) inbox.EventStatus
 }
 
-func (m Messenger) RunConsumer(ctx context.Context, handlers handlers) {
+func (m *Messenger) RunConsumer(ctx context.Context, handlers handlers) {
 	wg := &sync.WaitGroup{}
 	run := func(f func()) {
 		wg.Add(1)

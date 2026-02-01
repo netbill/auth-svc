@@ -8,7 +8,7 @@ import (
 	"github.com/netbill/restkit/pagi"
 )
 
-func (m Module) GetOwnSession(ctx context.Context, initiator InitiatorData, sessionID uuid.UUID) (models.Session, error) {
+func (m *Module) GetOwnSession(ctx context.Context, initiator InitiatorData, sessionID uuid.UUID) (models.Session, error) {
 	_, _, err := m.validateInitiatorSession(ctx, initiator)
 	if err != nil {
 		return models.Session{}, err
@@ -22,7 +22,7 @@ func (m Module) GetOwnSession(ctx context.Context, initiator InitiatorData, sess
 	return session, nil
 }
 
-func (m Module) GetOwnSessions(
+func (m *Module) GetOwnSessions(
 	ctx context.Context,
 	initiator InitiatorData,
 	limit, offset uint,

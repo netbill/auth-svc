@@ -7,7 +7,6 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/netbill/ape"
 	"github.com/netbill/auth-svc/internal/core/errx"
 	"github.com/netbill/auth-svc/internal/rest/responses"
 	"github.com/netbill/restkit/problems"

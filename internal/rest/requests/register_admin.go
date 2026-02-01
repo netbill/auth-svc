@@ -33,7 +33,7 @@ func RegistrationAdmin(r *http.Request) (req resources.RegistrationAdmin, err er
 			req.Data.Attributes.Email, validation.Required, validation.Length(5, 255), is.Email),
 
 		"data/attributes/role": validation.Validate(
-			req.Data.Attributes.Role, validation.Required, validation.In(roles.GetAllSystemUserRoles())),
+			req.Data.Attributes.Role, validation.Required, validation.In(tokens.GetAllSystemUserRoles())),
 	}
 
 	return req, errs.Filter()

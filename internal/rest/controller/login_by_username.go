@@ -4,7 +4,6 @@ import (
 	"errors"
 	"net/http"
 
-	"github.com/netbill/ape"
 	"github.com/netbill/auth-svc/internal/core/errx"
 	"github.com/netbill/auth-svc/internal/rest/requests"
 	"github.com/netbill/auth-svc/internal/rest/responses"

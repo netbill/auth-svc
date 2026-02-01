@@ -12,7 +12,7 @@ import (
 	"github.com/segmentio/kafka-go"
 )
 
-func (p Outbound) WriteAccountUsernameUpdated(
+func (o *Outbound) WriteAccountUsernameUpdated(
 	ctx context.Context,
 	account models.Account,
 ) error {
@@ -25,7 +25,7 @@ func (p Outbound) WriteAccountUsernameUpdated(
 		return fmt.Errorf("failed to marshal account username updated payload, cause: %w", err)
 	}
 
-	event, err := p.outbox.CreateOutboxEvent(
+	event, err := o.outbox.CreateOutboxEvent(
 		ctx,
 		kafka.Message{
 			Topic: contracts.AccountsTopicV1,
@@ -44,7 +44,7 @@ func (p Outbound) WriteAccountUsernameUpdated(
 		return fmt.Errorf("failed to create outbox event for account username updated event, cause: %w", err)
 	}
 
-	p.log.Debugf("created outbox event %s for account %s, id %s", contracts.AccountUsernameUpdatedEvent, event.ID.String(), account.ID.String())
+	o.log.Debugf("created outbox event %s for account %s, id %s", contracts.AccountUsernameUpdatedEvent, event.ID.String(), account.ID.String())
 
 	return err
 }

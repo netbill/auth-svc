@@ -2,22 +2,24 @@ package tokenmanger
 
 import (
 	"fmt"
+	"time"
 
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 	"github.com/netbill/auth-svc/internal/core/models"
 	"github.com/netbill/restkit/tokens"
 )
 
-func (s Service) GenerateRefresh(account models.Account, sessionID uuid.UUID) (string, error) {
-	tkn, err := tokens.GenerateAccountJWT(tokens.GenerateAccountJwtRequest{
-		Issuer: s.iss,
-		//TODO add audience when needed for refresh tokens this may be useful
-		//Audience:  []string{s.iss},
-		AccountID: account.ID,
-		SessionID: sessionID,
+func (m *Manager) GenerateRefresh(account models.Account, sessionID uuid.UUID) (string, error) {
+	tkn, err := tokens.AccountClaims{
+		RegisteredClaims: jwt.RegisteredClaims{
+			Subject:   account.ID.String(),
+			Issuer:    AuthActor,
+			ExpiresAt: jwt.NewNumericDate(time.Now().UTC().Add(m.accessTTL)),
+		},
 		Role:      account.Role,
-		Ttl:       s.refreshTTL,
-	}, s.refreshSK)
+		SessionID: sessionID,
+	}.GenerateJWT(m.refreshSK)
 	if err != nil {
 		return "", fmt.Errorf("failed to generate refresh token, cause: %w", err)
 	}
@@ -25,17 +27,17 @@ func (s Service) GenerateRefresh(account models.Account, sessionID uuid.UUID) (s
 	return tkn, nil
 }
 
-func (s Service) ParseRefreshClaims(tokenStr string) (tokens.AccountJwtData, error) {
-	data, err := tokens.ParseAccountJWT(tokenStr, s.refreshSK)
+func (m *Manager) ParseRefreshClaims(tokenStr string) (tokens.AccountClaims, error) {
+	data, err := tokens.ParseAccountJWT(tokenStr, m.refreshSK)
 	if err != nil {
-		return tokens.AccountJwtData{}, fmt.Errorf("failed to parse refresh token, cause: %w", err)
+		return tokens.AccountClaims{}, fmt.Errorf("failed to parse refresh token, cause: %w", err)
 	}
 
 	return data, nil
 }
 
-func (s Service) HashRefresh(rawRefresh string) (string, error) {
-	hash, err := hmacB64("refresh."+rawRefresh, s.refreshHK)
+func (m *Manager) HashRefresh(rawRefresh string) (string, error) {
+	hash, err := hmacB64("refresh."+rawRefresh, m.refreshHK)
 	if err != nil {
 		return "", fmt.Errorf("failed to hash refresh token, cause: %w", err)
 	}

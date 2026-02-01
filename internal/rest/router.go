@@ -44,7 +44,7 @@ type Middlewares interface {
 	) func(next http.Handler) http.Handler
 }
 
-type Service struct {
+type Router struct {
 	handlers    Handlers
 	middlewares Middlewares
 	log         *logium.Logger
@@ -54,8 +54,8 @@ func New(
 	log *logium.Logger,
 	middlewares Middlewares,
 	handlers Handlers,
-) *Service {
-	return &Service{
+) *Router {
+	return &Router{
 		log:         log,
 		middlewares: middlewares,
 		handlers:    handlers,
@@ -70,9 +70,9 @@ type Config struct {
 	TimeoutIdle       time.Duration
 }
 
-func (s *Service) Run(ctx context.Context, cfg Config) {
-	auth := s.middlewares.AccountAuth()
-	sysadmin := s.middlewares.AccountAuth(tokens.RoleSystemAdmin)
+func (rt *Router) Run(ctx context.Context, cfg Config) {
+	auth := rt.middlewares.AccountAuth()
+	sysadmin := rt.middlewares.AccountAuth(tokens.RoleSystemAdmin)
 
 	r := chi.NewRouter()
 
@@ -90,38 +90,38 @@ func (s *Service) Run(ctx context.Context, cfg Config) {
 		r.Route("/v1", func(r chi.Router) {
 
 			r.Route("/registration", func(r chi.Router) {
-				r.Post("/", s.handlers.Registration)
-				r.With(auth, sysadmin).Post("/admin", s.handlers.RegistrationByAdmin)
+				r.Post("/", rt.handlers.Registration)
+				r.With(auth, sysadmin).Post("/admin", rt.handlers.RegistrationByAdmin)
 			})
 
 			r.Route("/login", func(r chi.Router) {
-				r.Post("/email", s.handlers.LoginByEmail)
-				r.Post("/username", s.handlers.LoginByUsername)
+				r.Post("/email", rt.handlers.LoginByEmail)
+				r.Post("/username", rt.handlers.LoginByUsername)
 
 				r.Route("/google", func(r chi.Router) {
-					r.Post("/", s.handlers.LoginByGoogleOAuth)
-					r.Post("/callback", s.handlers.LoginByGoogleOAuthCallback)
+					r.Post("/", rt.handlers.LoginByGoogleOAuth)
+					r.Post("/callback", rt.handlers.LoginByGoogleOAuthCallback)
 				})
 			})
 
-			r.Post("/refresh", s.handlers.RefreshSession)
+			r.Post("/refresh", rt.handlers.RefreshSession)
 
 			r.With(auth).Route("/me", func(r chi.Router) {
-				r.With(auth).Get("/", s.handlers.GetMyAccount)
-				r.With(auth).Delete("/", s.handlers.DeleteMyAccount)
+				r.With(auth).Get("/", rt.handlers.GetMyAccount)
+				r.With(auth).Delete("/", rt.handlers.DeleteMyAccount)
 
-				r.With(auth).Get("/email", s.handlers.GetMyEmailData)
-				r.With(auth).Post("/logout", s.handlers.Logout)
-				r.With(auth).Post("/password", s.handlers.UpdatePassword)
-				r.With(auth).Post("/username", s.handlers.UpdateUsername)
+				r.With(auth).Get("/email", rt.handlers.GetMyEmailData)
+				r.With(auth).Post("/logout", rt.handlers.Logout)
+				r.With(auth).Post("/password", rt.handlers.UpdatePassword)
+				r.With(auth).Post("/username", rt.handlers.UpdateUsername)
 
 				r.With(auth).Route("/sessions", func(r chi.Router) {
-					r.Get("/", s.handlers.GetMySessions)
-					r.Delete("/", s.handlers.DeleteMySessions)
+					r.Get("/", rt.handlers.GetMySessions)
+					r.Delete("/", rt.handlers.DeleteMySessions)
 
 					r.Route("/{session_id}", func(r chi.Router) {
-						r.Get("/", s.handlers.GetMySession)
-						r.Delete("/", s.handlers.DeleteMySession)
+						r.Get("/", rt.handlers.GetMySession)
+						r.Delete("/", rt.handlers.DeleteMySession)
 					})
 				})
 			})
@@ -137,7 +137,7 @@ func (s *Service) Run(ctx context.Context, cfg Config) {
 		IdleTimeout:       cfg.TimeoutIdle,
 	}
 
-	s.log.Infof("starting REST service on %s", cfg.Port)
+	rt.log.Infof("starting REST service on %s", cfg.Port)
 
 	errCh := make(chan error, 1)
 	go func() {
@@ -150,18 +150,18 @@ func (s *Service) Run(ctx context.Context, cfg Config) {
 
 	select {
 	case <-ctx.Done():
-		s.log.Warnf("shutting down REST service...")
+		rt.log.Warnf("shutting down REST service...")
 	case err := <-errCh:
 		if err != nil {
-			s.log.Errorf("REST server error: %v", err)
+			rt.log.Errorf("REST server error: %v", err)
 		}
 	}
 
 	shCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	if err := srv.Shutdown(shCtx); err != nil {
-		s.log.Errorf("REST shutdown error: %v", err)
+		rt.log.Errorf("REST shutdown error: %v", err)
 	} else {
-		s.log.Warnf("REST server stopped")
+		rt.log.Warnf("REST server stopped")
 	}
 }

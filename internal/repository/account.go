@@ -53,7 +53,7 @@ type AccountsQ interface {
 	Exists(ctx context.Context) (bool, error)
 }
 
-func (r Repository) CreateAccount(ctx context.Context, params account.CreateAccountParams) (models.Account, error) {
+func (r *Repository) CreateAccount(ctx context.Context, params account.CreateAccountParams) (models.Account, error) {
 	accountID := uuid.New()
 
 	acc, err := r.accountsQ().Insert(ctx, AccountRow{
@@ -83,7 +83,7 @@ func (r Repository) CreateAccount(ctx context.Context, params account.CreateAcco
 	return acc.ToModel(), nil
 }
 
-func (r Repository) GetAccountByID(ctx context.Context, accountID uuid.UUID) (models.Account, error) {
+func (r *Repository) GetAccountByID(ctx context.Context, accountID uuid.UUID) (models.Account, error) {
 	acc, err := r.accountsQ().FilterID(accountID).Get(ctx)
 	switch {
 	case errors.Is(err, pgx.ErrNoRows):
@@ -97,7 +97,7 @@ func (r Repository) GetAccountByID(ctx context.Context, accountID uuid.UUID) (mo
 	return acc.ToModel(), nil
 }
 
-func (r Repository) ExistsAccountByID(ctx context.Context, accountID uuid.UUID) (bool, error) {
+func (r *Repository) ExistsAccountByID(ctx context.Context, accountID uuid.UUID) (bool, error) {
 	exist, err := r.accountsQ().FilterID(accountID).Exists(ctx)
 	if err != nil {
 		return false, fmt.Errorf("failed to check account existence by id %s, cause: %w", accountID, err)
@@ -106,7 +106,7 @@ func (r Repository) ExistsAccountByID(ctx context.Context, accountID uuid.UUID) 
 	return exist, nil
 }
 
-func (r Repository) GetAccountByUsername(ctx context.Context, username string) (models.Account, error) {
+func (r *Repository) GetAccountByUsername(ctx context.Context, username string) (models.Account, error) {
 	acc, err := r.accountsQ().FilterUsername(username).Get(ctx)
 	switch {
 	case errors.Is(err, pgx.ErrNoRows):
@@ -120,7 +120,7 @@ func (r Repository) GetAccountByUsername(ctx context.Context, username string) (
 	return acc.ToModel(), nil
 }
 
-func (r Repository) GetAccountByEmail(ctx context.Context, email string) (models.Account, error) {
+func (r *Repository) GetAccountByEmail(ctx context.Context, email string) (models.Account, error) {
 	acc, err := r.accountsQ().FilterEmail(email).Get(ctx)
 	switch {
 	case errors.Is(err, pgx.ErrNoRows):
@@ -134,7 +134,7 @@ func (r Repository) GetAccountByEmail(ctx context.Context, email string) (models
 	return acc.ToModel(), nil
 }
 
-func (r Repository) ExistsAccountByUsername(ctx context.Context, username string) (bool, error) {
+func (r *Repository) ExistsAccountByUsername(ctx context.Context, username string) (bool, error) {
 	exist, err := r.accountsQ().FilterUsername(username).Exists(ctx)
 	if err != nil {
 		return false, fmt.Errorf("failed to check account existence by username %s, cause: %w", username, err)
@@ -143,7 +143,7 @@ func (r Repository) ExistsAccountByUsername(ctx context.Context, username string
 	return exist, nil
 }
 
-func (r Repository) UpdateAccountUsername(
+func (r *Repository) UpdateAccountUsername(
 	ctx context.Context,
 	accountID uuid.UUID,
 	username string,
@@ -161,7 +161,7 @@ func (r Repository) UpdateAccountUsername(
 	return acc.ToModel(), nil
 }
 
-func (r Repository) DeleteAccount(ctx context.Context, accountID uuid.UUID) error {
+func (r *Repository) DeleteAccount(ctx context.Context, accountID uuid.UUID) error {
 	err := r.accountsQ().FilterID(accountID).Delete(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to delete account %s, cause: %w", accountID, err)

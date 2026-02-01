@@ -10,7 +10,7 @@ import (
 	"github.com/netbill/evebox/box/inbox"
 )
 
-func (i Inbound) OrgMemberDeleted(
+func (i *Inbound) OrgMemberDeleted(
 	ctx context.Context,
 	event inbox.Event,
 ) inbox.EventStatus {

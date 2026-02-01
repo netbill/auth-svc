@@ -8,7 +8,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-func (m Module) UpdatePassword(
+func (m *Module) UpdatePassword(
 	ctx context.Context,
 	initiator InitiatorData,
 	oldPassword, newPassword string,

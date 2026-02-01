@@ -17,7 +17,7 @@ type RegistrationParams struct {
 	Role     string
 }
 
-func (m Module) Registration(
+func (m *Module) Registration(
 	ctx context.Context,
 	params RegistrationParams,
 ) (models.Account, error) {
@@ -41,7 +41,7 @@ func (m Module) Registration(
 		)
 	}
 
-	err = roles.ValidateUserSystemRole(params.Role)
+	err = tokens.ValidateUserSystemRole(params.Role)
 	if err != nil {
 		return models.Account{}, err
 	}
