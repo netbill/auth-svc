@@ -8,7 +8,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/netbill/auth-svc/internal/core/models"
 	"github.com/netbill/auth-svc/internal/messenger/contracts"
-	"github.com/netbill/evebox/header"
+	"github.com/netbill/eventbox/headers"
 	"github.com/segmentio/kafka-go"
 )
 
@@ -26,26 +26,24 @@ func (o *Outbound) WriteAccountCreated(
 		return fmt.Errorf("failed to marshal account created payload, cause: %w", err)
 	}
 
-	event, err := o.outbox.CreateOutboxEvent(
+	_, err = o.outbox.WriteToOutbox(
 		ctx,
 		kafka.Message{
 			Topic: contracts.AccountsTopicV1,
 			Key:   []byte(account.ID.String()),
 			Value: payload,
 			Headers: []kafka.Header{
-				{Key: header.EventID, Value: []byte(uuid.New().String())},
-				{Key: header.EventType, Value: []byte(contracts.AccountCreatedEvent)},
-				{Key: header.EventVersion, Value: []byte("1")},
-				{Key: header.Producer, Value: []byte(contracts.AuthSvcGroup)},
-				{Key: header.ContentType, Value: []byte("application/json")},
+				{Key: headers.EventID, Value: []byte(uuid.New().String())},
+				{Key: headers.EventType, Value: []byte(contracts.AccountCreatedEvent)},
+				{Key: headers.EventVersion, Value: []byte("1")},
+				{Key: headers.Producer, Value: []byte(contracts.AuthSvcGroup)},
+				{Key: headers.ContentType, Value: []byte("application/json")},
 			},
 		},
 	)
 	if err != nil {
-		return fmt.Errorf("failed to create outbox event for account created event, cause: %w", err)
+		return fmt.Errorf("failed to create outbox event for account created, cause: %w", err)
 	}
-
-	o.log.Debugf("created outbox event %s for account %s, id %s", contracts.AccountCreatedEvent, event.ID.String(), account.ID.String())
 
 	return nil
 }

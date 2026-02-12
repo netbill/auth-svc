@@ -6,64 +6,64 @@ import (
 	"time"
 
 	"github.com/netbill/auth-svc/internal/messenger/contracts"
-	"github.com/netbill/evebox/box/inbox"
-	"github.com/netbill/evebox/consumer"
+	eventpg "github.com/netbill/eventbox/pg"
+	"github.com/netbill/logium"
+	"github.com/netbill/pgdbx"
 	"github.com/segmentio/kafka-go"
 )
 
-type handlers interface {
-	OrgMemberCreated(
-		ctx context.Context,
-		event inbox.Event,
-	) inbox.EventStatus
-	OrgMemberDeleted(
-		ctx context.Context,
-		event inbox.Event,
-	) inbox.EventStatus
+type ConsumerArchitect struct {
+	log          *logium.Entry
+	db           *pgdbx.DB
+	brokers      []string
+	topicReaders map[string]int
 }
 
-func (m *Messenger) RunConsumer(ctx context.Context, handlers handlers) {
-	wg := &sync.WaitGroup{}
-	run := func(f func()) {
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
-			f()
-		}()
+func NewConsumerArchitect(
+	log *logium.Logger,
+	db *pgdbx.DB,
+	brokers []string,
+	topicReaders map[string]int,
+) *ConsumerArchitect {
+	return &ConsumerArchitect{
+		log:          log.WithField("component", "kafka-consumer"),
+		db:           db,
+		brokers:      brokers,
+		topicReaders: topicReaders,
+	}
+}
+
+func (a *ConsumerArchitect) Start(ctx context.Context) {
+	var wg sync.WaitGroup
+
+	accountReadersNum, ok := a.topicReaders[contracts.OrgMemberTopicV1]
+	if !ok || accountReadersNum <= 0 {
+		a.log.Fatalf("number of readers for topic %s must be greater than 0", contracts.OrgMemberTopicV1)
 	}
 
-	orgConsumer := consumer.New(consumer.NewConsumerParams{
-		Log:  m.log,
-		DB:   m.db,
-		Name: "auth-svc-org-consumer",
-		Addr: m.addr,
-		OnUnknown: func(ctx context.Context, m kafka.Message, eventType string) error {
-			return nil
-		},
+	accountConsumer := eventpg.NewConsumer(a.log, a.db, eventpg.ConsumerConfig{
+		MinBackoff: 200 * time.Millisecond,
+		MaxBackoff: 5 * time.Second,
 	})
 
-	orgConsumer.Handle(contracts.OrgMemberCreatedEvent, handlers.OrgMemberCreated)
-	orgConsumer.Handle(contracts.OrgMemberDeletedEvent, handlers.OrgMemberDeleted)
+	a.log.Infoln("starting kafka consumers process")
 
-	inboxer1 := consumer.NewInboxer(consumer.NewInboxerParams{
-		Log:        m.log,
-		Pool:       m.db,
-		Name:       "auth-svc-inbox-worker-1",
-		BatchSize:  10,
-		RetryDelay: 1 * time.Minute,
-		MinSleep:   100 * time.Millisecond,
-		MaxSleep:   1 * time.Second,
-	})
-	inboxer1.Handle(contracts.OrgMemberCreatedEvent, handlers.OrgMemberCreated)
-	inboxer1.Handle(contracts.OrgMemberDeletedEvent, handlers.OrgMemberDeleted)
+	wg.Add(accountReadersNum)
 
-	run(func() {
-		orgConsumer.Run(ctx, contracts.AuthSvcGroup, contracts.AccountsTopicV1, m.addr...)
-	})
+	for i := 0; i < accountReadersNum; i++ {
+		reader := kafka.NewReader(kafka.ReaderConfig{
+			Brokers:  a.brokers,
+			GroupID:  contracts.AuthSvcGroup,
+			Topic:    contracts.OrgMemberTopicV1,
+			MinBytes: 10e3,
+			MaxBytes: 10e6,
+		})
 
-	run(func() {
-		inboxer1.Run(ctx)
-	})
+		go func(r *kafka.Reader) {
+			defer wg.Done()
+			accountConsumer.Read(ctx, r) // Read сам закроет reader
+		}(reader)
+	}
 
 	wg.Wait()
 }
