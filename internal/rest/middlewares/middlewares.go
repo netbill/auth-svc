@@ -1,13 +1,9 @@
 package middlewares
 
 import (
-	"context"
 	"net/http"
 
-	"github.com/netbill/auth-svc/internal/rest/contexter"
-	"github.com/netbill/logium"
-	"github.com/netbill/restkit/grants"
-	"github.com/netbill/restkit/problems"
+	"github.com/netbill/restkit/tokens"
 )
 
 type responser interface {
@@ -15,50 +11,21 @@ type responser interface {
 	RenderErr(w http.ResponseWriter, errs ...error)
 }
 
-type Provider struct {
-	log             *logium.Logger
-	accountAccessSK string
-
-	responser responser
+type tokenManager interface {
+	ParseAccountAuthAccessClaims(tokenStr string) (tokens.AccountAuthClaims, error)
 }
 
-type Config struct {
-	AccountAccessSK string
+type Provider struct {
+	tokenManager tokenManager
+	responser    responser
 }
 
 func New(
-	log *logium.Logger,
-	accountAccessSK string,
+	tokenManager tokenManager,
 	responser responser,
 ) *Provider {
 	return &Provider{
-		accountAccessSK: accountAccessSK,
-		log:             log,
-		responser:       responser,
-	}
-}
-
-func (p *Provider) AccountAuth(
-	allowedRoles ...string,
-) func(next http.Handler) http.Handler {
-	return func(next http.Handler) http.Handler {
-		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			res, err := grants.AccountAuthToken(
-				r,
-				p.accountAccessSK,
-				"",
-				allowedRoles...,
-			)
-			if err != nil {
-				p.log.WithError(err).Errorf("account authentication failed")
-				p.responser.RenderErr(w, problems.Unauthorized("account authentication failed"))
-
-				return
-			}
-
-			next.ServeHTTP(w, r.WithContext(
-				context.WithValue(r.Context(), contexter.AccountDataCtxKey, res)),
-			)
-		})
+		tokenManager: tokenManager,
+		responser:    responser,
 	}
 }

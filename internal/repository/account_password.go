@@ -52,7 +52,7 @@ type AccountPasswordsQ interface {
 }
 
 func (r *Repository) GetAccountPassword(ctx context.Context, accountID uuid.UUID) (models.AccountPassword, error) {
-	acc, err := r.accountPasswordsQ().FilterAccountID(accountID).Get(ctx)
+	acc, err := r.AccountPassQ.FilterAccountID(accountID).Get(ctx)
 	switch {
 	case errors.Is(err, pgx.ErrNoRows):
 		return models.AccountPassword{}, errx.ErrorAccountPasswordNorFound.Raise(
@@ -72,7 +72,7 @@ func (r *Repository) UpdateAccountPassword(
 	accountID uuid.UUID,
 	passwordHash string,
 ) (models.AccountPassword, error) {
-	acc, err := r.accountPasswordsQ().
+	acc, err := r.AccountPassQ.
 		FilterAccountID(accountID).
 		UpdateHash(passwordHash).
 		UpdateOne(ctx)

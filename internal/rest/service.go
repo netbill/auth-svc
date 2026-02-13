@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/go-chi/cors"
 	"github.com/netbill/logium"
 	"github.com/netbill/restkit/tokens"
 )
@@ -42,21 +41,20 @@ type Middlewares interface {
 	AccountAuth(
 		allowedRoles ...string,
 	) func(next http.Handler) http.Handler
+	Logger(log *logium.Entry) func(next http.Handler) http.Handler
+	CorsDocs() func(next http.Handler) http.Handler
 }
 
-type Router struct {
+type Service struct {
 	handlers    Handlers
 	middlewares Middlewares
-	log         *logium.Logger
 }
 
 func New(
-	log *logium.Logger,
 	middlewares Middlewares,
 	handlers Handlers,
-) *Router {
-	return &Router{
-		log:         log,
+) *Service {
+	return &Service{
 		middlewares: middlewares,
 		handlers:    handlers,
 	}
@@ -70,58 +68,54 @@ type Config struct {
 	TimeoutIdle       time.Duration
 }
 
-func (rt *Router) Run(ctx context.Context, cfg Config) {
-	auth := rt.middlewares.AccountAuth()
-	sysadmin := rt.middlewares.AccountAuth(tokens.RoleSystemAdmin)
+func (s *Service) Run(ctx context.Context, log *logium.Entry, cfg Config) {
+	auth := s.middlewares.AccountAuth()
+	sysadmin := s.middlewares.AccountAuth(tokens.RoleSystemAdmin)
+
+	log = log.WithField("component", "rest")
 
 	r := chi.NewRouter()
-
-	// CORS for swagger UI documentation need to delete after configuring nginx
-	r.Use(cors.Handler(cors.Options{
-		AllowedOrigins:   []string{"http://localhost:5001"},
-		AllowedMethods:   []string{"GET", "POST", "PATCH", "DELETE", "OPTIONS"},
-		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type"},
-		ExposedHeaders:   []string{"Link"},
-		AllowCredentials: true,
-		MaxAge:           300,
-	}))
+	r.Use(
+		s.middlewares.Logger(log),
+		s.middlewares.CorsDocs(),
+	)
 
 	r.Route("/auth-svc", func(r chi.Router) {
 		r.Route("/v1", func(r chi.Router) {
 
 			r.Route("/registration", func(r chi.Router) {
-				r.Post("/", rt.handlers.Registration)
-				r.With(auth, sysadmin).Post("/admin", rt.handlers.RegistrationByAdmin)
+				r.Post("/", s.handlers.Registration)
+				r.With(auth, sysadmin).Post("/admin", s.handlers.RegistrationByAdmin)
 			})
 
 			r.Route("/login", func(r chi.Router) {
-				r.Post("/email", rt.handlers.LoginByEmail)
-				r.Post("/username", rt.handlers.LoginByUsername)
+				r.Post("/email", s.handlers.LoginByEmail)
+				r.Post("/username", s.handlers.LoginByUsername)
 
 				r.Route("/google", func(r chi.Router) {
-					r.Post("/", rt.handlers.LoginByGoogleOAuth)
-					r.Post("/callback", rt.handlers.LoginByGoogleOAuthCallback)
+					r.Post("/", s.handlers.LoginByGoogleOAuth)
+					r.Post("/callback", s.handlers.LoginByGoogleOAuthCallback)
 				})
 			})
 
-			r.Post("/refresh", rt.handlers.RefreshSession)
+			r.Post("/refresh", s.handlers.RefreshSession)
 
 			r.With(auth).Route("/me", func(r chi.Router) {
-				r.With(auth).Get("/", rt.handlers.GetMyAccount)
-				r.With(auth).Delete("/", rt.handlers.DeleteMyAccount)
+				r.With(auth).Get("/", s.handlers.GetMyAccount)
+				r.With(auth).Delete("/", s.handlers.DeleteMyAccount)
 
-				r.With(auth).Get("/email", rt.handlers.GetMyEmailData)
-				r.With(auth).Post("/logout", rt.handlers.Logout)
-				r.With(auth).Post("/password", rt.handlers.UpdatePassword)
-				r.With(auth).Post("/username", rt.handlers.UpdateUsername)
+				r.With(auth).Get("/email", s.handlers.GetMyEmailData)
+				r.With(auth).Post("/logout", s.handlers.Logout)
+				r.With(auth).Post("/password", s.handlers.UpdatePassword)
+				r.With(auth).Post("/username", s.handlers.UpdateUsername)
 
 				r.With(auth).Route("/sessions", func(r chi.Router) {
-					r.Get("/", rt.handlers.GetMySessions)
-					r.Delete("/", rt.handlers.DeleteMySessions)
+					r.Get("/", s.handlers.GetMySessions)
+					r.Delete("/", s.handlers.DeleteMySessions)
 
 					r.Route("/{session_id}", func(r chi.Router) {
-						r.Get("/", rt.handlers.GetMySession)
-						r.Delete("/", rt.handlers.DeleteMySession)
+						r.Get("/", s.handlers.GetMySession)
+						r.Delete("/", s.handlers.DeleteMySession)
 					})
 				})
 			})
@@ -137,7 +131,7 @@ func (rt *Router) Run(ctx context.Context, cfg Config) {
 		IdleTimeout:       cfg.TimeoutIdle,
 	}
 
-	rt.log.Infof("starting REST service on %s", cfg.Port)
+	log.Infof("starting http service on %s", cfg.Port)
 
 	errCh := make(chan error, 1)
 	go func() {
@@ -150,18 +144,18 @@ func (rt *Router) Run(ctx context.Context, cfg Config) {
 
 	select {
 	case <-ctx.Done():
-		rt.log.Warnf("shutting down REST service...")
+		log.Infof("shutting down http service...")
 	case err := <-errCh:
 		if err != nil {
-			rt.log.Errorf("REST server error: %v", err)
+			log.Errorf("http server error: %v", err)
 		}
 	}
 
 	shCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	if err := srv.Shutdown(shCtx); err != nil {
-		rt.log.Errorf("REST shutdown error: %v", err)
+		log.Errorf("http shutdown error: %v", err)
 	} else {
-		rt.log.Warnf("REST server stopped")
+		log.Infof("http server stopped")
 	}
 }

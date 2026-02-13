@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/netbill/auth-svc/internal/messenger/contracts"
+	"github.com/netbill/auth-svc/internal/messenger/evtypes"
 	"github.com/netbill/eventbox/headers"
 	"github.com/segmentio/kafka-go"
 )
@@ -16,7 +16,7 @@ func (o *Outbound) WriteAccountDeleted(
 	ctx context.Context,
 	accountID uuid.UUID,
 ) error {
-	payload, err := json.Marshal(contracts.AccountDeletedPayload{
+	payload, err := json.Marshal(evtypes.AccountDeletedPayload{
 		AccountID: accountID,
 		DeletedAt: time.Now().UTC(),
 	})
@@ -27,14 +27,14 @@ func (o *Outbound) WriteAccountDeleted(
 	_, err = o.outbox.WriteToOutbox(
 		ctx,
 		kafka.Message{
-			Topic: contracts.AccountsTopicV1,
+			Topic: evtypes.AccountsTopicV1,
 			Key:   []byte(accountID.String()),
 			Value: payload,
 			Headers: []kafka.Header{
 				{Key: headers.EventID, Value: []byte(uuid.New().String())}, // Outbox will fill this
-				{Key: headers.EventType, Value: []byte(contracts.AccountDeletedEvent)},
+				{Key: headers.EventType, Value: []byte(evtypes.AccountDeletedEvent)},
 				{Key: headers.EventVersion, Value: []byte("1")},
-				{Key: headers.Producer, Value: []byte(contracts.AuthSvcGroup)},
+				{Key: headers.Producer, Value: []byte(evtypes.AuthSvcGroup)},
 				{Key: headers.ContentType, Value: []byte("application/json")},
 			},
 		},

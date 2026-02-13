@@ -6,9 +6,8 @@ import (
 	"net/http"
 
 	"github.com/netbill/auth-svc/internal/core/errx"
-	"github.com/netbill/auth-svc/internal/core/modules/account"
-	"github.com/netbill/auth-svc/internal/rest/contexter"
 	"github.com/netbill/auth-svc/internal/rest/responses"
+	"github.com/netbill/auth-svc/internal/rest/scope"
 	"github.com/netbill/restkit/problems"
 
 	"github.com/go-chi/chi/v5"
@@ -16,44 +15,40 @@ import (
 	"github.com/google/uuid"
 )
 
+const operationGetMySession = "get_my_session"
+
 func (c *Controller) GetMySession(w http.ResponseWriter, r *http.Request) {
-	initiator, err := contexter.AccountData(r.Context())
-	if err != nil {
-		c.log.WithError(err).Error("failed to get user from context")
-		c.responser.RenderErr(w, problems.Unauthorized("failed to get user from context"))
+	log := scope.Log(r).WithOperation(operationGetMySession)
 
-		return
-	}
-
-	sessionId, err := uuid.Parse(chi.URLParam(r, "session_id"))
+	sessionID, err := uuid.Parse(chi.URLParam(r, "session_id"))
 	if err != nil {
-		c.log.WithError(err).Errorf("invalid session id: %s", chi.URLParam(r, "session_id"))
+		log.WithError(err).
+			WithField("target_session_id", chi.URLParam(r, "session_id")).
+			Warn("invalid session id")
+
 		c.responser.RenderErr(w, problems.BadRequest(validation.Errors{
-			"query": fmt.Errorf("invalid session id: %s", chi.URLParam(r, "session_id")),
+			"path": fmt.Errorf("invalid session id: %s", chi.URLParam(r, "session_id")),
 		})...)
-
 		return
 	}
 
-	session, err := c.core.GetOwnSession(r.Context(), account.InitiatorData{
-		AccountID: initiator.GetAccountID(),
-		SessionID: initiator.GetSessionID(),
-	}, sessionId)
-	if err != nil {
-		c.log.WithError(err).Errorf("failed to get My session")
-		switch {
-		case errors.Is(err, errx.ErrorInitiatorNotFound):
-			c.responser.RenderErr(w, problems.Unauthorized("initiator account not found by credentials"))
-		case errors.Is(err, errx.ErrorSessionNotFound):
-			c.responser.RenderErr(w, problems.Unauthorized("session not found"))
-		case errors.Is(err, errx.ErrorInitiatorInvalidSession):
-			c.responser.RenderErr(w, problems.Unauthorized("initiator session is invalid"))
-		default:
-			c.responser.RenderErr(w, problems.InternalError())
-		}
+	log = log.WithField("target_session_id", sessionID)
 
-		return
+	session, err := c.core.GetOwnSession(r.Context(), scope.AccountActor(r), sessionID)
+	switch {
+	case errors.Is(err, errx.ErrorInitiatorNotFound):
+		log.Info("initiator account not found by credentials")
+		c.responser.RenderErr(w, problems.Unauthorized("initiator account not found by credentials"))
+	case errors.Is(err, errx.ErrorSessionNotFound):
+		log.Info("session not found")
+		c.responser.RenderErr(w, problems.Unauthorized("session not found"))
+	case errors.Is(err, errx.ErrorInitiatorInvalidSession):
+		log.Info("initiator session is invalid")
+		c.responser.RenderErr(w, problems.Unauthorized("initiator session is invalid"))
+	case err != nil:
+		log.WithError(err).Error("failed to get my session")
+		c.responser.RenderErr(w, problems.InternalError())
+	default:
+		c.responser.Render(w, http.StatusOK, responses.AccountSession(session))
 	}
-
-	c.responser.Render(w, http.StatusOK, responses.AccountSession(session))
 }

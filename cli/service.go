@@ -1,15 +1,14 @@
-package cmd
+package cli
 
 import (
 	"context"
 	"sync"
 
 	"github.com/jackc/pgx/v5/pgxpool"
-	"github.com/netbill/auth-svc/cmd/config"
 	"github.com/netbill/auth-svc/internal/core/modules/account"
 	"github.com/netbill/auth-svc/internal/core/modules/organization"
 	"github.com/netbill/auth-svc/internal/messenger"
-	"github.com/netbill/auth-svc/internal/messenger/contracts"
+	"github.com/netbill/auth-svc/internal/messenger/evtypes"
 	"github.com/netbill/auth-svc/internal/messenger/inbound"
 	"github.com/netbill/auth-svc/internal/messenger/outbound"
 	"github.com/netbill/auth-svc/internal/repository"
@@ -24,7 +23,7 @@ import (
 	"github.com/netbill/restkit"
 )
 
-func StartServices(ctx context.Context, cfg config.Config, log *logium.Logger, wg *sync.WaitGroup) {
+func StartServices(ctx context.Context, cfg *Config, log *logium.Entry, wg *sync.WaitGroup) {
 	run := func(f func()) {
 		wg.Add(1)
 		go func() {
@@ -39,43 +38,37 @@ func StartServices(ctx context.Context, cfg config.Config, log *logium.Logger, w
 	}
 	db := pgdbx.NewDB(pool)
 
-	accountsSqlQ := pg.NewAccountsQ(db)
-	accountEmailsSqlQ := pg.NewAccountEmailsQ(db)
-	accountPasswordsSqlQ := pg.NewAccountPasswordsQ(db)
-	sessionsSqlQ := pg.NewSessionsQ(db)
-	orgMembersSqlQ := pg.NewOrganizationMembersQ(db)
-	transactionerSql := pg.NewTransaction(db)
-
-	repo := repository.NewRepository(
-		transactionerSql,
-		accountsSqlQ,
-		accountEmailsSqlQ,
-		accountPasswordsSqlQ,
-		sessionsSqlQ,
-		orgMembersSqlQ,
-	)
+	repo := &repository.Repository{
+		AccountsQ:      pg.NewAccountsQ(db),
+		AccountEmailsQ: pg.NewAccountEmailsQ(db),
+		AccountPassQ:   pg.NewAccountPasswordsQ(db),
+		SessionsQ:      pg.NewSessionsQ(db),
+		OrgMembersQ:    pg.NewOrganizationMembersQ(db),
+		Transactioner:  pg.NewTransaction(db),
+	}
 
 	kafkaProducer := messenger.NewProducer(db, cfg.Kafka.Brokers...)
 	kafkaOutbound := outbound.New(kafkaProducer)
 
-	jwtTokenManager := tokenmanger.NewManager(tokenmanger.NewParams{
+	tokenManager := &tokenmanger.Manager{
+		Issuer:     ServiceName,
 		AccessSK:   cfg.Auth.Account.Token.Access.SecretKey,
 		RefreshSK:  cfg.Auth.Account.Token.Refresh.SecretKey,
 		RefreshHK:  cfg.Auth.Account.Token.Refresh.HashKey,
 		AccessTTL:  cfg.Auth.Account.Token.Access.Lifetime,
 		RefreshTTL: cfg.Auth.Account.Token.Refresh.Lifetime,
-	})
+	}
 
-	authModule := account.NewService(repo, jwtTokenManager, kafkaOutbound)
+	authModule := account.NewService(repo, tokenManager, kafkaOutbound)
 	orgModule := organization.New(repo)
 
 	responser := restkit.NewResponser()
-	ctrl := controller.New(log, cfg.GoogleOAuth(), authModule, responser)
-	mdll := middlewares.New(log, cfg.Auth.Account.Token.Access.SecretKey, responser)
-	router := rest.New(log, mdll, ctrl)
+	ctrl := controller.New(authModule, cfg.GoogleOAuth(), responser)
+	mdll := middlewares.New(tokenManager, responser)
+	router := rest.New(mdll, ctrl)
 
 	run(func() {
-		router.Run(ctx, rest.Config{
+		router.Run(ctx, log, rest.Config{
 			Port:              cfg.Rest.Port,
 			TimeoutRead:       cfg.Rest.Timeouts.Read,
 			TimeoutReadHeader: cfg.Rest.Timeouts.ReadHeader,
@@ -84,18 +77,17 @@ func StartServices(ctx context.Context, cfg config.Config, log *logium.Logger, w
 		})
 	})
 
-	kafkaConsumer := messenger.NewConsumerArchitect(log, db, cfg.Kafka.Brokers, map[string]int{
-		contracts.OrgMemberTopicV1: cfg.Kafka.Readers.OrgMemberV1,
+	kafkaConsumer := messenger.NewConsumer(log, db, cfg.Kafka.Brokers, map[string]int{
+		evtypes.OrgMemberTopicV1: cfg.Kafka.Readers.OrgMemberV1,
 	})
 
 	run(func() { kafkaConsumer.Start(ctx) })
 
 	kafkaInboxArh := messenger.NewInbox(log, db, inbound.New(orgModule), eventpg.InboxWorkerConfig{
 		Routines:       cfg.Kafka.Inbox.Routines,
-		MinSleep:       cfg.Kafka.Inbox.MinSleep,
-		MaxSleep:       cfg.Kafka.Inbox.MaxSleep,
-		MinBatch:       cfg.Kafka.Inbox.MinBatch,
-		MaxBatch:       cfg.Kafka.Inbox.MaxBatch,
+		Slots:          cfg.Kafka.Inbox.Slots,
+		Sleep:          cfg.Kafka.Inbox.Sleep,
+		BatchSize:      cfg.Kafka.Inbox.BatchSize,
 		MinNextAttempt: cfg.Kafka.Inbox.MinNextAttempt,
 		MaxNextAttempt: cfg.Kafka.Inbox.MaxNextAttempt,
 		MaxAttempts:    cfg.Kafka.Inbox.MaxAttempts,
@@ -105,10 +97,9 @@ func StartServices(ctx context.Context, cfg config.Config, log *logium.Logger, w
 
 	kafkaOutboxArch := messenger.NewOutbox(log, db, cfg.Kafka.Brokers, eventpg.OutboxWorkerConfig{
 		Routines:       cfg.Kafka.Outbox.Routines,
-		MinSleep:       cfg.Kafka.Outbox.MinSleep,
-		MaxSleep:       cfg.Kafka.Outbox.MaxSleep,
-		MinBatch:       cfg.Kafka.Outbox.MinBatch,
-		MaxBatch:       cfg.Kafka.Outbox.MaxBatch,
+		Slots:          cfg.Kafka.Inbox.Slots,
+		Sleep:          cfg.Kafka.Inbox.Sleep,
+		BatchSize:      cfg.Kafka.Inbox.BatchSize,
 		MinNextAttempt: cfg.Kafka.Outbox.MinNextAttempt,
 		MaxNextAttempt: cfg.Kafka.Outbox.MaxNextAttempt,
 		MaxAttempts:    cfg.Kafka.Outbox.MaxAttempts,

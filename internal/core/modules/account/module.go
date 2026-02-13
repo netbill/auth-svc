@@ -33,8 +33,8 @@ func NewService(
 }
 
 type JWTManager interface {
-	ParseAccessClaims(tokenStr string) (tokens.AccountClaims, error)
-	ParseRefreshClaims(enc string) (tokens.AccountClaims, error)
+	ParseAccountAuthAccessClaims(tokenStr string) (tokens.AccountAuthClaims, error)
+	ParseAccountAuthRefreshClaims(enc string) (tokens.AccountAuthClaims, error)
 
 	HashRefresh(rawRefresh string) (string, error)
 
@@ -194,36 +194,31 @@ func (m *Module) checkPasswordRequirements(password string) error {
 	return nil
 }
 
-type InitiatorData struct {
-	AccountID uuid.UUID
-	SessionID uuid.UUID
-}
-
-func (m *Module) validateInitiatorSession(
+func (m *Module) validateActorSession(
 	ctx context.Context,
-	initiator InitiatorData,
+	actor models.AccountActor,
 ) (models.Account, models.Session, error) {
-	account, err := m.repo.GetAccountByID(ctx, initiator.AccountID)
+	account, err := m.repo.GetAccountByID(ctx, actor.ID)
 	switch {
 	case errors.Is(err, errx.ErrorAccountNotFound):
 		return models.Account{}, models.Session{}, errx.ErrorInitiatorNotFound.Raise(
-			fmt.Errorf("account with id '%s' not found", initiator.SessionID),
+			fmt.Errorf("account with id '%s' not found", actor.SessionID),
 		)
 	case err != nil:
 		return models.Account{}, models.Session{}, errx.ErrorInitiatorNotFound.Raise(
-			fmt.Errorf("failed to get account with id '%s', cause: %w", initiator.SessionID, err),
+			fmt.Errorf("failed to get account with id '%s', cause: %w", actor.SessionID, err),
 		)
 	}
 
-	session, err := m.repo.GetSession(ctx, initiator.SessionID)
+	session, err := m.repo.GetSession(ctx, actor.SessionID)
 	switch {
 	case errors.Is(err, errx.ErrorSessionNotFound):
 		return models.Account{}, models.Session{}, errx.ErrorInitiatorInvalidSession.Raise(
-			fmt.Errorf("failed to get session with id '%s', cause: %w", initiator.SessionID, err),
+			fmt.Errorf("failed to get session with id '%s', cause: %w", actor.SessionID, err),
 		)
-	case session.AccountID != initiator.AccountID:
+	case session.AccountID != actor.ID:
 		return models.Account{}, models.Session{}, errx.ErrorInitiatorInvalidSession.Raise(
-			fmt.Errorf("session with id '%s' not found for account '%s'", initiator.SessionID, initiator.AccountID),
+			fmt.Errorf("session with id '%s' not found for account '%s'", actor.SessionID, actor.ID),
 		)
 	}
 

@@ -5,26 +5,30 @@ import (
 	"fmt"
 
 	"github.com/netbill/auth-svc/internal/core/errx"
+	"github.com/netbill/auth-svc/internal/core/models"
 )
 
-func (m *Module) DeleteOwnAccount(ctx context.Context, initiator InitiatorData) error {
-	account, _, err := m.validateInitiatorSession(ctx, initiator)
+func (m *Module) DeleteOwnAccount(
+	ctx context.Context,
+	actor models.AccountActor,
+) error {
+	account, _, err := m.validateActorSession(ctx, actor)
 	if err != nil {
 		return err
 	}
 
-	exists, err := m.repo.ExistOrgMemberByAccount(ctx, initiator.AccountID)
+	exists, err := m.repo.ExistOrgMemberByAccount(ctx, actor.ID)
 	if err != nil {
 		return err
 	}
 	if exists {
 		return errx.AccountHaveMembershipInOrg.Raise(
-			fmt.Errorf("account %s has a member of organizations", initiator.AccountID),
+			fmt.Errorf("account %s has a member of organizations", actor.ID),
 		)
 	}
 
 	return m.repo.Transaction(ctx, func(ctx context.Context) error {
-		err = m.repo.DeleteAccount(ctx, initiator.AccountID)
+		err = m.repo.DeleteAccount(ctx, actor.ID)
 		if err != nil {
 			return err
 		}

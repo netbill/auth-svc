@@ -8,13 +8,17 @@ import (
 	"github.com/netbill/restkit/pagi"
 )
 
-func (m *Module) GetOwnSession(ctx context.Context, initiator InitiatorData, sessionID uuid.UUID) (models.Session, error) {
-	_, _, err := m.validateInitiatorSession(ctx, initiator)
+func (m *Module) GetOwnSession(
+	ctx context.Context,
+	actor models.AccountActor,
+	sessionID uuid.UUID,
+) (models.Session, error) {
+	_, _, err := m.validateActorSession(ctx, actor)
 	if err != nil {
 		return models.Session{}, err
 	}
 
-	session, err := m.repo.GetAccountSession(ctx, initiator.AccountID, sessionID)
+	session, err := m.repo.GetAccountSession(ctx, actor.ID, sessionID)
 	if err != nil {
 		return models.Session{}, err
 	}
@@ -24,15 +28,15 @@ func (m *Module) GetOwnSession(ctx context.Context, initiator InitiatorData, ses
 
 func (m *Module) GetOwnSessions(
 	ctx context.Context,
-	initiator InitiatorData,
+	actor models.AccountActor,
 	limit, offset uint,
 ) (pagi.Page[[]models.Session], error) {
-	_, _, err := m.validateInitiatorSession(ctx, initiator)
+	_, _, err := m.validateActorSession(ctx, actor)
 	if err != nil {
 		return pagi.Page[[]models.Session]{}, err
 	}
 
-	sessions, err := m.repo.GetSessionsForAccount(ctx, initiator.AccountID, limit, offset)
+	sessions, err := m.repo.GetSessionsForAccount(ctx, actor.ID, limit, offset)
 	if err != nil {
 		return pagi.Page[[]models.Session]{}, err
 	}

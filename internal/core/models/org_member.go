@@ -6,7 +6,7 @@ import (
 	"github.com/google/uuid"
 )
 
-type Member struct {
+type OrgMember struct {
 	ID             uuid.UUID `json:"id"`
 	AccountID      uuid.UUID `json:"account_id"`
 	OrganizationID uuid.UUID `json:"organization_id"`

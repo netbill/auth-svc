@@ -11,15 +11,15 @@ import (
 )
 
 func (m *Manager) GenerateAccess(account models.Account, sessionID uuid.UUID) (string, error) {
-	tkn, err := tokens.AccountClaims{
+	tkn, err := tokens.AccountAuthClaims{
 		RegisteredClaims: jwt.RegisteredClaims{
 			Subject:   account.ID.String(),
-			Issuer:    AuthActor,
-			ExpiresAt: jwt.NewNumericDate(time.Now().UTC().Add(m.accessTTL)),
+			Issuer:    m.Issuer,
+			ExpiresAt: jwt.NewNumericDate(time.Now().UTC().Add(m.AccessTTL)),
 		},
 		Role:      account.Role,
 		SessionID: sessionID,
-	}.GenerateJWT(m.accessSK)
+	}.GenerateJWT(m.AccessSK)
 	if err != nil {
 		return "", fmt.Errorf("failed to generate access token, cause: %w", err)
 	}
@@ -27,10 +27,10 @@ func (m *Manager) GenerateAccess(account models.Account, sessionID uuid.UUID) (s
 	return tkn, nil
 }
 
-func (m *Manager) ParseAccessClaims(tokenStr string) (tokens.AccountClaims, error) {
-	data, err := tokens.ParseAccountJWT(tokenStr, m.accessSK)
+func (m *Manager) ParseAccountAuthAccessClaims(tokenStr string) (tokens.AccountAuthClaims, error) {
+	data, err := tokens.ParseAccountJWT(tokenStr, m.AccessSK)
 	if err != nil {
-		return tokens.AccountClaims{}, fmt.Errorf("failed to parse access token, cause: %w", err)
+		return tokens.AccountAuthClaims{}, fmt.Errorf("failed to parse access token, cause: %w", err)
 	}
 
 	return data, nil

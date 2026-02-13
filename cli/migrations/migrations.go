@@ -7,9 +7,9 @@ import (
 
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/jackc/pgx/v5/stdlib"
+	"github.com/netbill/logium"
 	"github.com/pkg/errors"
 	migrate "github.com/rubenv/sql-migrate"
-	"github.com/sirupsen/logrus"
 )
 
 //go:embed schema/*.sql
@@ -34,7 +34,7 @@ func openDB(ctx context.Context, url string) (*pgxpool.Pool, *sql.DB, error) {
 	return pool, db, nil
 }
 
-func MigrateUp(ctx context.Context, url string) error {
+func MigrateUp(ctx context.Context, log *logium.Entry, url string) error {
 	pool, db, err := openDB(ctx, url)
 	if err != nil {
 		return err
@@ -46,12 +46,12 @@ func MigrateUp(ctx context.Context, url string) error {
 	if err != nil {
 		return errors.Wrap(err, "failed to apply migrations (up)")
 	}
-	logrus.WithField("applied", applied).Info("migrations applied")
+	log.WithField("applied", applied).Info("migrations applied")
 
 	return nil
 }
 
-func MigrateDown(ctx context.Context, url string) error {
+func MigrateDown(ctx context.Context, log *logium.Entry, url string) error {
 	pool, db, err := openDB(ctx, url)
 	if err != nil {
 		return err
@@ -63,7 +63,7 @@ func MigrateDown(ctx context.Context, url string) error {
 	if err != nil {
 		return errors.Wrap(err, "failed to apply migrations (down)")
 	}
-	logrus.WithField("applied", applied).Info("migrations applied")
+	log.WithField("applied", applied).Info("migrations applied")
 
 	return nil
 }

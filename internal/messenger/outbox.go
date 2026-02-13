@@ -17,14 +17,14 @@ type Outbox struct {
 }
 
 func NewOutbox(
-	log *logium.Logger,
+	log *logium.Entry,
 	db *pgdbx.DB,
 	addr []string,
 	config eventpg.OutboxWorkerConfig,
 ) *Outbox {
 	return &Outbox{
 		db:     db,
-		log:    log.WithField("component", "outbox"),
+		log:    log.WithComponent("outbox"),
 		addr:   addr,
 		config: config,
 	}
@@ -45,8 +45,8 @@ func (a *Outbox) Start(ctx context.Context) {
 
 	a.log.Infoln("starting outbox worker")
 
-	id := BuildProcessID("auth-svc", "outbox", 0)
-	worker := eventpg.NewOutboxWorker(a.log, a.db, writer, id, a.config)
+	id := BuildProcessID("outbox")
+	worker := eventpg.NewOutboxWorker(id, a.log, a.db, writer, a.config)
 
 	defer func() {
 		if err := worker.Stop(context.Background()); err != nil {

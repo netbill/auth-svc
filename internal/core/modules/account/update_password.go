@@ -5,20 +5,21 @@ import (
 	"fmt"
 
 	"github.com/netbill/auth-svc/internal/core/errx"
+	"github.com/netbill/auth-svc/internal/core/models"
 	"golang.org/x/crypto/bcrypt"
 )
 
 func (m *Module) UpdatePassword(
 	ctx context.Context,
-	initiator InitiatorData,
+	actor models.AccountActor,
 	oldPassword, newPassword string,
 ) error {
-	account, _, err := m.validateInitiatorSession(ctx, initiator)
+	account, _, err := m.validateActorSession(ctx, actor)
 	if err != nil {
 		return err
 	}
 
-	passData, err := m.repo.GetAccountPassword(ctx, initiator.AccountID)
+	passData, err := m.repo.GetAccountPassword(ctx, actor.ID)
 	if err != nil {
 		return err
 	}
@@ -27,7 +28,7 @@ func (m *Module) UpdatePassword(
 		return err
 	}
 
-	if err = m.checkAccountPassword(ctx, initiator.AccountID, oldPassword); err != nil {
+	if err = m.checkAccountPassword(ctx, actor.ID, oldPassword); err != nil {
 		return err
 	}
 
@@ -39,12 +40,12 @@ func (m *Module) UpdatePassword(
 	hash, err := bcrypt.GenerateFromPassword([]byte(newPassword), bcrypt.DefaultCost)
 	if err != nil {
 		return errx.ErrorInternal.Raise(
-			fmt.Errorf("hashing new newPassword for account '%s', cause: %w", initiator.AccountID, err),
+			fmt.Errorf("hashing new newPassword for account '%s', cause: %w", actor.ID, err),
 		)
 	}
 
 	return m.repo.Transaction(ctx, func(ctx context.Context) error {
-		_, err = m.repo.UpdateAccountPassword(ctx, initiator.AccountID, string(hash))
+		_, err = m.repo.UpdateAccountPassword(ctx, actor.ID, string(hash))
 		if err != nil {
 			return err
 		}

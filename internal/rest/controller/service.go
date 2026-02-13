@@ -7,7 +7,6 @@ import (
 	"github.com/google/uuid"
 	"github.com/netbill/auth-svc/internal/core/models"
 	"github.com/netbill/auth-svc/internal/core/modules/account"
-	"github.com/netbill/logium"
 	"github.com/netbill/restkit/pagi"
 	"golang.org/x/oauth2"
 )
@@ -26,30 +25,30 @@ type core interface {
 
 	UpdatePassword(
 		ctx context.Context,
-		initiator account.InitiatorData,
+		initiator models.AccountActor,
 		oldPassword, newPassword string,
 	) error
 	UpdateUsername(
 		ctx context.Context,
-		initiator account.InitiatorData,
+		initiator models.AccountActor,
 		newUsername string,
 	) (account models.Account, err error)
 
 	GetAccountByID(ctx context.Context, ID uuid.UUID) (models.Account, error)
 	GetAccountEmail(ctx context.Context, ID uuid.UUID) (models.AccountEmail, error)
 
-	GetOwnSession(ctx context.Context, initiator account.InitiatorData, sessionID uuid.UUID) (models.Session, error)
+	GetOwnSession(ctx context.Context, initiator models.AccountActor, sessionID uuid.UUID) (models.Session, error)
 	GetOwnSessions(
 		ctx context.Context,
-		initiator account.InitiatorData,
+		initiator models.AccountActor,
 		limit, offset uint,
 	) (pagi.Page[[]models.Session], error)
 
-	DeleteOwnAccount(ctx context.Context, initiator account.InitiatorData) error
+	DeleteOwnAccount(ctx context.Context, initiator models.AccountActor) error
 
-	Logout(ctx context.Context, initiator account.InitiatorData) error
-	DeleteOwnSession(ctx context.Context, initiator account.InitiatorData, sessionID uuid.UUID) error
-	DeleteOwnSessions(ctx context.Context, initiator account.InitiatorData) error
+	Logout(ctx context.Context, initiator models.AccountActor) error
+	DeleteOwnSession(ctx context.Context, initiator models.AccountActor, sessionID uuid.UUID) error
+	DeleteOwnSessions(ctx context.Context, initiator models.AccountActor) error
 }
 
 type responser interface {
@@ -58,16 +57,14 @@ type responser interface {
 }
 
 type Controller struct {
-	log    *logium.Logger
 	google oauth2.Config
 
 	core      core
 	responser responser
 }
 
-func New(log *logium.Logger, google oauth2.Config, core core, responser responser) *Controller {
+func New(core core, google oauth2.Config, responser responser) *Controller {
 	return &Controller{
-		log:       log,
 		google:    google,
 		core:      core,
 		responser: responser,

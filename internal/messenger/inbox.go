@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/netbill/auth-svc/internal/messenger/contracts"
+	"github.com/netbill/auth-svc/internal/messenger/evtypes"
 	eventpg "github.com/netbill/eventbox/pg"
 	"github.com/netbill/logium"
 	"github.com/netbill/pgdbx"
@@ -31,42 +31,42 @@ type Inbox struct {
 }
 
 func NewInbox(
-	log *logium.Logger,
+	log *logium.Entry,
 	db *pgdbx.DB,
 	handlers handlers,
 	config eventpg.InboxWorkerConfig,
 ) *Inbox {
 	return &Inbox{
-		log:      log.WithField("component", "inbox"),
+		log:      log.WithComponent("inbox"),
 		db:       db,
 		handlers: handlers,
 		config:   config,
 	}
 }
 
-func (a *Inbox) Start(ctx context.Context) {
-	a.log.Infoln("starting inbox worker")
+func (b *Inbox) Start(ctx context.Context) {
+	b.log.Infoln("starting inbox worker")
 
-	id := BuildProcessID("auth-svc", "inbox", 0)
-	worker := eventpg.NewInboxWorker(a.log, a.db, id, a.config)
+	id := BuildProcessID("inbox")
+	worker := eventpg.NewInboxWorker(id, b.log, b.db, b.config)
 
 	defer func() {
 		if err := worker.Stop(context.Background()); err != nil {
-			a.log.WithError(err).Errorf("stop inbox worker %s failed", id)
+			b.log.WithError(err).Errorf("stop inbox worker %s failed", id)
 		}
 	}()
 
-	worker.Route(contracts.OrgMemberCreatedEvent, a.handlers.OrgMemberCreated)
-	worker.Route(contracts.OrgMemberDeletedEvent, a.handlers.OrgMemberDeleted)
+	worker.Route(evtypes.OrgMemberCreatedEvent, b.handlers.OrgMemberCreated)
+	worker.Route(evtypes.OrgMemberDeletedEvent, b.handlers.OrgMemberDeleted)
 
 	worker.Run(ctx)
 }
 
-func BuildProcessID(service string, role string, index int) string {
+func BuildProcessID(service string) string {
 	hostname, err := os.Hostname()
 	if err != nil {
 		hostname = "unknown"
 	}
 
-	return fmt.Sprintf("%s-%s-%d-%s", service, role, index, hostname)
+	return fmt.Sprintf("%s-%s-%d", service, hostname, os.Getpid())
 }

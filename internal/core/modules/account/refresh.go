@@ -9,7 +9,7 @@ import (
 )
 
 func (m *Module) Refresh(ctx context.Context, oldRefreshToken string) (models.TokensPair, error) {
-	tokenData, err := m.jwt.ParseRefreshClaims(oldRefreshToken)
+	tokenData, err := m.jwt.ParseAccountAuthRefreshClaims(oldRefreshToken)
 	if err != nil {
 		return models.TokensPair{}, err
 	}

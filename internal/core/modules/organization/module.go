@@ -16,6 +16,7 @@ func New(repo repo) *Module {
 }
 
 type repo interface {
-	CreateOrgMember(ctx context.Context, member models.Member) error
+	CreateOrgMember(ctx context.Context, member models.OrgMember) error
 	DeleteOrgMember(ctx context.Context, memberID uuid.UUID) error
+	DeleteOrgMembers(ctx context.Context, accountID uuid.UUID) error
 }

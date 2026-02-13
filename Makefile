@@ -1,5 +1,5 @@
 OPENAPI_GENERATOR := java -jar ~/openapi-generator-cli.jar
-CONFIG_FILE := ./config_local.yaml
+CONFIG_FILE := ./config.yaml
 API_SRC := ./docs/api.yaml
 API_BUNDLED := ./docs/api-bundled.yaml
 OUTPUT_DIR := ./docs/web

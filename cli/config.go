@@ -1,4 +1,4 @@
-package config
+package cli
 
 import (
 	"fmt"
@@ -37,23 +37,19 @@ type KafkaConfig struct {
 		OrgMemberV1 int `mapstructure:"organizations_member_v1"`
 	} `mapstructure:"readers"`
 	Inbox struct {
-		ProcessCount   int           `mapstructure:"process_count"`
 		Routines       int           `mapstructure:"routines"`
-		MinBatch       int           `mapstructure:"min_batch"`
-		MaxBatch       int           `mapstructure:"max_batch"`
-		MinSleep       time.Duration `mapstructure:"min_sleep"`
-		MaxSleep       time.Duration `mapstructure:"max_sleep"`
+		Slots          int           `mapstructure:"slots"`
+		BatchSize      int           `mapstructure:"batch_size"`
+		Sleep          time.Duration `mapstructure:"sleep"`
 		MinNextAttempt time.Duration `mapstructure:"min_next_attempt"`
 		MaxNextAttempt time.Duration `mapstructure:"max_next_attempt"`
 		MaxAttempts    int32         `mapstructure:"max_attempts"`
 	} `mapstructure:"inbox"`
 	Outbox struct {
-		ProcessCount   int           `mapstructure:"process_count"`
 		Routines       int           `mapstructure:"routines"`
-		MinBatch       int           `mapstructure:"min_batch"`
-		MaxBatch       int           `mapstructure:"max_batch"`
-		MinSleep       time.Duration `mapstructure:"min_sleep"`
-		MaxSleep       time.Duration `mapstructure:"max_sleep"`
+		Slots          int           `mapstructure:"slots"`
+		BatchSize      int           `mapstructure:"batch_size"`
+		Sleep          time.Duration `mapstructure:"sleep"`
 		MinNextAttempt time.Duration `mapstructure:"min_next_attempt"`
 		MaxNextAttempt time.Duration `mapstructure:"max_next_attempt"`
 		MaxAttempts    int32         `mapstructure:"max_attempts"`
@@ -92,24 +88,24 @@ type Config struct {
 	Database DatabaseConfig `mapstructure:"database"`
 }
 
-func LoadConfig() (Config, error) {
+func LoadConfig() (*Config, error) {
 	configPath := os.Getenv("KV_VIPER_FILE")
 	if configPath == "" {
-		return Config{}, fmt.Errorf("KV_VIPER_FILE env var is not set")
+		return nil, fmt.Errorf("KV_VIPER_FILE env var is not set")
 	}
 
 	viper.SetConfigFile(configPath)
 
 	if err := viper.ReadInConfig(); err != nil {
-		return Config{}, fmt.Errorf("error reading config file: %s", err)
+		return nil, fmt.Errorf("error reading config file: %s", err)
 	}
 
 	var config Config
 	if err := viper.Unmarshal(&config); err != nil {
-		return Config{}, fmt.Errorf("error unmarshalling config: %s", err)
+		return nil, fmt.Errorf("error unmarshalling config: %s", err)
 	}
 
-	return config, nil
+	return &config, nil
 }
 
 func (c *Config) GoogleOAuth() oauth2.Config {

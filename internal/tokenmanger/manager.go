@@ -9,38 +9,15 @@ import (
 	"time"
 )
 
-const (
-	AuthActor = "auth-svc"
-)
-
 type Manager struct {
-	accessSK  string
-	refreshSK string
-	refreshHK string
-
-	accessTTL  time.Duration
-	refreshTTL time.Duration
-
-	iss string
-}
-
-type NewParams struct {
 	AccessSK  string
 	RefreshSK string
 	RefreshHK string
 
 	AccessTTL  time.Duration
 	RefreshTTL time.Duration
-}
 
-func NewManager(params NewParams) *Manager {
-	return &Manager{
-		accessSK:   params.AccessSK,
-		refreshSK:  params.RefreshSK,
-		refreshHK:  params.RefreshHK,
-		accessTTL:  params.AccessTTL,
-		refreshTTL: params.RefreshTTL,
-	}
+	Issuer string
 }
 
 func generateOpaque(n int) (string, error) {

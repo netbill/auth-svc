@@ -5,39 +5,30 @@ import (
 	"net/http"
 
 	"github.com/netbill/auth-svc/internal/core/errx"
-	"github.com/netbill/auth-svc/internal/core/modules/account"
-	"github.com/netbill/auth-svc/internal/rest/contexter"
+	"github.com/netbill/auth-svc/internal/rest/scope"
 	"github.com/netbill/restkit/problems"
 )
 
+const operationDeleteMyAccount = "delete_my_account"
+
 func (c *Controller) DeleteMyAccount(w http.ResponseWriter, r *http.Request) {
-	initiator, err := contexter.AccountData(r.Context())
-	if err != nil {
-		c.log.WithError(err).Error("failed to get user from context")
-		c.responser.RenderErr(w, problems.Unauthorized("failed to get user from context"))
+	log := scope.Log(r).WithOperation(operationDeleteMyAccount)
 
-		return
+	err := c.core.DeleteOwnAccount(r.Context(), scope.AccountActor(r))
+	switch {
+	case errors.Is(err, errx.ErrorInitiatorNotFound):
+		log.Info("initiator account not found by credentials")
+		c.responser.RenderErr(w, problems.Unauthorized("initiator account not found by credentials"))
+	case errors.Is(err, errx.ErrorInitiatorInvalidSession):
+		log.Info("initiator session is invalid")
+		c.responser.RenderErr(w, problems.Unauthorized("initiator session is invalid"))
+	case errors.Is(err, errx.AccountHaveMembershipInOrg):
+		c.responser.RenderErr(w, problems.Forbidden("account cannot be deleted while having membership in organization"))
+	case err != nil:
+		log.WithError(err).Error("failed to delete my account")
+		c.responser.RenderErr(w, problems.InternalError())
+	default:
+		log.Info("account deleted")
+		c.responser.Render(w, http.StatusNoContent)
 	}
-
-	err = c.core.DeleteOwnAccount(r.Context(), account.InitiatorData{
-		AccountID: initiator.GetAccountID(),
-		SessionID: initiator.GetSessionID(),
-	})
-	if err != nil {
-		c.log.WithError(err).Errorf("failed to delete my account with id: %s", initiator.GetAccountID())
-		switch {
-		case errors.Is(err, errx.ErrorInitiatorNotFound):
-			c.responser.RenderErr(w, problems.Unauthorized("initiator account not found by credentials"))
-		case errors.Is(err, errx.ErrorInitiatorInvalidSession):
-			c.responser.RenderErr(w, problems.Unauthorized("initiator session is invalid"))
-		case errors.Is(err, errx.AccountHaveMembershipInOrg):
-			c.responser.RenderErr(w, problems.Forbidden("account cannot be deleted while having membership in organization"))
-		default:
-			c.responser.RenderErr(w, problems.InternalError())
-		}
-
-		return
-	}
-
-	c.responser.Render(w, http.StatusNoContent)
 }

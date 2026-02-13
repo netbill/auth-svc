@@ -22,8 +22,8 @@ func (o OrganizationMemberRow) IsNil() bool {
 	return o.ID == uuid.Nil
 }
 
-func (o OrganizationMemberRow) ToModel() models.Member {
-	return models.Member{
+func (o OrganizationMemberRow) ToModel() models.OrgMember {
+	return models.OrgMember{
 		ID:             o.ID,
 		AccountID:      o.AccountID,
 		OrganizationID: o.OrganizationID,
@@ -42,8 +42,8 @@ type OrganizationMembersQ interface {
 	Exists(ctx context.Context) (bool, error)
 }
 
-func (r *Repository) CreateOrgMember(ctx context.Context, member models.Member) error {
-	_, err := r.orgMembersQ().Insert(ctx, OrganizationMemberRow{
+func (r *Repository) CreateOrgMember(ctx context.Context, member models.OrgMember) error {
+	_, err := r.OrgMembersQ.Insert(ctx, OrganizationMemberRow{
 		ID:              member.ID,
 		AccountID:       member.AccountID,
 		OrganizationID:  member.OrganizationID,
@@ -57,7 +57,7 @@ func (r *Repository) CreateOrgMember(ctx context.Context, member models.Member) 
 }
 
 func (r *Repository) DeleteOrgMember(ctx context.Context, memberID uuid.UUID) error {
-	err := r.orgMembersQ().FilterByID(memberID).Delete(ctx)
+	err := r.OrgMembersQ.FilterByID(memberID).Delete(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to delete organization member with id %s, cause: %w", memberID, err)
 	}
@@ -65,8 +65,17 @@ func (r *Repository) DeleteOrgMember(ctx context.Context, memberID uuid.UUID) er
 	return nil
 }
 
+func (r *Repository) DeleteOrgMembers(ctx context.Context, accountID uuid.UUID) error {
+	err := r.OrgMembersQ.FilterByAccountID(accountID).Delete(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to delete organization members with account id %s, cause: %w", accountID, err)
+	}
+
+	return nil
+}
+
 func (r *Repository) ExistOrgMemberByAccount(ctx context.Context, accountID uuid.UUID) (bool, error) {
-	exist, err := r.orgMembersQ().FilterByID(accountID).Exists(ctx)
+	exist, err := r.OrgMembersQ.FilterByID(accountID).Exists(ctx)
 	if err != nil {
 		return false, fmt.Errorf("failed to check existence of organization member with account id %s, cause: %w", accountID, err)
 	}

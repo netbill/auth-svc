@@ -8,16 +8,16 @@ import (
 	"syscall"
 
 	"github.com/alecthomas/kingpin"
-	"github.com/netbill/auth-svc/cmd"
-	"github.com/netbill/auth-svc/cmd/config"
-	"github.com/netbill/auth-svc/cmd/events"
-	"github.com/netbill/auth-svc/cmd/migrations"
+	"github.com/netbill/auth-svc/cli/maintenance"
+	"github.com/netbill/auth-svc/cli/migrations"
 	"github.com/netbill/logium"
 	"github.com/sirupsen/logrus"
 )
 
+const ServiceName = "auth-svc"
+
 func Run(args []string) bool {
-	cfg, err := config.LoadConfig()
+	cfg, err := LoadConfig()
 	if err != nil {
 		logium.Fatalf("failed to load config: %v", err)
 	}
@@ -43,10 +43,8 @@ func Run(args []string) bool {
 		})
 	}
 
-	log.Info("Starting server...")
-
 	var (
-		service = kingpin.New("auth-svc", "")
+		service = kingpin.New(ServiceName, "")
 
 		runCmd     = service.Command("run", "run command")
 		serviceCmd = runCmd.Command("service", "run service")
@@ -57,11 +55,6 @@ func Run(args []string) bool {
 
 		eventsCmd = service.Command("events", "events commands")
 
-		// INBOX
-		// examples:
-		// auth-svc events inbox cleanup processing --process-id=worker-1
-		// auth-svc events inbox cleanup processing --process-id=worker-1 --process-id=worker-2
-		// auth-svc events inbox cleanup failed
 		eventsInbox        = eventsCmd.Command("inbox", "inbox events")
 		eventsInboxCleanup = eventsInbox.Command("cleanup", "cleanup inbox events")
 		eventsInboxFailed  = eventsInboxCleanup.Command(
@@ -75,11 +68,6 @@ func Run(args []string) bool {
 			"cleanup only events reserved by this process id (repeatable)",
 		).Strings()
 
-		// OUTBOX
-		// examples:
-		// auth-svc events inbox cleanup processing --process-id=worker-1
-		// auth-svc events inbox cleanup processing --process-id=worker-1 --process-id=worker-2
-		// auth-svc events inbox cleanup failed
 		eventsOutbox        = eventsCmd.Command("outbox", "outbox events")
 		eventsOutboxCleanup = eventsOutbox.Command("cleanup", "cleanup outbox events")
 		eventsOutboxFailed  = eventsOutboxCleanup.Command(
@@ -105,27 +93,29 @@ func Run(args []string) bool {
 		return false
 	}
 
+	base := log.WithField("service", ServiceName)
+
 	switch command {
 	case serviceCmd.FullCommand():
-		cmd.StartServices(ctx, cfg, log, &wg)
+		StartServices(ctx, cfg, base, &wg)
 	case migrateUpCmd.FullCommand():
-		err = migrations.MigrateUp(ctx, cfg.Database.SQL.URL)
+		err = migrations.MigrateUp(ctx, base, cfg.Database.SQL.URL)
 	case migrateDownCmd.FullCommand():
-		err = migrations.MigrateDown(ctx, cfg.Database.SQL.URL)
+		err = migrations.MigrateDown(ctx, base, cfg.Database.SQL.URL)
 	case eventsOutboxFailed.FullCommand():
-		err = events.CleanupOutboxFailed(ctx, cfg, log)
+		err = maintenance.CleanupOutboxFailed(ctx, base, cfg.Database.SQL.URL)
 	case eventsOutboxProcessing.FullCommand():
-		err = events.CleanupOutboxProcessing(ctx, cfg, log, *eventsOutboxProcessingProcessIDs...)
+		err = maintenance.CleanupOutboxProcessing(ctx, base, cfg.Database.SQL.URL, *eventsOutboxProcessingProcessIDs...)
 	case eventsInboxFailed.FullCommand():
-		err = events.CleanupInboxFailed(ctx, cfg, log)
+		err = maintenance.CleanupInboxFailed(ctx, base, cfg.Database.SQL.URL)
 	case eventsInboxProcessing.FullCommand():
-		err = events.CleanupInboxProcessing(ctx, cfg, log, *eventsInboxProcessingProcessIDs...)
+		err = maintenance.CleanupInboxProcessing(ctx, base, cfg.Database.SQL.URL, *eventsInboxProcessingProcessIDs...)
 	default:
-		log.Errorf("unknown command %s", command)
+		base.Errorf("unknown command %s", command)
 		return false
 	}
 	if err != nil {
-		log.WithError(err).Error("failed to exec cmd")
+		base.WithError(err).Error("failed to exec cmd")
 		return false
 	}
 
@@ -137,10 +127,10 @@ func Run(args []string) bool {
 
 	select {
 	case <-ctx.Done():
-		log.Warnf("Interrupt signal received: %v", ctx.Err())
+		base.Infof("Interrupt signal received: %v", ctx.Err())
 		<-wgch
 	case <-wgch:
-		log.Warnf("All services stopped")
+		base.Info("All services stopped")
 	}
 
 	return true

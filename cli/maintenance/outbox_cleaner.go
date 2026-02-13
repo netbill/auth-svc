@@ -1,18 +1,17 @@
-package events
+package maintenance
 
 import (
 	"context"
 	"fmt"
 
 	"github.com/jackc/pgx/v5/pgxpool"
-	"github.com/netbill/auth-svc/cmd/config"
 	eventpg "github.com/netbill/eventbox/pg"
 	"github.com/netbill/logium"
 	"github.com/netbill/pgdbx"
 )
 
-func CleanupOutboxFailed(ctx context.Context, cfg config.Config, log *logium.Logger) error {
-	pool, err := pgxpool.New(ctx, cfg.Database.SQL.URL)
+func CleanupOutboxFailed(ctx context.Context, log *logium.Entry, url string) error {
+	pool, err := pgxpool.New(ctx, url)
 	if err != nil {
 		return fmt.Errorf("failed to connect to database: %w", err)
 	}
@@ -30,8 +29,8 @@ func CleanupOutboxFailed(ctx context.Context, cfg config.Config, log *logium.Log
 	return nil
 }
 
-func CleanupOutboxProcessing(ctx context.Context, cfg config.Config, log *logium.Logger, processIDs ...string) error {
-	pool, err := pgxpool.New(ctx, cfg.Database.SQL.URL)
+func CleanupOutboxProcessing(ctx context.Context, log *logium.Entry, url string, processIDs ...string) error {
+	pool, err := pgxpool.New(ctx, url)
 	if err != nil {
 		return fmt.Errorf("failed to connect to database: %w", err)
 	}

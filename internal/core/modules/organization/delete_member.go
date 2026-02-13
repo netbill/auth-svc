@@ -7,10 +7,5 @@ import (
 )
 
 func (m *Module) DeleteOrgMember(ctx context.Context, memberID uuid.UUID) error {
-	err := m.repo.DeleteOrgMember(ctx, memberID)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return m.repo.DeleteOrgMember(ctx, memberID)
 }

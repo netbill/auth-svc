@@ -13,6 +13,12 @@ import (
 const updatePasswordCooldown = 30 * 24 * time.Hour
 const updateEmailCooldown = 30 * 24 * time.Hour
 
+type AccountActor struct {
+	ID        uuid.UUID `json:"id"`
+	SessionID uuid.UUID `json:"session_id"`
+	Role      string    `json:"role"`
+}
+
 type Account struct {
 	ID       uuid.UUID `json:"id"`
 	Username string    `json:"username"`

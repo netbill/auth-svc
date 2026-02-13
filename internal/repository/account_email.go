@@ -56,7 +56,7 @@ type AccountEmailsQ interface {
 }
 
 func (r *Repository) ExistsAccountByEmail(ctx context.Context, email string) (bool, error) {
-	exist, err := r.accountEmailsQ().FilterEmail(email).Exists(ctx)
+	exist, err := r.AccountEmailsQ.FilterEmail(email).Exists(ctx)
 	if err != nil {
 		return false, fmt.Errorf("failed to check account existence by email %s, cause: %w", email, err)
 	}
@@ -65,7 +65,7 @@ func (r *Repository) ExistsAccountByEmail(ctx context.Context, email string) (bo
 }
 
 func (r *Repository) GetAccountEmail(ctx context.Context, accountID uuid.UUID) (models.AccountEmail, error) {
-	acc, err := r.accountEmailsQ().FilterAccountID(accountID).Get(ctx)
+	acc, err := r.AccountEmailsQ.FilterAccountID(accountID).Get(ctx)
 	switch {
 	case errors.Is(err, pgx.ErrNoRows):
 		return models.AccountEmail{}, errx.ErrorAccountEmailNotFound.Raise(err)
