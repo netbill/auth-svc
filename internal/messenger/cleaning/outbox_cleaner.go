@@ -1,4 +1,4 @@
-package maintenance
+package cleaning
 
 import (
 	"context"

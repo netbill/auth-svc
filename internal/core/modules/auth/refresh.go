@@ -1,4 +1,4 @@
-package account
+package auth
 
 import (
 	"context"
@@ -9,7 +9,7 @@ import (
 )
 
 func (m *Module) Refresh(ctx context.Context, oldRefreshToken string) (models.TokensPair, error) {
-	tokenData, err := m.jwt.ParseAccountAuthRefreshClaims(oldRefreshToken)
+	tokenData, err := m.token.ParseAccountAuthRefreshClaims(oldRefreshToken)
 	if err != nil {
 		return models.TokensPair{}, err
 	}
@@ -24,7 +24,7 @@ func (m *Module) Refresh(ctx context.Context, oldRefreshToken string) (models.To
 		return models.TokensPair{}, err
 	}
 
-	refreshHash, err := m.jwt.HashRefresh(token)
+	refreshHash, err := m.token.HashRefresh(token)
 	if err != nil {
 		return models.TokensPair{}, err
 	}
@@ -38,17 +38,17 @@ func (m *Module) Refresh(ctx context.Context, oldRefreshToken string) (models.To
 		)
 	}
 
-	refresh, err := m.jwt.GenerateRefresh(account, tokenData.SessionID)
+	refresh, err := m.token.GenerateRefresh(account, tokenData.SessionID)
 	if err != nil {
 		return models.TokensPair{}, err
 	}
 
-	refreshNewHash, err := m.jwt.HashRefresh(refresh)
+	refreshNewHash, err := m.token.HashRefresh(refresh)
 	if err != nil {
 		return models.TokensPair{}, err
 	}
 
-	access, err := m.jwt.GenerateAccess(account, tokenData.SessionID)
+	access, err := m.token.GenerateAccess(account, tokenData.SessionID)
 	if err != nil {
 		return models.TokensPair{}, err
 	}

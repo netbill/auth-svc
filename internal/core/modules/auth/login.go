@@ -1,4 +1,4 @@
-package account
+package auth
 
 import (
 	"context"
@@ -54,7 +54,7 @@ func (m *Module) checkAccountPassword(
 		return err
 	}
 
-	if err = passData.CheckPasswordMatch(password); err != nil {
+	if err = m.password.CheckPasswordMatch(passData.Hash, password); err != nil {
 		return err
 	}
 
@@ -72,7 +72,7 @@ func (m *Module) createSession(
 		return models.TokensPair{}, err
 	}
 
-	refreshHash, err := m.jwt.HashRefresh(pair.Refresh)
+	refreshHash, err := m.token.HashRefresh(pair.Refresh)
 	if err != nil {
 		return models.TokensPair{}, err
 	}
@@ -93,12 +93,12 @@ func (m *Module) createTokensPair(
 	sessionID uuid.UUID,
 	account models.Account,
 ) (models.TokensPair, error) {
-	access, err := m.jwt.GenerateAccess(account, sessionID)
+	access, err := m.token.GenerateAccess(account, sessionID)
 	if err != nil {
 		return models.TokensPair{}, err
 	}
 
-	refresh, err := m.jwt.GenerateRefresh(account, sessionID)
+	refresh, err := m.token.GenerateRefresh(account, sessionID)
 	if err != nil {
 		return models.TokensPair{}, err
 	}

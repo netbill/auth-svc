@@ -15,11 +15,11 @@ func (m *Manager) GenerateRefresh(account models.Account, sessionID uuid.UUID) (
 		RegisteredClaims: jwt.RegisteredClaims{
 			Subject:   account.ID.String(),
 			Issuer:    m.Issuer,
-			ExpiresAt: jwt.NewNumericDate(time.Now().UTC().Add(m.AccessTTL)),
+			ExpiresAt: jwt.NewNumericDate(time.Now().UTC().Add(m.accessTTL)),
 		},
 		Role:      account.Role,
 		SessionID: sessionID,
-	}.GenerateJWT(m.RefreshSK)
+	}.GenerateJWT(m.refreshSK)
 	if err != nil {
 		return "", fmt.Errorf("failed to generate refresh token, cause: %w", err)
 	}
@@ -28,7 +28,7 @@ func (m *Manager) GenerateRefresh(account models.Account, sessionID uuid.UUID) (
 }
 
 func (m *Manager) ParseAccountAuthRefreshClaims(tokenStr string) (tokens.AccountAuthClaims, error) {
-	data, err := tokens.ParseAccountJWT(tokenStr, m.RefreshSK)
+	data, err := tokens.ParseAccountJWT(tokenStr, m.refreshSK)
 	if err != nil {
 		return tokens.AccountAuthClaims{}, fmt.Errorf("failed to parse refresh token, cause: %w", err)
 	}
@@ -37,7 +37,7 @@ func (m *Manager) ParseAccountAuthRefreshClaims(tokenStr string) (tokens.Account
 }
 
 func (m *Manager) HashRefresh(rawRefresh string) (string, error) {
-	hash, err := hmacB64("refresh."+rawRefresh, m.RefreshHK)
+	hash, err := hmacB64("refresh."+rawRefresh, m.refreshHK)
 	if err != nil {
 		return "", fmt.Errorf("failed to hash refresh token, cause: %w", err)
 	}

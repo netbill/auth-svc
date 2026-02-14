@@ -15,11 +15,11 @@ func (m *Manager) GenerateAccess(account models.Account, sessionID uuid.UUID) (s
 		RegisteredClaims: jwt.RegisteredClaims{
 			Subject:   account.ID.String(),
 			Issuer:    m.Issuer,
-			ExpiresAt: jwt.NewNumericDate(time.Now().UTC().Add(m.AccessTTL)),
+			ExpiresAt: jwt.NewNumericDate(time.Now().UTC().Add(m.accessTTL)),
 		},
 		Role:      account.Role,
 		SessionID: sessionID,
-	}.GenerateJWT(m.AccessSK)
+	}.GenerateJWT(m.accessSK)
 	if err != nil {
 		return "", fmt.Errorf("failed to generate access token, cause: %w", err)
 	}
@@ -28,7 +28,7 @@ func (m *Manager) GenerateAccess(account models.Account, sessionID uuid.UUID) (s
 }
 
 func (m *Manager) ParseAccountAuthAccessClaims(tokenStr string) (tokens.AccountAuthClaims, error) {
-	data, err := tokens.ParseAccountJWT(tokenStr, m.AccessSK)
+	data, err := tokens.ParseAccountJWT(tokenStr, m.accessSK)
 	if err != nil {
 		return tokens.AccountAuthClaims{}, fmt.Errorf("failed to parse access token, cause: %w", err)
 	}

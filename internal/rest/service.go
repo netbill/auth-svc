@@ -61,11 +61,13 @@ func New(
 }
 
 type Config struct {
-	Port              string
-	TimeoutRead       time.Duration
-	TimeoutReadHeader time.Duration
-	TimeoutWrite      time.Duration
-	TimeoutIdle       time.Duration
+	Port     string `mapstructure:"port"`
+	Timeouts struct {
+		Read       time.Duration `mapstructure:"read"`
+		ReadHeader time.Duration `mapstructure:"read_header"`
+		Write      time.Duration `mapstructure:"write"`
+		Idle       time.Duration `mapstructure:"idle"`
+	} `mapstructure:"timeouts"`
 }
 
 func (s *Service) Run(ctx context.Context, log *logium.Entry, cfg Config) {
@@ -125,10 +127,10 @@ func (s *Service) Run(ctx context.Context, log *logium.Entry, cfg Config) {
 	srv := &http.Server{
 		Addr:              cfg.Port,
 		Handler:           r,
-		ReadTimeout:       cfg.TimeoutRead,
-		ReadHeaderTimeout: cfg.TimeoutReadHeader,
-		WriteTimeout:      cfg.TimeoutWrite,
-		IdleTimeout:       cfg.TimeoutIdle,
+		ReadTimeout:       cfg.Timeouts.Read,
+		ReadHeaderTimeout: cfg.Timeouts.ReadHeader,
+		WriteTimeout:      cfg.Timeouts.Write,
+		IdleTimeout:       cfg.Timeouts.Idle,
 	}
 
 	log.Infof("starting http service on %s", cfg.Port)

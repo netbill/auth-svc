@@ -317,7 +317,7 @@ func (r ApiAuthSvcV1LoginGooglePostRequest) Execute() (*http.Response, error) {
 }
 
 /*
-AuthSvcV1LoginGooglePost Start Google OAuth login
+AuthSvcV1LoginGooglePost Run Google OAuth login
 
 Redirects the user-agent to Google OAuth consent screen. This endpoint returns a redirect and does not return a JSON:API document.
 

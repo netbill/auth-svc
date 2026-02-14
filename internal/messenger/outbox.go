@@ -4,53 +4,37 @@ import (
 	"context"
 
 	eventpg "github.com/netbill/eventbox/pg"
-	"github.com/netbill/logium"
-	"github.com/netbill/pgdbx"
 	"github.com/segmentio/kafka-go"
 )
 
-type Outbox struct {
-	log    *logium.Entry
-	db     *pgdbx.DB
-	addr   []string
-	config eventpg.OutboxWorkerConfig
-}
-
-func NewOutbox(
-	log *logium.Entry,
-	db *pgdbx.DB,
-	addr []string,
-	config eventpg.OutboxWorkerConfig,
-) *Outbox {
-	return &Outbox{
-		db:     db,
-		log:    log.WithComponent("outbox"),
-		addr:   addr,
-		config: config,
-	}
-}
-
-func (a *Outbox) Start(ctx context.Context) {
+func (m *Manager) RunOutbox(ctx context.Context) {
 	writer := &kafka.Writer{
-		Addr:         kafka.TCP(a.addr...),
+		Addr:         kafka.TCP(m.config.Brokers...),
 		RequiredAcks: kafka.RequireAll,
 		Compression:  kafka.Snappy,
 		Balancer:     &kafka.LeastBytes{},
 	}
+
 	defer func() {
 		if err := writer.Close(); err != nil {
-			a.log.WithError(err).Error("failed to close kafka writer")
+			m.log.WithError(err).Error("failed to close kafka writer")
 		}
 	}()
 
-	a.log.Infoln("starting outbox worker")
-
 	id := BuildProcessID("outbox")
-	worker := eventpg.NewOutboxWorker(id, a.log, a.db, writer, a.config)
+	worker := eventpg.NewOutboxWorker(id, m.log, m.db, writer, eventpg.OutboxWorkerConfig{
+		Routines:       m.config.Outbox.Routines,
+		Slots:          m.config.Outbox.Slots,
+		BatchSize:      m.config.Outbox.BatchSize,
+		Sleep:          m.config.Outbox.Sleep,
+		MinNextAttempt: m.config.Outbox.MinNextAttempt,
+		MaxNextAttempt: m.config.Outbox.MaxNextAttempt,
+		MaxAttempts:    m.config.Outbox.MaxAttempts,
+	})
 
 	defer func() {
 		if err := worker.Stop(context.Background()); err != nil {
-			a.log.WithError(err).WithField("worker_id", id).Error("failed to stop outbox worker")
+			m.log.WithError(err).Errorf("stop outbox worker %s failed", id)
 		}
 	}()
 

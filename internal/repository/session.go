@@ -56,7 +56,7 @@ type SessionsQ interface {
 }
 
 func (r *Repository) CreateSession(ctx context.Context, sessionID, accountID uuid.UUID, hashToken string) (models.Session, error) {
-	row, err := r.SessionsQ.Insert(ctx, SessionRow{
+	row, err := r.SessionsQ.New().Insert(ctx, SessionRow{
 		ID:        sessionID,
 		AccountID: accountID,
 		HashToken: hashToken,
@@ -69,7 +69,7 @@ func (r *Repository) CreateSession(ctx context.Context, sessionID, accountID uui
 }
 
 func (r *Repository) GetSession(ctx context.Context, sessionID uuid.UUID) (models.Session, error) {
-	row, err := r.SessionsQ.FilterID(sessionID).Get(ctx)
+	row, err := r.SessionsQ.New().FilterID(sessionID).Get(ctx)
 	switch {
 	case errors.Is(err, pgx.ErrNoRows):
 		return models.Session{}, errx.ErrorSessionNotFound.Raise(
@@ -83,7 +83,7 @@ func (r *Repository) GetSession(ctx context.Context, sessionID uuid.UUID) (model
 }
 
 func (r *Repository) GetAccountSession(ctx context.Context, userID, sessionID uuid.UUID) (models.Session, error) {
-	row, err := r.SessionsQ.
+	row, err := r.SessionsQ.New().
 		FilterID(sessionID).
 		FilterAccountID(userID).
 		Get(ctx)
@@ -100,7 +100,7 @@ func (r *Repository) GetAccountSession(ctx context.Context, userID, sessionID uu
 }
 
 func (r *Repository) GetSessionsForAccount(ctx context.Context, userID uuid.UUID, limit, offset uint) (pagi.Page[[]models.Session], error) {
-	rows, err := r.SessionsQ.
+	rows, err := r.SessionsQ.New().
 		FilterAccountID(userID).
 		OrderCreatedAt(false).
 		Page(limit, offset).
@@ -111,7 +111,7 @@ func (r *Repository) GetSessionsForAccount(ctx context.Context, userID uuid.UUID
 		)
 	}
 
-	total, err := r.SessionsQ.
+	total, err := r.SessionsQ.New().
 		FilterAccountID(userID).
 		Count(ctx)
 	if err != nil {
@@ -134,7 +134,7 @@ func (r *Repository) GetSessionsForAccount(ctx context.Context, userID uuid.UUID
 }
 
 func (r *Repository) GetSessionToken(ctx context.Context, sessionID uuid.UUID) (string, error) {
-	row, err := r.SessionsQ.FilterID(sessionID).GetHashToken(ctx)
+	row, err := r.SessionsQ.New().FilterID(sessionID).GetHashToken(ctx)
 	switch {
 	case errors.Is(err, pgx.ErrNoRows):
 		return "", errx.ErrorSessionNotFound.Raise(
@@ -148,7 +148,7 @@ func (r *Repository) GetSessionToken(ctx context.Context, sessionID uuid.UUID) (
 }
 
 func (r *Repository) UpdateSessionToken(ctx context.Context, sessionID uuid.UUID, token string) (models.Session, error) {
-	sess, err := r.SessionsQ.
+	sess, err := r.SessionsQ.New().
 		FilterID(sessionID).
 		UpdateToken(token).
 		Update(ctx)
@@ -168,7 +168,7 @@ func (r *Repository) UpdateSessionToken(ctx context.Context, sessionID uuid.UUID
 }
 
 func (r *Repository) DeleteSession(ctx context.Context, sessionID uuid.UUID) error {
-	err := r.SessionsQ.FilterID(sessionID).Delete(ctx)
+	err := r.SessionsQ.New().FilterID(sessionID).Delete(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to delete session with id %s, cause: %w", sessionID, err)
 	}
@@ -177,7 +177,7 @@ func (r *Repository) DeleteSession(ctx context.Context, sessionID uuid.UUID) err
 }
 
 func (r *Repository) DeleteSessionsForAccount(ctx context.Context, userID uuid.UUID) error {
-	err := r.SessionsQ.FilterAccountID(userID).Delete(ctx)
+	err := r.SessionsQ.New().FilterAccountID(userID).Delete(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to delete sessions for account %s, cause: %w", userID, err)
 	}
@@ -186,7 +186,7 @@ func (r *Repository) DeleteSessionsForAccount(ctx context.Context, userID uuid.U
 }
 
 func (r *Repository) DeleteAccountSession(ctx context.Context, userID, sessionID uuid.UUID) error {
-	err := r.SessionsQ.
+	err := r.SessionsQ.New().
 		FilterID(sessionID).
 		FilterAccountID(userID).
 		Delete(ctx)

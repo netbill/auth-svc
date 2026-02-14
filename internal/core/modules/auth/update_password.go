@@ -1,12 +1,9 @@
-package account
+package auth
 
 import (
 	"context"
-	"fmt"
 
-	"github.com/netbill/auth-svc/internal/core/errx"
 	"github.com/netbill/auth-svc/internal/core/models"
-	"golang.org/x/crypto/bcrypt"
 )
 
 func (m *Module) UpdatePassword(
@@ -32,16 +29,14 @@ func (m *Module) UpdatePassword(
 		return err
 	}
 
-	if err = m.checkPasswordRequirements(newPassword); err != nil {
+	if err = m.password.CheckRequirements(newPassword); err != nil {
 		return err
 	}
 
 	//TODO remove from here
-	hash, err := bcrypt.GenerateFromPassword([]byte(newPassword), bcrypt.DefaultCost)
+	hash, err := m.password.GenerateHash(newPassword)
 	if err != nil {
-		return errx.ErrorInternal.Raise(
-			fmt.Errorf("hashing new newPassword for account '%s', cause: %w", actor.ID, err),
-		)
+		return err
 	}
 
 	return m.repo.Transaction(ctx, func(ctx context.Context) error {

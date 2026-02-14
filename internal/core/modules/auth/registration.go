@@ -1,4 +1,4 @@
-package account
+package auth
 
 import (
 	"context"
@@ -46,7 +46,7 @@ func (m *Module) Registration(
 		return models.Account{}, err
 	}
 
-	err = m.checkPasswordRequirements(params.Password)
+	err = m.password.CheckRequirements(params.Password)
 	if err != nil {
 		return models.Account{}, err
 	}

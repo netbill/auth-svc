@@ -10,7 +10,7 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/netbill/auth-svc/internal/core/errx"
 	"github.com/netbill/auth-svc/internal/core/models"
-	"github.com/netbill/auth-svc/internal/core/modules/account"
+	"github.com/netbill/auth-svc/internal/core/modules/auth"
 )
 
 type AccountRow struct {
@@ -53,10 +53,10 @@ type AccountsQ interface {
 	Exists(ctx context.Context) (bool, error)
 }
 
-func (r *Repository) CreateAccount(ctx context.Context, params account.CreateAccountParams) (models.Account, error) {
+func (r *Repository) CreateAccount(ctx context.Context, params auth.CreateAccountParams) (models.Account, error) {
 	accountID := uuid.New()
 
-	acc, err := r.AccountsQ.Insert(ctx, AccountRow{
+	acc, err := r.AccountsQ.New().Insert(ctx, AccountRow{
 		ID:       accountID,
 		Username: params.Username,
 		Role:     params.Role,
@@ -65,7 +65,7 @@ func (r *Repository) CreateAccount(ctx context.Context, params account.CreateAcc
 		return models.Account{}, fmt.Errorf("failed to insert account, cause: %w", err)
 	}
 
-	if _, err = r.AccountEmailsQ.Insert(ctx, AccountEmailRow{
+	if _, err = r.AccountEmailsQ.New().Insert(ctx, AccountEmailRow{
 		AccountID: accountID,
 		Email:     params.Email,
 		Verified:  false,
@@ -73,7 +73,7 @@ func (r *Repository) CreateAccount(ctx context.Context, params account.CreateAcc
 		return models.Account{}, fmt.Errorf("failed to insert account email, cause: %w", err)
 	}
 
-	if _, err = r.AccountPassQ.Insert(ctx, AccountPasswordRow{
+	if _, err = r.AccountPassQ.New().Insert(ctx, AccountPasswordRow{
 		AccountID: accountID,
 		Hash:      params.PasswordHash,
 	}); err != nil {
@@ -84,7 +84,7 @@ func (r *Repository) CreateAccount(ctx context.Context, params account.CreateAcc
 }
 
 func (r *Repository) GetAccountByID(ctx context.Context, accountID uuid.UUID) (models.Account, error) {
-	acc, err := r.AccountsQ.FilterID(accountID).Get(ctx)
+	acc, err := r.AccountsQ.New().FilterID(accountID).Get(ctx)
 	switch {
 	case errors.Is(err, pgx.ErrNoRows):
 		return models.Account{}, errx.ErrorAccountNotFound.Raise(
@@ -98,7 +98,7 @@ func (r *Repository) GetAccountByID(ctx context.Context, accountID uuid.UUID) (m
 }
 
 func (r *Repository) ExistsAccountByID(ctx context.Context, accountID uuid.UUID) (bool, error) {
-	exist, err := r.AccountsQ.FilterID(accountID).Exists(ctx)
+	exist, err := r.AccountsQ.New().FilterID(accountID).Exists(ctx)
 	if err != nil {
 		return false, fmt.Errorf("failed to check account existence by id %s, cause: %w", accountID, err)
 	}
@@ -107,7 +107,7 @@ func (r *Repository) ExistsAccountByID(ctx context.Context, accountID uuid.UUID)
 }
 
 func (r *Repository) GetAccountByUsername(ctx context.Context, username string) (models.Account, error) {
-	acc, err := r.AccountsQ.FilterUsername(username).Get(ctx)
+	acc, err := r.AccountsQ.New().FilterUsername(username).Get(ctx)
 	switch {
 	case errors.Is(err, pgx.ErrNoRows):
 		return models.Account{}, errx.ErrorAccountNotFound.Raise(
@@ -121,7 +121,7 @@ func (r *Repository) GetAccountByUsername(ctx context.Context, username string) 
 }
 
 func (r *Repository) GetAccountByEmail(ctx context.Context, email string) (models.Account, error) {
-	acc, err := r.AccountsQ.FilterEmail(email).Get(ctx)
+	acc, err := r.AccountsQ.New().FilterEmail(email).Get(ctx)
 	switch {
 	case errors.Is(err, pgx.ErrNoRows):
 		return models.Account{}, errx.ErrorAccountNotFound.Raise(
@@ -135,7 +135,7 @@ func (r *Repository) GetAccountByEmail(ctx context.Context, email string) (model
 }
 
 func (r *Repository) ExistsAccountByUsername(ctx context.Context, username string) (bool, error) {
-	exist, err := r.AccountsQ.FilterUsername(username).Exists(ctx)
+	exist, err := r.AccountsQ.New().FilterUsername(username).Exists(ctx)
 	if err != nil {
 		return false, fmt.Errorf("failed to check account existence by username %s, cause: %w", username, err)
 	}
@@ -148,7 +148,7 @@ func (r *Repository) UpdateAccountUsername(
 	accountID uuid.UUID,
 	username string,
 ) (models.Account, error) {
-	acc, err := r.AccountsQ.
+	acc, err := r.AccountsQ.New().
 		FilterID(accountID).
 		UpdateUsername(username).
 		UpdateOne(ctx)
@@ -162,7 +162,7 @@ func (r *Repository) UpdateAccountUsername(
 }
 
 func (r *Repository) DeleteAccount(ctx context.Context, accountID uuid.UUID) error {
-	err := r.AccountsQ.FilterID(accountID).Delete(ctx)
+	err := r.AccountsQ.New().FilterID(accountID).Delete(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to delete account %s, cause: %w", accountID, err)
 	}

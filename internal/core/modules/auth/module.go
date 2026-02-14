@@ -1,10 +1,9 @@
-package account
+package auth
 
 import (
 	"context"
 	"errors"
 	"fmt"
-	"strings"
 	"unicode"
 
 	"github.com/google/uuid"
@@ -16,41 +15,23 @@ import (
 
 type Module struct {
 	repo      repo
-	jwt       JWTManager
+	token     tokenManager
 	messenger messenger
+	password  PasswordManager
 }
 
-func NewService(
+func New(
 	db repo,
-	jwt JWTManager,
+	jwt tokenManager,
 	event messenger,
+	passworeder PasswordManager,
 ) *Module {
 	return &Module{
 		repo:      db,
-		jwt:       jwt,
+		token:     jwt,
 		messenger: event,
+		password:  passworeder,
 	}
-}
-
-type JWTManager interface {
-	ParseAccountAuthAccessClaims(tokenStr string) (tokens.AccountAuthClaims, error)
-	ParseAccountAuthRefreshClaims(enc string) (tokens.AccountAuthClaims, error)
-
-	HashRefresh(rawRefresh string) (string, error)
-
-	GenerateAccess(
-		account models.Account, sessionID uuid.UUID,
-	) (string, error)
-
-	GenerateRefresh(
-		account models.Account, sessionID uuid.UUID,
-	) (string, error)
-}
-
-type messenger interface {
-	WriteAccountCreated(ctx context.Context, account models.Account) error
-	WriteAccountUsernameUpdated(ctx context.Context, account models.Account) error
-	WriteAccountDeleted(ctx context.Context, accountID uuid.UUID) error
 }
 
 type CreateAccountParams struct {
@@ -117,6 +98,33 @@ type repo interface {
 	Transaction(ctx context.Context, fn func(ctx context.Context) error) error
 }
 
+type tokenManager interface {
+	ParseAccountAuthAccessClaims(tokenStr string) (tokens.AccountAuthClaims, error)
+	ParseAccountAuthRefreshClaims(enc string) (tokens.AccountAuthClaims, error)
+
+	HashRefresh(rawRefresh string) (string, error)
+
+	GenerateAccess(
+		account models.Account, sessionID uuid.UUID,
+	) (string, error)
+
+	GenerateRefresh(
+		account models.Account, sessionID uuid.UUID,
+	) (string, error)
+}
+
+type messenger interface {
+	WriteAccountCreated(ctx context.Context, account models.Account) error
+	WriteAccountUsernameUpdated(ctx context.Context, account models.Account) error
+	WriteAccountDeleted(ctx context.Context, accountID uuid.UUID) error
+}
+
+type PasswordManager interface {
+	CheckRequirements(password string) error
+	CheckPasswordMatch(hash, password string) error
+	GenerateHash(password string) (string, error)
+}
+
 func (m *Module) checkUsernameRequirements(ctx context.Context, username string) error {
 	_, err := m.repo.GetAccountByUsername(ctx, username)
 	if err != nil {
@@ -135,60 +143,6 @@ func (m *Module) checkUsernameRequirements(ctx context.Context, username string)
 				fmt.Errorf("username contains invalid characters %s", string(r)),
 			)
 		}
-	}
-
-	return nil
-}
-
-func (m *Module) checkPasswordRequirements(password string) error {
-	if len(password) < 8 || len(password) > 32 {
-		return errx.ErrorPasswordIsNotAllowed.Raise(
-			fmt.Errorf("password must be between 8 and 32 characters"),
-		)
-	}
-
-	var (
-		hasUpper, hasLower, hasDigit, hasSpecial bool
-	)
-
-	allowedSpecials := "-.!#$%&?,@"
-
-	for _, r := range password {
-		switch {
-		case unicode.IsUpper(r):
-			hasUpper = true
-		case unicode.IsLower(r):
-			hasLower = true
-		case unicode.IsDigit(r):
-			hasDigit = true
-		case strings.ContainsRune(allowedSpecials, r):
-			hasSpecial = true
-		default:
-			return errx.ErrorPasswordIsNotAllowed.Raise(
-				fmt.Errorf("password contains invalid characters %s", string(r)),
-			)
-		}
-	}
-
-	if !hasUpper {
-		return errx.ErrorPasswordIsNotAllowed.Raise(
-			fmt.Errorf("need at least one uppercase letter"),
-		)
-	}
-	if !hasLower {
-		return errx.ErrorPasswordIsNotAllowed.Raise(
-			fmt.Errorf("need at least one lower case letter"),
-		)
-	}
-	if !hasDigit {
-		return errx.ErrorPasswordIsNotAllowed.Raise(
-			fmt.Errorf("need at least one digit"),
-		)
-	}
-	if !hasSpecial {
-		return errx.ErrorPasswordIsNotAllowed.Raise(
-			fmt.Errorf("need at least one special character from %s", allowedSpecials),
-		)
 	}
 
 	return nil

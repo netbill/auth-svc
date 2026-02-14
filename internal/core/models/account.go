@@ -1,17 +1,14 @@
 package models
 
 import (
-	"errors"
 	"fmt"
 	"time"
 
 	"github.com/google/uuid"
 	"github.com/netbill/auth-svc/internal/core/errx"
-	"golang.org/x/crypto/bcrypt"
 )
 
 const updatePasswordCooldown = 30 * 24 * time.Hour
-const updateEmailCooldown = 30 * 24 * time.Hour
 
 type AccountActor struct {
 	ID        uuid.UUID `json:"id"`
@@ -43,22 +40,6 @@ func (ap AccountPassword) CanChangePassword() error {
 	return errx.ErrorCannotChangePasswordYet.Raise(fmt.Errorf(
 		"account with id %s cannot change password yet", ap.AccountID),
 	)
-}
-
-func (ap AccountPassword) CheckPasswordMatch(password string) error {
-	if err := bcrypt.CompareHashAndPassword([]byte(ap.Hash), []byte(password)); err != nil {
-		if errors.Is(err, bcrypt.ErrMismatchedHashAndPassword) {
-			return errx.ErrorPasswordInvalid.Raise(
-				fmt.Errorf("invalid credentials, cause: %w", err),
-			)
-		}
-
-		return errx.ErrorInternal.Raise(
-			fmt.Errorf("comparing password hash, cause: %w", err),
-		)
-	}
-
-	return nil
 }
 
 type AccountEmail struct {

@@ -9,15 +9,38 @@ import (
 	"time"
 )
 
-type Manager struct {
-	AccessSK  string
-	RefreshSK string
-	RefreshHK string
+type Config struct {
+	AccountAccess struct {
+		SecretKey string        `mapstructure:"secret_key"`
+		TTL       time.Duration `mapstructure:"ttl"`
+	} `mapstructure:"account_access"`
+	AccountRefresh struct {
+		SecretKey string        `mapstructure:"secret_key"`
+		HashKey   string        `mapstructure:"hash_key"`
+		TTL       time.Duration `mapstructure:"ttl"`
+	} `mapstructure:"account_refresh"`
+}
 
-	AccessTTL  time.Duration
-	RefreshTTL time.Duration
+type Manager struct {
+	accessSK  string
+	refreshSK string
+	refreshHK string
+
+	accessTTL  time.Duration
+	refreshTTL time.Duration
 
 	Issuer string
+}
+
+func New(issuer string, config Config) *Manager {
+	return &Manager{
+		Issuer:     issuer,
+		accessSK:   config.AccountAccess.SecretKey,
+		refreshSK:  config.AccountRefresh.SecretKey,
+		refreshHK:  config.AccountRefresh.HashKey,
+		accessTTL:  config.AccountAccess.TTL,
+		refreshTTL: config.AccountRefresh.TTL,
+	}
 }
 
 func generateOpaque(n int) (string, error) {

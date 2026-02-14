@@ -6,7 +6,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/netbill/auth-svc/internal/core/models"
-	"github.com/netbill/auth-svc/internal/core/modules/account"
+	"github.com/netbill/auth-svc/internal/core/modules/auth"
 	"github.com/netbill/restkit/pagi"
 	"golang.org/x/oauth2"
 )
@@ -14,7 +14,7 @@ import (
 type core interface {
 	Registration(
 		ctx context.Context,
-		params account.RegistrationParams,
+		params auth.RegistrationParams,
 	) (models.Account, error)
 
 	LoginByEmail(ctx context.Context, email, password string) (models.TokensPair, error)

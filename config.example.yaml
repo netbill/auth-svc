@@ -15,15 +15,14 @@ database:
     url: "postgresql://postgres:postgres@localhost:7001/postgres?sslmode=disable"
 
 auth:
-  account:
-    token:
-      access:
-        secret_key: "UnG06MAU2i1Mvqf8" #example
-        lifetime: 12h
-      refresh:
-        secret_key: "6DSjhhT9KIezubpR" #example
-        hash_key: "Zlyh20N8uojZHFdO"  # Key for decrypting Refresh Token in the database
-        lifetime: 30d
+  tokens:
+    account_access:
+      secret_key: "UnG06MAU2i1Mvqf8" #example
+      ttl: 12h #12 hours
+    account_refresh:
+      secret_key: "6DSjhhT9KIezubpR" #example
+      hash_key: "Zlyh20N8uojZHFdO" #Key for decrypting Refresh Token in the database
+      ttl: 720h #30 days
 
   oauth:
     google:
@@ -35,12 +34,19 @@ kafka:
   brokers:
     - "localhost:9092"
 
-  readers:
-    organizations_member_v1: 4 #number of readers for this topic
+  topics:
+    organization_member_v1:             #topic name for accounts events
+      num_readers: 1         #number of readers for this topic which will be started in each process
+      min_bytes: 1           #minimum bytes to fetch in each request
+      max_bytes: 10e6        #maximum bytes to fetch in each request
+      max_wait: 1s           #maximum time to wait for messages in each request
+      commit_interval: 0s    # 0s = synchronous commits (CommitMessages does commit immediately)
+      start_offset: "latest" # used only if group has no committed offset: "earliest"|"latest"
+      queue_capacity: 100    #capacity of the internal queue for messages fetched from Kafka (should be >= batch_size)
 
   inbox:
-    routines: 100         #number of goroutines which can process messages in each process
-    slots: 10             #number of slots for processing messages in each process (should be >= routines)
+    routines: 10          #number of goroutines which can process messages in each process
+    slots: 40             #number of slots for processing messages in each process (should be >= routines)
     sleep: 100ms          #sleep time between processing messages
     batch_size: 100       #number of messages to process in a batch in each process
     min_next_attempt: 1m  #minimum time to wait before retrying a failed message
@@ -48,8 +54,8 @@ kafka:
     max_attempts: 0       #maximum number of attempts to process a message before giving up (0 = infinite retries)
 
   outbox:
-    routines: 100         #number of goroutines which can process messages in each process
-    slots: 10             #number of slots for processing messages in each process (should be >= routines)
+    routines: 10          #number of goroutines which can process messages in each process
+    slots: 40             #number of slots for processing messages in each process (should be >= routines)
     sleep: 100ms          #sleep time between processing messages
     batch_size: 100       #number of messages to process in a batch in each process
     min_next_attempt: 1m  #minimum time to wait before retrying a failed message

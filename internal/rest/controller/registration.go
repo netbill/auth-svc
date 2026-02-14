@@ -5,7 +5,7 @@ import (
 	"net/http"
 
 	"github.com/netbill/auth-svc/internal/core/errx"
-	"github.com/netbill/auth-svc/internal/core/modules/account"
+	"github.com/netbill/auth-svc/internal/core/modules/auth"
 	"github.com/netbill/auth-svc/internal/rest/requests"
 	"github.com/netbill/auth-svc/internal/rest/scope"
 	"github.com/netbill/restkit/problems"
@@ -26,7 +26,7 @@ func (c *Controller) Registration(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, err = c.core.Registration(r.Context(), account.RegistrationParams{
+	_, err = c.core.Registration(r.Context(), auth.RegistrationParams{
 		Email:    req.Data.Attributes.Email,
 		Password: req.Data.Attributes.Password,
 		Username: req.Data.Attributes.Username,
