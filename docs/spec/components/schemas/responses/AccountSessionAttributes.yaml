@@ -2,6 +2,7 @@ type: object
 required:
   - account_id
   - created_at
+  - version
   - last_used
 properties:
   account_id:
@@ -12,6 +13,9 @@ properties:
     type: string
     format: date-time
     description: "session creation date"
+  version:
+    type: integer
+    description: "The version number of the account record"
   last_used:
     type: string
     format: date-time

@@ -14,7 +14,16 @@ type RegistrationParams struct {
 	Email    string
 	Username string
 	Password string
+	passHash string
 	Role     string
+}
+
+func (p *RegistrationParams) SetPassHash(passHash string) {
+	p.passHash = passHash
+}
+
+func (p *RegistrationParams) GetPassHash() string {
+	return p.passHash
 }
 
 func (m *Module) Registration(
@@ -61,14 +70,11 @@ func (m *Module) Registration(
 		return models.Account{}, err
 	}
 
+	params.SetPassHash(string(hash))
+
 	var account models.Account
 	err = m.repo.Transaction(ctx, func(ctx context.Context) error {
-		account, err = m.repo.CreateAccount(ctx, CreateAccountParams{
-			Role:         params.Role,
-			Username:     params.Username,
-			Email:        params.Email,
-			PasswordHash: string(hash),
-		})
+		account, err = m.repo.CreateAccount(ctx, params)
 		if err != nil {
 			return err
 		}

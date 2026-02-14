@@ -15,6 +15,7 @@ import (
 type AccountPasswordRow struct {
 	AccountID uuid.UUID `db:"account_id"`
 	Hash      string    `db:"hash"`
+	Version   int32     `db:"version"`
 	UpdatedAt time.Time `db:"updated_at"`
 	CreatedAt time.Time `db:"created_at"`
 }
@@ -27,6 +28,7 @@ func (a AccountPasswordRow) ToModel() models.AccountPassword {
 	return models.AccountPassword{
 		AccountID: a.AccountID,
 		Hash:      a.Hash,
+		Version:   a.Version,
 		UpdatedAt: a.UpdatedAt,
 		CreatedAt: a.CreatedAt,
 	}

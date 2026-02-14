@@ -17,6 +17,7 @@ type AccountRow struct {
 	ID        uuid.UUID `db:"id"`
 	Username  string    `db:"username"`
 	Role      string    `db:"role"`
+	Version   int32     `db:"version"`
 	CreatedAt time.Time `db:"created_at"`
 	UpdatedAt time.Time `db:"updated_at"`
 }
@@ -26,6 +27,7 @@ func (a AccountRow) ToModel() models.Account {
 		ID:        a.ID,
 		Username:  a.Username,
 		Role:      a.Role,
+		Version:   a.Version,
 		CreatedAt: a.CreatedAt,
 		UpdatedAt: a.UpdatedAt,
 	}
@@ -38,7 +40,6 @@ type AccountsQ interface {
 	Get(ctx context.Context) (AccountRow, error)
 	Select(ctx context.Context) ([]AccountRow, error)
 
-	UpdateMany(ctx context.Context) (int64, error)
 	UpdateOne(ctx context.Context) (AccountRow, error)
 
 	UpdateUsername(username string) AccountsQ
@@ -49,11 +50,12 @@ type AccountsQ interface {
 	FilterID(accountID uuid.UUID) AccountsQ
 	FilterEmail(email string) AccountsQ
 	FilterUsername(username string) AccountsQ
+	FilterVersion(version int32) AccountsQ
 
 	Exists(ctx context.Context) (bool, error)
 }
 
-func (r *Repository) CreateAccount(ctx context.Context, params auth.CreateAccountParams) (models.Account, error) {
+func (r *Repository) CreateAccount(ctx context.Context, params auth.RegistrationParams) (models.Account, error) {
 	accountID := uuid.New()
 
 	acc, err := r.AccountsQ.New().Insert(ctx, AccountRow{
@@ -75,7 +77,7 @@ func (r *Repository) CreateAccount(ctx context.Context, params auth.CreateAccoun
 
 	if _, err = r.AccountPassQ.New().Insert(ctx, AccountPasswordRow{
 		AccountID: accountID,
-		Hash:      params.PasswordHash,
+		Hash:      params.GetPassHash(),
 	}); err != nil {
 		return models.Account{}, fmt.Errorf("failed to insert account password, cause: %w", err)
 	}
@@ -148,7 +150,7 @@ func (r *Repository) UpdateAccountUsername(
 	accountID uuid.UUID,
 	username string,
 ) (models.Account, error) {
-	acc, err := r.AccountsQ.New().
+	row, err := r.AccountsQ.New().
 		FilterID(accountID).
 		UpdateUsername(username).
 		UpdateOne(ctx)
@@ -158,7 +160,7 @@ func (r *Repository) UpdateAccountUsername(
 		)
 	}
 
-	return acc.ToModel(), nil
+	return row.ToModel(), nil
 }
 
 func (r *Repository) DeleteAccount(ctx context.Context, accountID uuid.UUID) error {

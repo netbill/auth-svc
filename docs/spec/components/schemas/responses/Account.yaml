@@ -21,6 +21,7 @@ properties:
         required:
           - role
           - username
+          - version
           - created_at
           - updated_at
         properties:
@@ -30,6 +31,9 @@ properties:
           username:
             type: string
             description: "The username of the account"
+          version:
+            type: integer
+            description: "The version number of the account record"
           created_at:
             type: string
             format: date-time

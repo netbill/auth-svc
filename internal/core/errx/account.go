@@ -6,6 +6,8 @@ import (
 
 var ErrorAccountNotFound = ape.DeclareError("ACCOUNT_NOT_FOUND")
 
+var ErrorVersionConflict = ape.DeclareError("VERSION_CONFLICT")
+
 var ErrorUsernameAlreadyTaken = ape.DeclareError("USERNAME_ALREADY_TAKEN")
 var ErrorUsernameIsNotAllowed = ape.DeclareError("USERNAME_IS_NOT_ALLOWED")
 

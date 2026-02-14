@@ -20,6 +20,7 @@ properties:
         type: object
         required:
           - email
+          - version
           - verified
           - updated_at
         properties:
@@ -27,6 +28,9 @@ properties:
             type: string
             format: email
             description: "The email address associated with the account"
+          version:
+            type: integer
+            description: "The version number of the account record"
           verified:
             type: boolean
             description: "Indicates whether the email address has been verified"

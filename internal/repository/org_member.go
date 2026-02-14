@@ -10,10 +10,9 @@ import (
 )
 
 type OrganizationMemberRow struct {
-	ID             uuid.UUID `db:"id"`
-	AccountID      uuid.UUID `db:"account_id"`
-	OrganizationID uuid.UUID `db:"organization_id"`
-
+	ID               uuid.UUID `db:"id"`
+	AccountID        uuid.UUID `db:"account_id"`
+	OrganizationID   uuid.UUID `db:"organization_id"`
 	SourceCreatedAt  time.Time `db:"source_created_at"`
 	ReplicaCreatedAt time.Time `db:"replica_created_at"`
 }

@@ -27,6 +27,8 @@ type AccountSessionAttributes struct {
 	AccountId uuid.UUID `json:"account_id"`
 	// session creation date
 	CreatedAt time.Time `json:"created_at"`
+	// The version number of the account record
+	Version int32 `json:"version"`
 	// last used date
 	LastUsed time.Time `json:"last_used"`
 }
@@ -37,10 +39,11 @@ type _AccountSessionAttributes AccountSessionAttributes
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewAccountSessionAttributes(accountId uuid.UUID, createdAt time.Time, lastUsed time.Time) *AccountSessionAttributes {
+func NewAccountSessionAttributes(accountId uuid.UUID, createdAt time.Time, version int32, lastUsed time.Time) *AccountSessionAttributes {
 	this := AccountSessionAttributes{}
 	this.AccountId = accountId
 	this.CreatedAt = createdAt
+	this.Version = version
 	this.LastUsed = lastUsed
 	return &this
 }
@@ -101,6 +104,30 @@ func (o *AccountSessionAttributes) SetCreatedAt(v time.Time) {
 	o.CreatedAt = v
 }
 
+// GetVersion returns the Version field value
+func (o *AccountSessionAttributes) GetVersion() int32 {
+	if o == nil {
+		var ret int32
+		return ret
+	}
+
+	return o.Version
+}
+
+// GetVersionOk returns a tuple with the Version field value
+// and a boolean to check if the value has been set.
+func (o *AccountSessionAttributes) GetVersionOk() (*int32, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return &o.Version, true
+}
+
+// SetVersion sets field value
+func (o *AccountSessionAttributes) SetVersion(v int32) {
+	o.Version = v
+}
+
 // GetLastUsed returns the LastUsed field value
 func (o *AccountSessionAttributes) GetLastUsed() time.Time {
 	if o == nil {
@@ -137,6 +164,7 @@ func (o AccountSessionAttributes) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
 	toSerialize["account_id"] = o.AccountId
 	toSerialize["created_at"] = o.CreatedAt
+	toSerialize["version"] = o.Version
 	toSerialize["last_used"] = o.LastUsed
 	return toSerialize, nil
 }
@@ -148,6 +176,7 @@ func (o *AccountSessionAttributes) UnmarshalJSON(data []byte) (err error) {
 	requiredProperties := []string{
 		"account_id",
 		"created_at",
+		"version",
 		"last_used",
 	}
 

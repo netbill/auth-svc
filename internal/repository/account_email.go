@@ -16,6 +16,7 @@ type AccountEmailRow struct {
 	AccountID uuid.UUID `db:"account_id"`
 	Email     string    `db:"email"`
 	Verified  bool      `db:"verified"`
+	Version   int32     `db:"version"`
 	UpdatedAt time.Time `db:"updated_at"`
 	CreatedAt time.Time `db:"created_at"`
 }
@@ -29,6 +30,7 @@ func (a AccountEmailRow) ToModel() models.AccountEmail {
 		AccountID: a.AccountID,
 		Email:     a.Email,
 		Verified:  a.Verified,
+		Version:   a.Version,
 		UpdatedAt: a.UpdatedAt,
 		CreatedAt: a.CreatedAt,
 	}

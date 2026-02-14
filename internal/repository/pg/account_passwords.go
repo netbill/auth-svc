@@ -16,12 +16,13 @@ import (
 
 const accountPasswordsTable = "account_passwords"
 
-const accountPasswordsColumns = "account_id, hash, created_at, updated_at"
+const accountPasswordsColumns = "account_id, hash, version, created_at, updated_at"
 
 func scanAccountPassword(row sq.RowScanner) (r repository.AccountPasswordRow, err error) {
 	err = row.Scan(
 		&r.AccountID,
 		&r.Hash,
+		&r.Version,
 		&r.CreatedAt,
 		&r.UpdatedAt,
 	)
@@ -73,7 +74,9 @@ func (q accountPasswords) Insert(ctx context.Context, input repository.AccountPa
 }
 
 func (q accountPasswords) UpdateMany(ctx context.Context) (int64, error) {
-	q.updater = q.updater.Set("updated_at", pgtype.Timestamptz{Time: time.Now().UTC(), Valid: true})
+	q.updater = q.updater.
+		Set("updated_at", pgtype.Timestamptz{Time: time.Now().UTC(), Valid: true}).
+		Set("version", sq.Expr("version + 1"))
 
 	query, args, err := q.updater.ToSql()
 	if err != nil {
@@ -89,7 +92,9 @@ func (q accountPasswords) UpdateMany(ctx context.Context) (int64, error) {
 }
 
 func (q accountPasswords) UpdateOne(ctx context.Context) (repository.AccountPasswordRow, error) {
-	q.updater = q.updater.Set("updated_at", pgtype.Timestamptz{Time: time.Now().UTC(), Valid: true})
+	q.updater = q.updater.
+		Set("updated_at", pgtype.Timestamptz{Time: time.Now().UTC(), Valid: true}).
+		Set("version", sq.Expr("version + 1"))
 
 	query, args, err := q.updater.
 		Suffix("RETURNING " + accountPasswordsColumns).

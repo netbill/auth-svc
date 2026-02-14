@@ -15,6 +15,7 @@ func AccountSession(m models.Session) resources.AccountSession {
 			Type: "account_session",
 			Attributes: resources.AccountSessionAttributes{
 				AccountId: m.AccountID,
+				Version:   m.Version,
 				CreatedAt: m.CreatedAt,
 				LastUsed:  m.LastUsed,
 			},

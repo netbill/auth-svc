@@ -34,17 +34,10 @@ func New(
 	}
 }
 
-type CreateAccountParams struct {
-	Role         string
-	Email        string
-	Username     string
-	PasswordHash string
-}
-
 type repo interface {
 	CreateAccount(
 		ctx context.Context,
-		params CreateAccountParams,
+		params RegistrationParams,
 	) (models.Account, error)
 
 	GetAccountByID(ctx context.Context, accountID uuid.UUID) (models.Account, error)

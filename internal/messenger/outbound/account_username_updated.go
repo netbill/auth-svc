@@ -19,6 +19,7 @@ func (o *Outbound) WriteAccountUsernameUpdated(
 	payload, err := json.Marshal(evtypes.AccountUsernameUpdatedPayload{
 		AccountID:   account.ID,
 		NewUsername: account.Username,
+		Version:     account.Version,
 		UpdatedAt:   account.UpdatedAt,
 	})
 	if err != nil {

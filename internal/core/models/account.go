@@ -20,6 +20,7 @@ type Account struct {
 	ID       uuid.UUID `json:"id"`
 	Username string    `json:"username"`
 	Role     string    `json:"role"`
+	Version  int32     `json:"version"`
 
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
@@ -28,6 +29,7 @@ type Account struct {
 type AccountPassword struct {
 	AccountID uuid.UUID `json:"account_id"`
 	Hash      string    `json:"hash"`
+	Version   int32     `json:"version"`
 	UpdatedAt time.Time `json:"updated_at"`
 	CreatedAt time.Time `json:"created_at"`
 }
@@ -46,6 +48,7 @@ type AccountEmail struct {
 	AccountID uuid.UUID `json:"account_id"`
 	Email     string    `json:"email"`
 	Verified  bool      `json:"verified"`
+	Version   int32     `json:"version"`
 	UpdatedAt time.Time `json:"updated_at"`
 	CreatedAt time.Time `json:"created_at"`
 }

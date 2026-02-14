@@ -16,11 +16,14 @@ import (
 
 const sessionsTable = "sessions"
 
+const sessionsColumns = "id, account_id, hash_token, version, last_used, created_at"
+
 func scanSession(row sq.RowScanner) (r repository.SessionRow, err error) {
 	err = row.Scan(
 		&r.ID,
 		&r.AccountID,
 		&r.HashToken,
+		&r.Version,
 		&r.LastUsed,
 		&r.CreatedAt,
 	)
@@ -47,7 +50,7 @@ func NewSessionsQ(db *pgdbx.DB) repository.SessionsQ {
 	builder := sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
 	return sessions{
 		db:       db,
-		selector: builder.Select(sessionsTable + ".*").From(sessionsTable),
+		selector: builder.Select(sessionsColumns).From(sessionsTable),
 		inserter: builder.Insert(sessionsTable),
 		updater:  builder.Update(sessionsTable),
 		deleter:  builder.Delete(sessionsTable),
@@ -64,7 +67,7 @@ func (q sessions) Insert(ctx context.Context, input repository.SessionRow) (repo
 		"id":         pgtype.UUID{Bytes: input.ID, Valid: true},
 		"account_id": pgtype.UUID{Bytes: input.AccountID, Valid: true},
 		"hash_token": pgtype.Text{String: input.HashToken, Valid: true},
-	}).Suffix("RETURNING id, account_id, hash_token, last_used, created_at").ToSql()
+	}).Suffix("RETURNING " + sessionsColumns).ToSql()
 	if err != nil {
 		return repository.SessionRow{}, fmt.Errorf("building insert query for %s: %w", sessionsTable, err)
 	}
@@ -75,7 +78,8 @@ func (q sessions) Insert(ctx context.Context, input repository.SessionRow) (repo
 func (q sessions) Update(ctx context.Context) ([]repository.SessionRow, error) {
 	q.updater = q.updater.
 		Set("last_used", pgtype.Timestamptz{Time: time.Now().UTC(), Valid: true}).
-		Suffix("RETURNING " + sessionsTable + ".*")
+		Set("version", sq.Expr("version + 1")).
+		Suffix("RETURNING " + sessionsColumns)
 
 	query, args, err := q.updater.ToSql()
 	if err != nil {
@@ -106,11 +110,6 @@ func (q sessions) Update(ctx context.Context) ([]repository.SessionRow, error) {
 
 func (q sessions) UpdateToken(token string) repository.SessionsQ {
 	q.updater = q.updater.Set("hash_token", pgtype.Text{String: token, Valid: true})
-	return q
-}
-
-func (q sessions) UpdateLastUsed(lastUsed time.Time) repository.SessionsQ {
-	q.updater = q.updater.Set("last_used", pgtype.Timestamptz{Time: lastUsed.UTC(), Valid: true})
 	return q
 }
 

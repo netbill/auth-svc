@@ -26,6 +26,8 @@ type AccountDataAttributes struct {
 	Role string `json:"role"`
 	// The username of the account
 	Username string `json:"username"`
+	// The version number of the account record
+	Version int32 `json:"version"`
 	// The date and time when the account was created
 	CreatedAt time.Time `json:"created_at"`
 	// The date and time when the account was last updated
@@ -38,10 +40,11 @@ type _AccountDataAttributes AccountDataAttributes
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewAccountDataAttributes(role string, username string, createdAt time.Time, updatedAt time.Time) *AccountDataAttributes {
+func NewAccountDataAttributes(role string, username string, version int32, createdAt time.Time, updatedAt time.Time) *AccountDataAttributes {
 	this := AccountDataAttributes{}
 	this.Role = role
 	this.Username = username
+	this.Version = version
 	this.CreatedAt = createdAt
 	this.UpdatedAt = updatedAt
 	return &this
@@ -101,6 +104,30 @@ func (o *AccountDataAttributes) GetUsernameOk() (*string, bool) {
 // SetUsername sets field value
 func (o *AccountDataAttributes) SetUsername(v string) {
 	o.Username = v
+}
+
+// GetVersion returns the Version field value
+func (o *AccountDataAttributes) GetVersion() int32 {
+	if o == nil {
+		var ret int32
+		return ret
+	}
+
+	return o.Version
+}
+
+// GetVersionOk returns a tuple with the Version field value
+// and a boolean to check if the value has been set.
+func (o *AccountDataAttributes) GetVersionOk() (*int32, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return &o.Version, true
+}
+
+// SetVersion sets field value
+func (o *AccountDataAttributes) SetVersion(v int32) {
+	o.Version = v
 }
 
 // GetCreatedAt returns the CreatedAt field value
@@ -163,6 +190,7 @@ func (o AccountDataAttributes) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
 	toSerialize["role"] = o.Role
 	toSerialize["username"] = o.Username
+	toSerialize["version"] = o.Version
 	toSerialize["created_at"] = o.CreatedAt
 	toSerialize["updated_at"] = o.UpdatedAt
 	return toSerialize, nil
@@ -175,6 +203,7 @@ func (o *AccountDataAttributes) UnmarshalJSON(data []byte) (err error) {
 	requiredProperties := []string{
 		"role",
 		"username",
+		"version",
 		"created_at",
 		"updated_at",
 	}

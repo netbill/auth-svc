@@ -16,14 +16,14 @@ import (
 
 const accountsTable = "accounts"
 
-const accountsColumns = "id, username, role, created_at, updated_at"
-const accountsColumnsA = "a.id, a.username, a.role, a.created_at, a.updated_at"
+const accountsColumns = "id, username, role, version, created_at, updated_at"
 
 func scanAccount(row sq.RowScanner) (r repository.AccountRow, err error) {
 	err = row.Scan(
 		&r.ID,
 		&r.Username,
 		&r.Role,
+		&r.Version,
 		&r.CreatedAt,
 		&r.UpdatedAt,
 	)
@@ -49,7 +49,7 @@ func NewAccountsQ(db *pgdbx.DB) repository.AccountsQ {
 	builder := sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
 	return accounts{
 		db:       db,
-		selector: builder.Select(accountsTable + ".*").From(accountsTable),
+		selector: builder.Select(accountsTable).From(accountsTable),
 		inserter: builder.Insert(accountsTable),
 		updater:  builder.Update(accountsTable),
 		deleter:  builder.Delete(accountsTable),
@@ -85,24 +85,10 @@ func (q accounts) Get(ctx context.Context) (repository.AccountRow, error) {
 	return scanAccount(q.db.QueryRow(ctx, query, args...))
 }
 
-func (q accounts) UpdateMany(ctx context.Context) (int64, error) {
-	q.updater = q.updater.Set("updated_at", pgtype.Timestamptz{Time: time.Now().UTC(), Valid: true})
-
-	query, args, err := q.updater.ToSql()
-	if err != nil {
-		return 0, fmt.Errorf("building update query for %s: %w", accountsTable, err)
-	}
-
-	tag, err := q.db.Exec(ctx, query, args...)
-	if err != nil {
-		return 0, fmt.Errorf("executing update query for %s: %w", accountsTable, err)
-	}
-
-	return tag.RowsAffected(), nil
-}
-
 func (q accounts) UpdateOne(ctx context.Context) (repository.AccountRow, error) {
-	q.updater = q.updater.Set("updated_at", pgtype.Timestamptz{Time: time.Now().UTC(), Valid: true})
+	q.updater = q.updater.
+		Set("updated_at", pgtype.Timestamptz{Time: time.Now().UTC(), Valid: true}).
+		Set("version", sq.Expr("version + 1"))
 
 	query, args, err := q.updater.
 		Suffix("RETURNING " + accountsColumns).
@@ -153,24 +139,20 @@ func (q accounts) Select(ctx context.Context) ([]repository.AccountRow, error) {
 }
 
 func (q accounts) Exists(ctx context.Context) (bool, error) {
-	query, args, err := q.selector.
-		Columns("1").
-		Limit(1).
-		ToSql()
+	subSQL, subArgs, err := q.selector.Limit(1).ToSql()
 	if err != nil {
 		return false, err
 	}
 
-	var one int
-	err = q.db.QueryRow(ctx, query, args...).Scan(&one)
+	sql := "SELECT EXISTS (" + subSQL + ")"
+
+	var exists bool
+	err = q.db.QueryRow(ctx, sql, subArgs...).Scan(&exists)
 	if err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
-			return false, nil
-		}
-		return false, err
+		return false, fmt.Errorf("sql=%s args=%v: %w", sql, subArgs, err)
 	}
 
-	return true, nil
+	return exists, nil
 }
 
 func (q accounts) Delete(ctx context.Context) error {
@@ -231,6 +213,14 @@ func (q accounts) FilterEmail(email string) repository.AccountsQ {
 	q.updater = q.updater.Where(sq.Expr("id IN (?)", sub))
 	q.deleter = q.deleter.Where(sq.Expr("id IN (?)", sub))
 
+	return q
+}
+
+func (q accounts) FilterVersion(version int32) repository.AccountsQ {
+	q.selector = q.selector.Where(sq.Eq{"version": version})
+	q.counter = q.counter.Where(sq.Eq{"version": version})
+	q.deleter = q.deleter.Where(sq.Eq{"version": version})
+	q.updater = q.updater.Where(sq.Eq{"version": version})
 	return q
 }
 

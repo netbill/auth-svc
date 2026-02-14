@@ -16,13 +16,14 @@ import (
 
 const accountEmailsTable = "account_emails"
 
-const accountEmailsColumns = "account_id, email, verified, created_at, updated_at"
+const accountEmailsColumns = "account_id, email, verified, version, created_at, updated_at"
 
 func scanAccountEmail(row sq.RowScanner) (r repository.AccountEmailRow, err error) {
 	err = row.Scan(
 		&r.AccountID,
 		&r.Email,
 		&r.Verified,
+		&r.Version,
 		&r.CreatedAt,
 		&r.UpdatedAt,
 	)
@@ -75,7 +76,9 @@ func (q accountEmails) Insert(ctx context.Context, input repository.AccountEmail
 }
 
 func (q accountEmails) UpdateMany(ctx context.Context) (int64, error) {
-	q.updater = q.updater.Set("updated_at", pgtype.Timestamptz{Time: time.Now().UTC(), Valid: true})
+	q.updater = q.updater.
+		Set("updated_at", pgtype.Timestamptz{Time: time.Now().UTC(), Valid: true}).
+		Set("version", sq.Expr("version + 1"))
 
 	query, args, err := q.updater.ToSql()
 	if err != nil {
@@ -90,7 +93,9 @@ func (q accountEmails) UpdateMany(ctx context.Context) (int64, error) {
 }
 
 func (q accountEmails) UpdateOne(ctx context.Context) (repository.AccountEmailRow, error) {
-	q.updater = q.updater.Set("updated_at", pgtype.Timestamptz{Time: time.Now().UTC(), Valid: true})
+	q.updater = q.updater.
+		Set("updated_at", pgtype.Timestamptz{Time: time.Now().UTC(), Valid: true}).
+		Set("version", sq.Expr("version + 1"))
 
 	query, args, err := q.updater.Suffix("RETURNING " + accountEmailsColumns).ToSql()
 	if err != nil {
@@ -144,24 +149,20 @@ func (q accountEmails) Select(ctx context.Context) ([]repository.AccountEmailRow
 }
 
 func (q accountEmails) Exists(ctx context.Context) (bool, error) {
-	query, args, err := q.selector.
-		Columns("1").
-		Limit(1).
-		ToSql()
+	subSQL, subArgs, err := q.selector.Limit(1).ToSql()
 	if err != nil {
 		return false, err
 	}
 
-	var one int
-	err = q.db.QueryRow(ctx, query, args...).Scan(&one)
+	sql := "SELECT EXISTS (" + subSQL + ")"
+
+	var exists bool
+	err = q.db.QueryRow(ctx, sql, subArgs...).Scan(&exists)
 	if err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
-			return false, nil
-		}
-		return false, err
+		return false, fmt.Errorf("sql=%s args=%v: %w", sql, subArgs, err)
 	}
 
-	return true, nil
+	return exists, nil
 }
 
 func (q accountEmails) Delete(ctx context.Context) error {

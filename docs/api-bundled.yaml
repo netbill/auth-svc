@@ -1337,6 +1337,7 @@ components:
       required:
         - account_id
         - created_at
+        - version
         - last_used
       properties:
         account_id:
@@ -1347,6 +1348,9 @@ components:
           type: string
           format: date-time
           description: session creation date
+        version:
+          type: integer
+          description: The version number of the account record
         last_used:
           type: string
           format: date-time
@@ -1388,6 +1392,7 @@ components:
               required:
                 - role
                 - username
+                - version
                 - created_at
                 - updated_at
               properties:
@@ -1397,6 +1402,9 @@ components:
                 username:
                   type: string
                   description: The username of the account
+                version:
+                  type: integer
+                  description: The version number of the account record
                 created_at:
                   type: string
                   format: date-time
@@ -1429,6 +1437,7 @@ components:
               type: object
               required:
                 - email
+                - version
                 - verified
                 - updated_at
               properties:
@@ -1436,6 +1445,9 @@ components:
                   type: string
                   format: email
                   description: The email address associated with the account
+                version:
+                  type: integer
+                  description: The version number of the account record
                 verified:
                   type: boolean
                   description: Indicates whether the email address has been verified

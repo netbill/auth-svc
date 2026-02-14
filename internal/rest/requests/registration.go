@@ -5,7 +5,6 @@ import (
 	"net/http"
 
 	validation "github.com/go-ozzo/ozzo-validation/v4"
-	"github.com/go-ozzo/ozzo-validation/v4/is"
 	"github.com/netbill/auth-svc/resources"
 )
 
@@ -19,7 +18,8 @@ func Registration(r *http.Request) (req resources.Registration, err error) {
 		"data/type":       validation.Validate(req.Data.Type, validation.Required, validation.In("registration_account")),
 		"data/attributes": validation.Validate(req.Data.Attributes, validation.Required),
 		"data/attributes/email": validation.Validate(
-			req.Data.Attributes.Email, validation.Required, validation.Length(5, 255), is.Email),
+			req.Data.Attributes.Email, validation.Required, validation.Length(5, 255),
+		),
 	}
 
 	return req, errs.Filter()

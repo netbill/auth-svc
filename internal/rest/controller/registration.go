@@ -30,7 +30,7 @@ func (c *Controller) Registration(w http.ResponseWriter, r *http.Request) {
 		Email:    req.Data.Attributes.Email,
 		Password: req.Data.Attributes.Password,
 		Username: req.Data.Attributes.Username,
-		Role:     tokens.RoleSystemAdmin,
+		Role:     tokens.RoleSystemUser,
 	})
 
 	switch {

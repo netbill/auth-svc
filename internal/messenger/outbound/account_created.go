@@ -20,6 +20,7 @@ func (o *Outbound) WriteAccountCreated(
 		AccountID: account.ID,
 		Username:  account.Username,
 		Role:      account.Role,
+		Version:   account.Version,
 		CreatedAt: account.CreatedAt,
 	})
 	if err != nil {

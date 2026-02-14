@@ -6,13 +6,14 @@ Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **AccountId** | [**uuid.UUID**](uuid.UUID.md) | account id | 
 **CreatedAt** | **time.Time** | session creation date | 
+**Version** | **int32** | The version number of the account record | 
 **LastUsed** | **time.Time** | last used date | 
 
 ## Methods
 
 ### NewAccountSessionAttributes
 
-`func NewAccountSessionAttributes(accountId uuid.UUID, createdAt time.Time, lastUsed time.Time, ) *AccountSessionAttributes`
+`func NewAccountSessionAttributes(accountId uuid.UUID, createdAt time.Time, version int32, lastUsed time.Time, ) *AccountSessionAttributes`
 
 NewAccountSessionAttributes instantiates a new AccountSessionAttributes object
 This constructor will assign default values to properties that have it defined,
@@ -65,6 +66,26 @@ and a boolean to check if the value has been set.
 `func (o *AccountSessionAttributes) SetCreatedAt(v time.Time)`
 
 SetCreatedAt sets CreatedAt field to given value.
+
+
+### GetVersion
+
+`func (o *AccountSessionAttributes) GetVersion() int32`
+
+GetVersion returns the Version field if non-nil, zero value otherwise.
+
+### GetVersionOk
+
+`func (o *AccountSessionAttributes) GetVersionOk() (*int32, bool)`
+
+GetVersionOk returns a tuple with the Version field if it's non-nil, zero value otherwise
+and a boolean to check if the value has been set.
+
+### SetVersion
+
+`func (o *AccountSessionAttributes) SetVersion(v int32)`
+
+SetVersion sets Version field to given value.
 
 
 ### GetLastUsed

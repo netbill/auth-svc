@@ -5,6 +5,7 @@
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **Email** | **string** | The email address associated with the account | 
+**Version** | **int32** | The version number of the account record | 
 **Verified** | **bool** | Indicates whether the email address has been verified | 
 **UpdatedAt** | **time.Time** | The date and time when the email information was last updated | 
 
@@ -12,7 +13,7 @@ Name | Type | Description | Notes
 
 ### NewAccountEmailDataAttributes
 
-`func NewAccountEmailDataAttributes(email string, verified bool, updatedAt time.Time, ) *AccountEmailDataAttributes`
+`func NewAccountEmailDataAttributes(email string, version int32, verified bool, updatedAt time.Time, ) *AccountEmailDataAttributes`
 
 NewAccountEmailDataAttributes instantiates a new AccountEmailDataAttributes object
 This constructor will assign default values to properties that have it defined,
@@ -45,6 +46,26 @@ and a boolean to check if the value has been set.
 `func (o *AccountEmailDataAttributes) SetEmail(v string)`
 
 SetEmail sets Email field to given value.
+
+
+### GetVersion
+
+`func (o *AccountEmailDataAttributes) GetVersion() int32`
+
+GetVersion returns the Version field if non-nil, zero value otherwise.
+
+### GetVersionOk
+
+`func (o *AccountEmailDataAttributes) GetVersionOk() (*int32, bool)`
+
+GetVersionOk returns a tuple with the Version field if it's non-nil, zero value otherwise
+and a boolean to check if the value has been set.
+
+### SetVersion
+
+`func (o *AccountEmailDataAttributes) SetVersion(v int32)`
+
+SetVersion sets Version field to given value.
 
 
 ### GetVerified

@@ -24,6 +24,8 @@ var _ MappedNullable = &AccountEmailDataAttributes{}
 type AccountEmailDataAttributes struct {
 	// The email address associated with the account
 	Email string `json:"email"`
+	// The version number of the account record
+	Version int32 `json:"version"`
 	// Indicates whether the email address has been verified
 	Verified bool `json:"verified"`
 	// The date and time when the email information was last updated
@@ -36,9 +38,10 @@ type _AccountEmailDataAttributes AccountEmailDataAttributes
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewAccountEmailDataAttributes(email string, verified bool, updatedAt time.Time) *AccountEmailDataAttributes {
+func NewAccountEmailDataAttributes(email string, version int32, verified bool, updatedAt time.Time) *AccountEmailDataAttributes {
 	this := AccountEmailDataAttributes{}
 	this.Email = email
+	this.Version = version
 	this.Verified = verified
 	this.UpdatedAt = updatedAt
 	return &this
@@ -74,6 +77,30 @@ func (o *AccountEmailDataAttributes) GetEmailOk() (*string, bool) {
 // SetEmail sets field value
 func (o *AccountEmailDataAttributes) SetEmail(v string) {
 	o.Email = v
+}
+
+// GetVersion returns the Version field value
+func (o *AccountEmailDataAttributes) GetVersion() int32 {
+	if o == nil {
+		var ret int32
+		return ret
+	}
+
+	return o.Version
+}
+
+// GetVersionOk returns a tuple with the Version field value
+// and a boolean to check if the value has been set.
+func (o *AccountEmailDataAttributes) GetVersionOk() (*int32, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return &o.Version, true
+}
+
+// SetVersion sets field value
+func (o *AccountEmailDataAttributes) SetVersion(v int32) {
+	o.Version = v
 }
 
 // GetVerified returns the Verified field value
@@ -135,6 +162,7 @@ func (o AccountEmailDataAttributes) MarshalJSON() ([]byte, error) {
 func (o AccountEmailDataAttributes) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
 	toSerialize["email"] = o.Email
+	toSerialize["version"] = o.Version
 	toSerialize["verified"] = o.Verified
 	toSerialize["updated_at"] = o.UpdatedAt
 	return toSerialize, nil
@@ -146,6 +174,7 @@ func (o *AccountEmailDataAttributes) UnmarshalJSON(data []byte) (err error) {
 	// that every required field exists as a key in the generic map.
 	requiredProperties := []string{
 		"email",
+		"version",
 		"verified",
 		"updated_at",
 	}

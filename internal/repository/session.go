@@ -17,6 +17,7 @@ type SessionRow struct {
 	ID        uuid.UUID `db:"id"`
 	AccountID uuid.UUID `db:"account_id"`
 	HashToken string    `db:"hash_token"`
+	Version   int32     `db:"version"`
 	LastUsed  time.Time `db:"last_used"`
 	CreatedAt time.Time `db:"created_at"`
 }
@@ -29,6 +30,7 @@ func (s SessionRow) ToModel() models.Session {
 	return models.Session{
 		ID:        s.ID,
 		AccountID: s.AccountID,
+		Version:   s.Version,
 		LastUsed:  s.LastUsed,
 		CreatedAt: s.CreatedAt,
 	}

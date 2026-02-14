@@ -12,6 +12,7 @@ func AccountEmailData(ae models.AccountEmail) resources.AccountEmail {
 			Type: "account_email",
 			Attributes: resources.AccountEmailDataAttributes{
 				Email:     ae.Email,
+				Version:   ae.Version,
 				Verified:  ae.Verified,
 				UpdatedAt: ae.UpdatedAt,
 			},
