@@ -9,6 +9,16 @@ import (
 	"github.com/netbill/pgdbx"
 )
 
+type TopicReaderConfig struct {
+	NumReaders     int           `mapstructure:"num_readers" validate:"required"`
+	MinBytes       int           `mapstructure:"min_bytes"`
+	MaxBytes       int           `mapstructure:"max_bytes"`
+	MaxWait        time.Duration `mapstructure:"max_wait"`
+	CommitInterval time.Duration `mapstructure:"commit_interval"`
+	StartOffset    string        `mapstructure:"start_offset"`
+	QueueCapacity  int           `mapstructure:"queue_capacity"`
+}
+
 type Config struct {
 	Brokers []string `mapstructure:"brokers" validate:"required"`
 	Writer  struct {
@@ -22,15 +32,8 @@ type Config struct {
 	}
 	Reader struct {
 		Topics struct {
-			OrgMembersV1 struct {
-				NumReaders     int           `mapstructure:"num_readers" validate:"required"`
-				MinBytes       int           `mapstructure:"min_bytes"`
-				MaxBytes       int           `mapstructure:"max_bytes"`
-				MaxWait        time.Duration `mapstructure:"max_wait"`
-				CommitInterval time.Duration `mapstructure:"commit_interval"`
-				StartOffset    string        `mapstructure:"start_offset"`
-				QueueCapacity  int           `mapstructure:"queue_capacity"`
-			} `mapstructure:"organization_members_v1"`
+			OrgMembersV1    TopicReaderConfig `mapstructure:"organization_members_v1"`
+			OrganizationsV1 TopicReaderConfig `mapstructure:"organizations_v1"`
 		} `mapstructure:"topics"`
 	} `mapstructure:"reader"`
 	Inbox struct {

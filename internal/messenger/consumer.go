@@ -14,7 +14,7 @@ func (m *Manager) RunConsumer(ctx context.Context) {
 
 	consumer := eventpg.NewConsumer(m.log, m.db, eventpg.ConsumerConfig{})
 
-	reader := kafka.NewReader(kafka.ReaderConfig{
+	orgMemberReader := kafka.NewReader(kafka.ReaderConfig{
 		Brokers:        m.config.Brokers,
 		Topic:          evtypes.OrgMemberTopicV1,
 		GroupID:        evtypes.AuthSvcGroup,
@@ -25,13 +25,29 @@ func (m *Manager) RunConsumer(ctx context.Context) {
 		CommitInterval: m.config.Reader.Topics.OrgMembersV1.CommitInterval,
 	})
 
-	wg.Add(1)
-	go func(r *kafka.Reader) {
-		defer r.Close()
-		defer wg.Done()
+	orgReader := kafka.NewReader(kafka.ReaderConfig{
+		Brokers:        m.config.Brokers,
+		Topic:          evtypes.OrgTopicV1,
+		GroupID:        evtypes.AuthSvcGroup,
+		QueueCapacity:  m.config.Reader.Topics.OrganizationsV1.QueueCapacity,
+		MaxBytes:       m.config.Reader.Topics.OrganizationsV1.MaxBytes,
+		MinBytes:       m.config.Reader.Topics.OrganizationsV1.MinBytes,
+		MaxWait:        m.config.Reader.Topics.OrganizationsV1.MaxWait,
+		CommitInterval: m.config.Reader.Topics.OrganizationsV1.CommitInterval,
+	})
 
-		consumer.Read(ctx, r)
-	}(reader)
+	run := func(r *kafka.Reader) {
+		wg.Add(1)
+		go func() {
+			defer r.Close()
+			defer wg.Done()
+
+			consumer.Read(ctx, r)
+		}()
+	}
+
+	run(orgMemberReader)
+	run(orgReader)
 
 	wg.Wait()
 }

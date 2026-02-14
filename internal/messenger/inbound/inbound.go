@@ -25,5 +25,6 @@ func New(org orgModule) *Inbound {
 
 type orgModule interface {
 	CreateOrgMember(ctx context.Context, member models.OrgMember) error
+	DeleteOrgMembers(ctx context.Context, orgID uuid.UUID) error
 	DeleteOrgMember(ctx context.Context, memberID uuid.UUID) error
 }

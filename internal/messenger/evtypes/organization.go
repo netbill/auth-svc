@@ -34,3 +34,12 @@ type OrgMemberDeletedPayload struct {
 	MemberID  uuid.UUID `json:"member_id"`
 	DeletedAt time.Time `json:"deleted_at"`
 }
+
+const OrgTopicV1 = "organization.v1"
+
+const OrgDeletedEvent = "organization.deleted"
+
+type OrgDeletedPayload struct {
+	OrganizationID uuid.UUID `json:"organization_id"`
+	DeletedAt      time.Time `json:"deleted_at"`
+}

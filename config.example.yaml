@@ -43,6 +43,15 @@ kafka:
       commit_interval: 0s    # 0s = synchronous commits (CommitMessages does commit immediately)
       start_offset: "latest" # used only if group has no committed offset: "earliest"|"latest"
       queue_capacity: 100    #capacity of the internal queue for messages fetched from Kafka (should be >= batch_size)
+    organizations_v1: #topic name for accounts events
+      num_readers: 1         #number of readers for this topic which will be started in each process
+      min_bytes: 1           #minimum bytes to fetch in each request
+      max_bytes: 10e6        #maximum bytes to fetch in each request
+      max_wait: 1s           #maximum time to wait for messages in each request
+      commit_interval: 0s    # 0s = synchronous commits (CommitMessages does commit immediately)
+      start_offset: "latest" # used only if group has no committed offset: "earliest"|"latest"
+      queue_capacity: 100    #capacity of the internal queue for messages fetched from Kafka (should be >= batch_size)
+
 
   inbox:
     routines: 10          #number of goroutines which can process messages in each process

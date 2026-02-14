@@ -8,7 +8,7 @@ CREATE TYPE "account_role" AS ENUM (
 CREATE TABLE accounts (
     id         UUID         PRIMARY KEY DEFAULT uuid_generate_v4(),
     username   VARCHAR(32)  NOT NULL UNIQUE,
-    role       account_role DEFAULT 'user'   NOT NULL,
+    role       account_role NOT NULL DEFAULT 'user',
     version    INTEGER      NOT NULL DEFAULT 1 CHECK ( version > 0 ),
 
     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
