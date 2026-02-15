@@ -15,11 +15,11 @@ const operationGetMyAccount = "get_my_account"
 func (c *Controller) GetMyAccount(w http.ResponseWriter, r *http.Request) {
 	log := scope.Log(r).WithOperation(operationGetMyAccount)
 
-	account, err := c.core.GetAccountByID(r.Context(), scope.AccountActor(r).ID)
+	account, err := c.core.GetMyAccountByID(r.Context(), scope.AccountActor(r))
 	switch {
-	case errors.Is(err, errx.ErrorAccountNotFound):
-		log.Info("initiator account not found by credentials")
-		c.responser.RenderErr(w, problems.Unauthorized("initiator account not found by credentials"))
+	case errors.Is(err, errx.ErrorAccountNotFound) || errors.Is(err, errx.ErrorAccountInvalidSession):
+		log.Infof("account not found by credentials")
+		c.responser.RenderErr(w, problems.Unauthorized("account not found by credentials"))
 	case err != nil:
 		log.WithError(err).Error("failed to get my account")
 		c.responser.RenderErr(w, problems.InternalError())

@@ -27,12 +27,9 @@ func (c *Controller) UpdateUsername(w http.ResponseWriter, r *http.Request) {
 
 	res, err := c.core.UpdateUsername(r.Context(), scope.AccountActor(r), req.Data.Attributes.NewUsername)
 	switch {
-	case errors.Is(err, errx.ErrorInitiatorNotFound):
-		log.Info("initiator account not found by credentials")
-		c.responser.RenderErr(w, problems.Unauthorized("failed to update username user not found"))
-	case errors.Is(err, errx.ErrorInitiatorInvalidSession):
-		log.Info("initiator session is invalid")
-		c.responser.RenderErr(w, problems.Unauthorized("initiator session is invalid"))
+	case errors.Is(err, errx.ErrorAccountNotFound) || errors.Is(err, errx.ErrorAccountInvalidSession):
+		log.Info("account not found by credentials")
+		c.responser.RenderErr(w, problems.Unauthorized("failed to update password user not found"))
 	case errors.Is(err, errx.ErrorPasswordInvalid):
 		log.Info("invalid password")
 		c.responser.RenderErr(w, problems.Unauthorized("invalid password"))

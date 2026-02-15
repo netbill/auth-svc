@@ -52,13 +52,3 @@ type AccountEmail struct {
 	UpdatedAt time.Time `json:"updated_at"`
 	CreatedAt time.Time `json:"created_at"`
 }
-
-func (ae AccountEmail) IsVerified() error {
-	if ae.Verified {
-		return nil
-	}
-
-	return errx.ErrorEmailNotVerified.Raise(fmt.Errorf(
-		"account with id %s has unverified email", ae.AccountID),
-	)
-}

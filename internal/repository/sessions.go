@@ -2,12 +2,10 @@ package repository
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5"
 	"github.com/netbill/auth-svc/internal/core/errx"
 	"github.com/netbill/auth-svc/internal/core/models"
 	"github.com/netbill/restkit/pagi"
@@ -42,10 +40,8 @@ type SessionsQ interface {
 	Get(ctx context.Context) (SessionRow, error)
 	Select(ctx context.Context) ([]SessionRow, error)
 
-	GetHashToken(ctx context.Context) (string, error)
-
 	UpdateToken(token string) SessionsQ
-	Update(ctx context.Context) ([]SessionRow, error)
+	UpdateOne(ctx context.Context) (SessionRow, error)
 
 	Delete(ctx context.Context) error
 
@@ -73,7 +69,7 @@ func (r *Repository) CreateSession(ctx context.Context, sessionID, accountID uui
 func (r *Repository) GetSession(ctx context.Context, sessionID uuid.UUID) (models.Session, error) {
 	row, err := r.SessionsQ.New().FilterID(sessionID).Get(ctx)
 	switch {
-	case errors.Is(err, pgx.ErrNoRows):
+	case row.IsNil():
 		return models.Session{}, errx.ErrorSessionNotFound.Raise(
 			fmt.Errorf("session with id %s not found", sessionID),
 		)
@@ -90,7 +86,7 @@ func (r *Repository) GetAccountSession(ctx context.Context, userID, sessionID uu
 		FilterAccountID(userID).
 		Get(ctx)
 	switch {
-	case errors.Is(err, pgx.ErrNoRows):
+	case row.IsNil():
 		return models.Session{}, errx.ErrorSessionNotFound.Raise(
 			fmt.Errorf("failed to get session with id %s for account %s, cause: %w", sessionID, userID, err),
 		)
@@ -136,37 +132,34 @@ func (r *Repository) GetSessionsForAccount(ctx context.Context, userID uuid.UUID
 }
 
 func (r *Repository) GetSessionToken(ctx context.Context, sessionID uuid.UUID) (string, error) {
-	row, err := r.SessionsQ.New().FilterID(sessionID).GetHashToken(ctx)
+	row, err := r.SessionsQ.New().FilterID(sessionID).Get(ctx)
 	switch {
-	case errors.Is(err, pgx.ErrNoRows):
+	case err != nil:
+		return "", fmt.Errorf("failed to get session token for session %s, cause: %w", sessionID, err)
+	case row.IsNil():
 		return "", errx.ErrorSessionNotFound.Raise(
 			fmt.Errorf("session with id %s not found", sessionID),
 		)
-	case err != nil:
-		return "", fmt.Errorf("failed to get session token for session %s, cause: %w", sessionID, err)
 	}
 
-	return row, nil
+	return row.HashToken, nil
 }
 
 func (r *Repository) UpdateSessionToken(ctx context.Context, sessionID uuid.UUID, token string) (models.Session, error) {
-	sess, err := r.SessionsQ.New().
+	row, err := r.SessionsQ.New().
 		FilterID(sessionID).
 		UpdateToken(token).
-		Update(ctx)
+		UpdateOne(ctx)
 	switch {
-	case errors.Is(err, pgx.ErrNoRows):
+	case err != nil:
+		return models.Session{}, fmt.Errorf("failed to update session token for session %s, cause: %w", sessionID, err)
+	case row.IsNil():
 		return models.Session{}, errx.ErrorSessionNotFound.Raise(
 			fmt.Errorf("session with id %s not found", sessionID),
 		)
-	case err != nil:
-		return models.Session{}, fmt.Errorf("failed to update session token for session %s, cause: %w", sessionID, err)
 	}
 
-	if len(sess) != 1 {
-		return models.Session{}, fmt.Errorf("expected 1 session, got %d", len(sess))
-	}
-	return sess[0].ToModel(), nil
+	return row.ToModel(), nil
 }
 
 func (r *Repository) DeleteSession(ctx context.Context, sessionID uuid.UUID) error {

@@ -44,7 +44,63 @@ CREATE TABLE sessions (
     last_used  TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
+-- +migrate StatementBegin
+CREATE OR REPLACE FUNCTION forbid_delete_account_email_if_account_exists()
+RETURNS trigger
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    IF pg_trigger_depth() > 0 THEN
+        RETURN OLD;
+    END IF;
+
+    IF EXISTS (SELECT 1 FROM accounts a WHERE a.id = OLD.account_id) THEN
+        RAISE EXCEPTION 'cannot delete account_emails while account % exists', OLD.account_id
+            USING ERRCODE = '23503';
+    END IF;
+
+    RETURN OLD;
+END;
+$$;
+-- +migrate StatementEnd
+
+CREATE TRIGGER tr_forbid_delete_account_email
+BEFORE DELETE ON account_emails
+FOR EACH ROW
+EXECUTE FUNCTION forbid_delete_account_email_if_account_exists();
+
+-- +migrate StatementBegin
+CREATE OR REPLACE FUNCTION forbid_delete_account_password_if_account_exists()
+RETURNS trigger
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    IF pg_trigger_depth() > 0 THEN
+        RETURN OLD;
+    END IF;
+
+    IF EXISTS (SELECT 1 FROM accounts a WHERE a.id = OLD.account_id) THEN
+        RAISE EXCEPTION 'cannot delete account_passwords while account % exists', OLD.account_id
+            USING ERRCODE = '23503';
+    END IF;
+
+    RETURN OLD;
+END;
+$$;
+-- +migrate StatementEnd
+
+CREATE TRIGGER tr_forbid_delete_account_password
+BEFORE DELETE ON account_passwords
+FOR EACH ROW
+EXECUTE FUNCTION forbid_delete_account_password_if_account_exists();
+
 -- +migrate Down
+DROP TRIGGER IF EXISTS tr_forbid_delete_account_email ON account_emails;
+DROP FUNCTION IF EXISTS forbid_delete_account_email_if_account_exists();
+
+DROP TRIGGER IF EXISTS tr_forbid_delete_account_password ON account_passwords;
+DROP FUNCTION IF EXISTS forbid_delete_account_password_if_account_exists();
+
 DROP TABLE IF EXISTS sessions CASCADE;
 DROP TABLE IF EXISTS account_passwords CASCADE;
 DROP TABLE IF EXISTS account_emails CASCADE;

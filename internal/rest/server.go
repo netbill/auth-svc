@@ -45,7 +45,7 @@ type Middlewares interface {
 	CorsDocs() func(next http.Handler) http.Handler
 }
 
-type Service struct {
+type Server struct {
 	handlers    Handlers
 	middlewares Middlewares
 }
@@ -53,8 +53,8 @@ type Service struct {
 func New(
 	middlewares Middlewares,
 	handlers Handlers,
-) *Service {
-	return &Service{
+) *Server {
+	return &Server{
 		middlewares: middlewares,
 		handlers:    handlers,
 	}
@@ -70,7 +70,7 @@ type Config struct {
 	} `mapstructure:"timeouts"`
 }
 
-func (s *Service) Run(ctx context.Context, log *logium.Entry, cfg Config) {
+func (s *Server) Run(ctx context.Context, log *logium.Entry, cfg Config) {
 	auth := s.middlewares.AccountAuth()
 	sysadmin := s.middlewares.AccountAuth(tokens.RoleSystemAdmin)
 
@@ -84,7 +84,6 @@ func (s *Service) Run(ctx context.Context, log *logium.Entry, cfg Config) {
 
 	r.Route("/auth-svc", func(r chi.Router) {
 		r.Route("/v1", func(r chi.Router) {
-
 			r.Route("/registration", func(r chi.Router) {
 				r.Post("/", s.handlers.Registration)
 				r.With(auth, sysadmin).Post("/admin", s.handlers.RegistrationByAdmin)
@@ -103,15 +102,15 @@ func (s *Service) Run(ctx context.Context, log *logium.Entry, cfg Config) {
 			r.Post("/refresh", s.handlers.RefreshSession)
 
 			r.With(auth).Route("/me", func(r chi.Router) {
-				r.With(auth).Get("/", s.handlers.GetMyAccount)
-				r.With(auth).Delete("/", s.handlers.DeleteMyAccount)
+				r.Get("/", s.handlers.GetMyAccount)
+				r.Delete("/", s.handlers.DeleteMyAccount)
 
-				r.With(auth).Get("/email", s.handlers.GetMyEmailData)
-				r.With(auth).Post("/logout", s.handlers.Logout)
-				r.With(auth).Post("/password", s.handlers.UpdatePassword)
-				r.With(auth).Post("/username", s.handlers.UpdateUsername)
+				r.Get("/email", s.handlers.GetMyEmailData)
+				r.Post("/logout", s.handlers.Logout)
+				r.Post("/password", s.handlers.UpdatePassword)
+				r.Post("/username", s.handlers.UpdateUsername)
 
-				r.With(auth).Route("/sessions", func(r chi.Router) {
+				r.Route("/sessions", func(r chi.Router) {
 					r.Get("/", s.handlers.GetMySessions)
 					r.Delete("/", s.handlers.DeleteMySessions)
 

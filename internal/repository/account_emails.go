@@ -2,12 +2,10 @@ package repository
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5"
 	"github.com/netbill/auth-svc/internal/core/errx"
 	"github.com/netbill/auth-svc/internal/core/models"
 )
@@ -43,7 +41,6 @@ type AccountEmailsQ interface {
 	Get(ctx context.Context) (AccountEmailRow, error)
 	Select(ctx context.Context) ([]AccountEmailRow, error)
 
-	UpdateMany(ctx context.Context) (int64, error)
 	UpdateOne(ctx context.Context) (AccountEmailRow, error)
 
 	UpdateEmail(email string) AccountEmailsQ
@@ -67,15 +64,15 @@ func (r *Repository) ExistsAccountByEmail(ctx context.Context, email string) (bo
 }
 
 func (r *Repository) GetAccountEmail(ctx context.Context, accountID uuid.UUID) (models.AccountEmail, error) {
-	acc, err := r.AccountEmailsQ.New().FilterAccountID(accountID).Get(ctx)
+	row, err := r.AccountEmailsQ.New().FilterAccountID(accountID).Get(ctx)
 	switch {
-	case errors.Is(err, pgx.ErrNoRows):
-		return models.AccountEmail{}, errx.ErrorAccountEmailNotFound.Raise(err)
 	case err != nil:
 		return models.AccountEmail{}, fmt.Errorf(
 			"failed to get account email for account %s, cause: %w", accountID, err,
 		)
+	case row.IsNil():
+		return models.AccountEmail{}, errx.ErrorAccountNotFound.Raise(err)
 	}
 
-	return acc.ToModel(), nil
+	return row.ToModel(), nil
 }

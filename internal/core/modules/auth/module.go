@@ -92,8 +92,8 @@ type repo interface {
 }
 
 type tokenManager interface {
-	ParseAccountAuthAccessClaims(tokenStr string) (tokens.AccountAuthClaims, error)
-	ParseAccountAuthRefreshClaims(enc string) (tokens.AccountAuthClaims, error)
+	ParseAccountAuthAccess(tokenStr string) (tokens.AccountAuthClaims, error)
+	ParseAccountAuthRefresh(enc string) (tokens.AccountAuthClaims, error)
 
 	HashRefresh(rawRefresh string) (string, error)
 
@@ -119,9 +119,14 @@ type PasswordManager interface {
 }
 
 func (m *Module) checkUsernameRequirements(ctx context.Context, username string) error {
-	_, err := m.repo.GetAccountByUsername(ctx, username)
+	exist, err := m.repo.ExistsAccountByUsername(ctx, username)
 	if err != nil {
 		return err
+	}
+	if exist {
+		return errx.ErrorUsernameAlreadyTaken.Raise(
+			fmt.Errorf("username '%s' is already taken", username),
+		)
 	}
 
 	if len(username) < 3 || len(username) > 32 {
@@ -148,11 +153,11 @@ func (m *Module) validateActorSession(
 	account, err := m.repo.GetAccountByID(ctx, actor.ID)
 	switch {
 	case errors.Is(err, errx.ErrorAccountNotFound):
-		return models.Account{}, models.Session{}, errx.ErrorInitiatorNotFound.Raise(
+		return models.Account{}, models.Session{}, errx.ErrorAccountNotFound.Raise(
 			fmt.Errorf("account with id '%s' not found", actor.SessionID),
 		)
 	case err != nil:
-		return models.Account{}, models.Session{}, errx.ErrorInitiatorNotFound.Raise(
+		return models.Account{}, models.Session{}, errx.ErrorAccountNotFound.Raise(
 			fmt.Errorf("failed to get account with id '%s', cause: %w", actor.SessionID, err),
 		)
 	}
@@ -160,11 +165,11 @@ func (m *Module) validateActorSession(
 	session, err := m.repo.GetSession(ctx, actor.SessionID)
 	switch {
 	case errors.Is(err, errx.ErrorSessionNotFound):
-		return models.Account{}, models.Session{}, errx.ErrorInitiatorInvalidSession.Raise(
+		return models.Account{}, models.Session{}, errx.ErrorAccountInvalidSession.Raise(
 			fmt.Errorf("failed to get session with id '%s', cause: %w", actor.SessionID, err),
 		)
 	case session.AccountID != actor.ID:
-		return models.Account{}, models.Session{}, errx.ErrorInitiatorInvalidSession.Raise(
+		return models.Account{}, models.Session{}, errx.ErrorAccountInvalidSession.Raise(
 			fmt.Errorf("session with id '%s' not found for account '%s'", actor.SessionID, actor.ID),
 		)
 	}

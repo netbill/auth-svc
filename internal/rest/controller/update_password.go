@@ -30,12 +30,9 @@ func (c *Controller) UpdatePassword(w http.ResponseWriter, r *http.Request) {
 		req.Data.Attributes.NewPassword,
 	)
 	switch {
-	case errors.Is(err, errx.ErrorInitiatorNotFound):
-		log.Info("initiator account not found by credentials")
+	case errors.Is(err, errx.ErrorAccountNotFound) || errors.Is(err, errx.ErrorAccountInvalidSession):
+		log.Info("account not found by credentials")
 		c.responser.RenderErr(w, problems.Unauthorized("failed to update password user not found"))
-	case errors.Is(err, errx.ErrorInitiatorInvalidSession):
-		log.Info("initiator session is invalid")
-		c.responser.RenderErr(w, problems.Unauthorized("initiator session is invalid"))
 	case errors.Is(err, errx.ErrorPasswordInvalid):
 		log.Info("invalid password")
 		c.responser.RenderErr(w, problems.Unauthorized("invalid password"))
@@ -51,6 +48,6 @@ func (c *Controller) UpdatePassword(w http.ResponseWriter, r *http.Request) {
 		log.WithError(err).Error("update password failed")
 		c.responser.RenderErr(w, problems.InternalError())
 	default:
-		c.responser.Render(w, http.StatusNoContent)
+		c.responser.Status(w, http.StatusNoContent)
 	}
 }

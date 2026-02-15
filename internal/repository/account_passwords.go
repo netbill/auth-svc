@@ -2,12 +2,10 @@ package repository
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5"
 	"github.com/netbill/auth-svc/internal/core/errx"
 	"github.com/netbill/auth-svc/internal/core/models"
 )
@@ -54,19 +52,19 @@ type AccountPasswordsQ interface {
 }
 
 func (r *Repository) GetAccountPassword(ctx context.Context, accountID uuid.UUID) (models.AccountPassword, error) {
-	acc, err := r.AccountPassQ.New().FilterAccountID(accountID).Get(ctx)
+	row, err := r.AccountPassQ.New().FilterAccountID(accountID).Get(ctx)
 	switch {
-	case errors.Is(err, pgx.ErrNoRows):
-		return models.AccountPassword{}, errx.ErrorAccountPasswordNorFound.Raise(
-			fmt.Errorf("account password for account %s not found", accountID),
-		)
 	case err != nil:
 		return models.AccountPassword{}, fmt.Errorf(
 			"failed to get account password for account %s, cause: %w", accountID, err,
 		)
+	case row.IsNil():
+		return models.AccountPassword{}, errx.ErrorAccountNotFound.Raise(
+			fmt.Errorf("account password for account %s not found", accountID),
+		)
 	}
 
-	return acc.ToModel(), nil
+	return row.ToModel(), nil
 }
 
 func (r *Repository) UpdateAccountPassword(

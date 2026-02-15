@@ -19,7 +19,7 @@ func (m *Module) Logout(
 	return nil
 }
 
-func (m *Module) DeleteOwnSession(
+func (m *Module) DeleteMySession(
 	ctx context.Context,
 	actor models.AccountActor,
 	sessionID uuid.UUID,
@@ -37,7 +37,7 @@ func (m *Module) DeleteOwnSession(
 	return nil
 }
 
-func (m *Module) DeleteOwnSessions(ctx context.Context, actor models.AccountActor) error {
+func (m *Module) DeleteMySessions(ctx context.Context, actor models.AccountActor) error {
 	_, _, err := m.validateActorSession(ctx, actor)
 	if err != nil {
 		return err

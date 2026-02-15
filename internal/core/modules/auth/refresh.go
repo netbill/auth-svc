@@ -9,31 +9,31 @@ import (
 )
 
 func (m *Module) Refresh(ctx context.Context, oldRefreshToken string) (models.TokensPair, error) {
-	tokenData, err := m.token.ParseAccountAuthRefreshClaims(oldRefreshToken)
+	tokenData, err := m.token.ParseAccountAuthRefresh(oldRefreshToken)
 	if err != nil {
 		return models.TokensPair{}, err
 	}
 
-	account, err := m.GetAccountByID(ctx, tokenData.GetAccountID())
+	account, err := m.repo.GetAccountByID(ctx, tokenData.GetAccountID())
 	if err != nil {
 		return models.TokensPair{}, err
 	}
 
-	token, err := m.repo.GetSessionToken(ctx, tokenData.SessionID)
+	storedHash, err := m.repo.GetSessionToken(ctx, tokenData.SessionID)
 	if err != nil {
 		return models.TokensPair{}, err
 	}
 
-	refreshHash, err := m.token.HashRefresh(token)
+	incomingHash, err := m.token.HashRefresh(oldRefreshToken)
 	if err != nil {
 		return models.TokensPair{}, err
 	}
 
-	if refreshHash != oldRefreshToken {
+	if incomingHash != storedHash {
 		return models.TokensPair{}, errx.ErrorSessionTokenMismatch.Raise(
 			fmt.Errorf(
-				"refresh token does not match for session %s and account %s, cause: %w",
-				tokenData.SessionID, tokenData.GetAccountID(), err,
+				"refresh token does not match for session %s and account %s",
+				tokenData.SessionID, tokenData.GetAccountID(),
 			),
 		)
 	}

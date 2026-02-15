@@ -14,9 +14,12 @@ import (
 	"github.com/netbill/pgdbx"
 )
 
-const accountEmailsTable = "account_emails"
+const (
+	accountEmailsTable = "account_emails"
 
-const accountEmailsColumns = "account_id, email, verified, version, created_at, updated_at"
+	accountEmailsPrefix = "ae.account_id, ae.email, ae.verified, ae.version, ae.created_at, ae.updated_at"
+	accountEmailsReturn = "account_id, email, verified, version, created_at, updated_at"
+)
 
 func scanAccountEmail(row sq.RowScanner) (r repository.AccountEmailRow, err error) {
 	err = row.Scan(
@@ -33,7 +36,6 @@ func scanAccountEmail(row sq.RowScanner) (r repository.AccountEmailRow, err erro
 	case err != nil:
 		return repository.AccountEmailRow{}, fmt.Errorf("scanning account_email: %w", err)
 	}
-
 	return r, nil
 }
 
@@ -50,11 +52,11 @@ func NewAccountEmailsQ(db *pgdbx.DB) repository.AccountEmailsQ {
 	builder := sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
 	return accountEmails{
 		db:       db,
-		selector: builder.Select("account_emails.*").From(accountEmailsTable),
+		selector: builder.Select(accountEmailsPrefix).From(accountEmailsTable + " ae"),
 		inserter: builder.Insert(accountEmailsTable),
 		updater:  builder.Update(accountEmailsTable),
 		deleter:  builder.Delete(accountEmailsTable),
-		counter:  builder.Select("COUNT(*) AS count").From(accountEmailsTable),
+		counter:  builder.Select("COUNT(*) AS count").From(accountEmailsTable + " ae"),
 	}
 }
 
@@ -67,7 +69,7 @@ func (q accountEmails) Insert(ctx context.Context, input repository.AccountEmail
 		"account_id": input.AccountID,
 		"email":      input.Email,
 		"verified":   input.Verified,
-	}).Suffix("RETURNING " + accountEmailsColumns).ToSql()
+	}).Suffix("RETURNING " + accountEmailsReturn).ToSql()
 	if err != nil {
 		return repository.AccountEmailRow{}, fmt.Errorf("building insert query for %s: %w", accountEmailsTable, err)
 	}
@@ -75,29 +77,12 @@ func (q accountEmails) Insert(ctx context.Context, input repository.AccountEmail
 	return scanAccountEmail(q.db.QueryRow(ctx, query, args...))
 }
 
-func (q accountEmails) UpdateMany(ctx context.Context) (int64, error) {
-	q.updater = q.updater.
-		Set("updated_at", pgtype.Timestamptz{Time: time.Now().UTC(), Valid: true}).
-		Set("version", sq.Expr("version + 1"))
-
-	query, args, err := q.updater.ToSql()
-	if err != nil {
-		return 0, fmt.Errorf("building update query for %s: %w", accountEmailsTable, err)
-	}
-
-	tag, err := q.db.Exec(ctx, query, args...)
-	if err != nil {
-		return 0, err
-	}
-	return tag.RowsAffected(), nil
-}
-
 func (q accountEmails) UpdateOne(ctx context.Context) (repository.AccountEmailRow, error) {
 	q.updater = q.updater.
 		Set("updated_at", pgtype.Timestamptz{Time: time.Now().UTC(), Valid: true}).
 		Set("version", sq.Expr("version + 1"))
 
-	query, args, err := q.updater.Suffix("RETURNING " + accountEmailsColumns).ToSql()
+	query, args, err := q.updater.Suffix("RETURNING " + accountEmailsReturn).ToSql()
 	if err != nil {
 		return repository.AccountEmailRow{}, fmt.Errorf("building update query for %s: %w", accountEmailsTable, err)
 	}
@@ -120,7 +105,6 @@ func (q accountEmails) Get(ctx context.Context) (repository.AccountEmailRow, err
 	if err != nil {
 		return repository.AccountEmailRow{}, fmt.Errorf("building get query for %s: %w", accountEmailsTable, err)
 	}
-
 	return scanAccountEmail(q.db.QueryRow(ctx, query, args...))
 }
 
@@ -136,7 +120,7 @@ func (q accountEmails) Select(ctx context.Context) ([]repository.AccountEmailRow
 	}
 	defer rows.Close()
 
-	var out []repository.AccountEmailRow
+	out := make([]repository.AccountEmailRow, 0)
 	for rows.Next() {
 		r, err := scanAccountEmail(rows)
 		if err != nil {
@@ -144,7 +128,9 @@ func (q accountEmails) Select(ctx context.Context) ([]repository.AccountEmailRow
 		}
 		out = append(out, r)
 	}
-
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
 	return out, nil
 }
 
@@ -153,15 +139,12 @@ func (q accountEmails) Exists(ctx context.Context) (bool, error) {
 	if err != nil {
 		return false, err
 	}
-
 	sql := "SELECT EXISTS (" + subSQL + ")"
 
 	var exists bool
-	err = q.db.QueryRow(ctx, sql, subArgs...).Scan(&exists)
-	if err != nil {
+	if err = q.db.QueryRow(ctx, sql, subArgs...).Scan(&exists); err != nil {
 		return false, fmt.Errorf("sql=%s args=%v: %w", sql, subArgs, err)
 	}
-
 	return exists, nil
 }
 
@@ -170,30 +153,32 @@ func (q accountEmails) Delete(ctx context.Context) error {
 	if err != nil {
 		return fmt.Errorf("building delete query for %s: %w", accountEmailsTable, err)
 	}
-
 	_, err = q.db.Exec(ctx, query, args...)
 	return err
 }
 
 func (q accountEmails) FilterAccountID(accountID uuid.UUID) repository.AccountEmailsQ {
-	q.selector = q.selector.Where(sq.Eq{"account_id": accountID})
-	q.counter = q.counter.Where(sq.Eq{"account_id": accountID})
+	q.selector = q.selector.Where(sq.Eq{"ae.account_id": accountID})
+	q.counter = q.counter.Where(sq.Eq{"ae.account_id": accountID})
+
 	q.deleter = q.deleter.Where(sq.Eq{"account_id": accountID})
 	q.updater = q.updater.Where(sq.Eq{"account_id": accountID})
 	return q
 }
 
 func (q accountEmails) FilterEmail(email string) repository.AccountEmailsQ {
-	q.selector = q.selector.Where(sq.Eq{"email": email})
-	q.counter = q.counter.Where(sq.Eq{"email": email})
+	q.selector = q.selector.Where(sq.Eq{"ae.email": email})
+	q.counter = q.counter.Where(sq.Eq{"ae.email": email})
+
 	q.deleter = q.deleter.Where(sq.Eq{"email": email})
 	q.updater = q.updater.Where(sq.Eq{"email": email})
 	return q
 }
 
 func (q accountEmails) FilterVerified(verified bool) repository.AccountEmailsQ {
-	q.selector = q.selector.Where(sq.Eq{"verified": verified})
-	q.counter = q.counter.Where(sq.Eq{"verified": verified})
+	q.selector = q.selector.Where(sq.Eq{"ae.verified": verified})
+	q.counter = q.counter.Where(sq.Eq{"ae.verified": verified})
+
 	q.deleter = q.deleter.Where(sq.Eq{"verified": verified})
 	q.updater = q.updater.Where(sq.Eq{"verified": verified})
 	return q
@@ -204,13 +189,10 @@ func (q accountEmails) Count(ctx context.Context) (uint, error) {
 	if err != nil {
 		return 0, fmt.Errorf("building count query for %s: %w", accountEmailsTable, err)
 	}
-
 	var count uint
-	err = q.db.QueryRow(ctx, query, args...).Scan(&count)
-	if err != nil {
+	if err = q.db.QueryRow(ctx, query, args...).Scan(&count); err != nil {
 		return 0, err
 	}
-
 	return count, nil
 }
 

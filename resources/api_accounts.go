@@ -404,7 +404,7 @@ func (r ApiAuthSvcV1MePasswordPatchRequest) Execute() (*http.Response, error) {
 }
 
 /*
-AuthSvcV1MePasswordPatch Update password
+AuthSvcV1MePasswordPatch UpdateOne password
 
 Updates the password of the authenticated account.
 **401 Unauthorized** is returned when credentials are invalid, the session is invalid, or the old password is incorrect. **403 Forbidden** is returned when the initiator is blocked or password change is temporarily restricted.
@@ -548,7 +548,7 @@ func (r ApiAuthSvcV1MeUsernamePatchRequest) Execute() (*Account, *http.Response,
 }
 
 /*
-AuthSvcV1MeUsernamePatch Update username
+AuthSvcV1MeUsernamePatch UpdateOne username
 
 Updates the username of the authenticated account.
 **401 Unauthorized** is returned when credentials are invalid, the session is invalid, or the password is incorrect. **403 Forbidden** is returned when the initiator is blocked or username change is temporarily restricted. **409 Conflict** is returned when the requested username is already taken.

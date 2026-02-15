@@ -25,34 +25,35 @@ type core interface {
 
 	UpdatePassword(
 		ctx context.Context,
-		initiator models.AccountActor,
+		actor models.AccountActor,
 		oldPassword, newPassword string,
 	) error
 	UpdateUsername(
 		ctx context.Context,
-		initiator models.AccountActor,
+		actor models.AccountActor,
 		newUsername string,
 	) (account models.Account, err error)
 
-	GetAccountByID(ctx context.Context, ID uuid.UUID) (models.Account, error)
-	GetAccountEmail(ctx context.Context, ID uuid.UUID) (models.AccountEmail, error)
+	GetMyAccountByID(ctx context.Context, actor models.AccountActor) (models.Account, error)
+	GetMyAccountEmail(ctx context.Context, actor models.AccountActor) (models.AccountEmail, error)
 
-	GetOwnSession(ctx context.Context, initiator models.AccountActor, sessionID uuid.UUID) (models.Session, error)
-	GetOwnSessions(
+	GetMySession(ctx context.Context, actor models.AccountActor, sessionID uuid.UUID) (models.Session, error)
+	GetMySessions(
 		ctx context.Context,
-		initiator models.AccountActor,
+		actor models.AccountActor,
 		limit, offset uint,
 	) (pagi.Page[[]models.Session], error)
 
-	DeleteOwnAccount(ctx context.Context, initiator models.AccountActor) error
+	DeleteMyAccount(ctx context.Context, actor models.AccountActor) error
 
-	Logout(ctx context.Context, initiator models.AccountActor) error
-	DeleteOwnSession(ctx context.Context, initiator models.AccountActor, sessionID uuid.UUID) error
-	DeleteOwnSessions(ctx context.Context, initiator models.AccountActor) error
+	Logout(ctx context.Context, actor models.AccountActor) error
+	DeleteMySession(ctx context.Context, actor models.AccountActor, sessionID uuid.UUID) error
+	DeleteMySessions(ctx context.Context, actor models.AccountActor) error
 }
 
 type responser interface {
-	Render(w http.ResponseWriter, status int, res ...interface{})
+	Status(w http.ResponseWriter, status int)
+	Render(w http.ResponseWriter, status int, res interface{})
 	RenderErr(w http.ResponseWriter, errs ...error)
 }
 

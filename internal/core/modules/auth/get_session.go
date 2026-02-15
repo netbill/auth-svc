@@ -8,7 +8,7 @@ import (
 	"github.com/netbill/restkit/pagi"
 )
 
-func (m *Module) GetOwnSession(
+func (m *Module) GetMySession(
 	ctx context.Context,
 	actor models.AccountActor,
 	sessionID uuid.UUID,
@@ -26,7 +26,7 @@ func (m *Module) GetOwnSession(
 	return session, nil
 }
 
-func (m *Module) GetOwnSessions(
+func (m *Module) GetMySessions(
 	ctx context.Context,
 	actor models.AccountActor,
 	limit, offset uint,

@@ -75,7 +75,7 @@ func (q sessions) Insert(ctx context.Context, input repository.SessionRow) (repo
 	return scanSession(q.db.QueryRow(ctx, query, args...))
 }
 
-func (q sessions) Update(ctx context.Context) ([]repository.SessionRow, error) {
+func (q sessions) UpdateOne(ctx context.Context) (repository.SessionRow, error) {
 	q.updater = q.updater.
 		Set("last_used", pgtype.Timestamptz{Time: time.Now().UTC(), Valid: true}).
 		Set("version", sq.Expr("version + 1")).
@@ -83,29 +83,16 @@ func (q sessions) Update(ctx context.Context) ([]repository.SessionRow, error) {
 
 	query, args, err := q.updater.ToSql()
 	if err != nil {
-		return nil, fmt.Errorf("building update query for %s: %w", sessionsTable, err)
+		return repository.SessionRow{}, fmt.Errorf("building update query for %s: %w", sessionsTable, err)
 	}
 
 	rows, err := q.db.Query(ctx, query, args...)
 	if err != nil {
-		return nil, err
+		return repository.SessionRow{}, err
 	}
 	defer rows.Close()
 
-	var out []repository.SessionRow
-	for rows.Next() {
-		r, err := scanSession(rows)
-		if err != nil {
-			return nil, fmt.Errorf("scanning updated session: %w", err)
-		}
-		out = append(out, r)
-	}
-
-	if err = rows.Err(); err != nil {
-		return nil, err
-	}
-
-	return out, nil
+	return scanSession(rows)
 }
 
 func (q sessions) UpdateToken(token string) repository.SessionsQ {
@@ -120,27 +107,6 @@ func (q sessions) Get(ctx context.Context) (repository.SessionRow, error) {
 	}
 
 	return scanSession(q.db.QueryRow(ctx, query, args...))
-}
-
-func (q sessions) GetHashToken(ctx context.Context) (string, error) {
-	query, args, err := q.selector.
-		Columns("hash_token").
-		Limit(1).
-		ToSql()
-	if err != nil {
-		return "", fmt.Errorf("building get hash token query for sessions: %w", err)
-	}
-
-	var token string
-	err = q.db.QueryRow(ctx, query, args...).Scan(&token)
-	switch {
-	case errors.Is(err, pgx.ErrNoRows):
-		return "", nil
-	case err != nil:
-		return "", fmt.Errorf("scanning hash token for sessions: %w", err)
-	}
-
-	return token, nil
 }
 
 func (q sessions) Select(ctx context.Context) ([]repository.SessionRow, error) {

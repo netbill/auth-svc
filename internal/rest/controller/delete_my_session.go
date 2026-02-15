@@ -30,19 +30,16 @@ func (c *Controller) DeleteMySession(w http.ResponseWriter, r *http.Request) {
 
 	log = log.WithField("target_session_id", sessionID)
 
-	err = c.core.DeleteOwnSession(r.Context(), scope.AccountActor(r), sessionID)
+	err = c.core.DeleteMySession(r.Context(), scope.AccountActor(r), sessionID)
 	switch {
-	case errors.Is(err, errx.ErrorInitiatorNotFound):
-		log.Infof("initiator account not found by credentials")
-		c.responser.RenderErr(w, problems.Unauthorized("initiator account not found by credentials"))
-	case errors.Is(err, errx.ErrorInitiatorInvalidSession):
-		log.Infof("initiator session is invalid")
-		c.responser.RenderErr(w, problems.Unauthorized("initiator session is invalid"))
+	case errors.Is(err, errx.ErrorAccountNotFound) || errors.Is(err, errx.ErrorAccountInvalidSession):
+		log.Infof("account not found by credentials")
+		c.responser.RenderErr(w, problems.Unauthorized("account not found by credentials"))
 	case err != nil:
 		log.WithError(err).Errorf("failed to delete My session")
 		c.responser.RenderErr(w, problems.InternalError())
 	default:
-		log.Info("initiator session deleted")
-		c.responser.Render(w, http.StatusNoContent)
+		log.Info("session deleted")
+		c.responser.Status(w, http.StatusNoContent)
 	}
 }

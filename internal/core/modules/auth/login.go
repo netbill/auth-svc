@@ -8,7 +8,7 @@ import (
 )
 
 func (m *Module) LoginByEmail(ctx context.Context, email, password string) (models.TokensPair, error) {
-	account, err := m.GetAccountByEmail(ctx, email)
+	account, err := m.repo.GetAccountByEmail(ctx, email)
 	if err != nil {
 		return models.TokensPair{}, err
 	}
@@ -22,7 +22,7 @@ func (m *Module) LoginByEmail(ctx context.Context, email, password string) (mode
 }
 
 func (m *Module) LoginByGoogle(ctx context.Context, email string) (models.TokensPair, error) {
-	account, err := m.GetAccountByEmail(ctx, email)
+	account, err := m.repo.GetAccountByEmail(ctx, email)
 	if err != nil {
 		return models.TokensPair{}, err
 	}
@@ -31,7 +31,7 @@ func (m *Module) LoginByGoogle(ctx context.Context, email string) (models.Tokens
 }
 
 func (m *Module) LoginByUsername(ctx context.Context, username, password string) (models.TokensPair, error) {
-	account, err := m.GetAccountByUsername(ctx, username)
+	account, err := m.repo.GetAccountByUsername(ctx, username)
 	if err != nil {
 		return models.TokensPair{}, err
 	}

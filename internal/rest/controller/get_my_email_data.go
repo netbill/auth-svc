@@ -15,11 +15,11 @@ const operationGetMyEmailData = "get_my_email_data"
 func (c *Controller) GetMyEmailData(w http.ResponseWriter, r *http.Request) {
 	log := scope.Log(r).WithOperation(operationGetMyEmailData)
 
-	emailData, err := c.core.GetAccountEmail(r.Context(), scope.AccountActor(r).ID)
+	emailData, err := c.core.GetMyAccountEmail(r.Context(), scope.AccountActor(r))
 	switch {
-	case errors.Is(err, errx.ErrorAccountEmailNotFound):
-		log.Info("initiator account email not found by credentials")
-		c.responser.RenderErr(w, problems.Unauthorized("initiator account not found by credentials"))
+	case errors.Is(err, errx.ErrorAccountNotFound) || errors.Is(err, errx.ErrorAccountInvalidSession):
+		log.Infof("account not found by credentials")
+		c.responser.RenderErr(w, problems.Unauthorized("account not found by credentials"))
 	case err != nil:
 		log.WithError(err).Error("failed to get my email data")
 		c.responser.RenderErr(w, problems.InternalError())

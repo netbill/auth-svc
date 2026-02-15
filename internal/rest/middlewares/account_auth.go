@@ -24,7 +24,7 @@ func (p *Provider) AccountAuth(allowedRoles ...string) func(next http.Handler) h
 				return
 			}
 
-			claims, err := p.tokenManager.ParseAccountAuthAccessClaims(token)
+			claims, err := p.tokenManager.ParseAccountAuthAccess(token)
 			if err != nil {
 				scope.Log(r).WithError(err).Info("account authentication failed")
 				p.responser.RenderErr(w, problems.Unauthorized("account authentication failed"))

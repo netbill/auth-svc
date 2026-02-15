@@ -8,7 +8,7 @@ import (
 	"github.com/netbill/auth-svc/internal/core/models"
 )
 
-func (m *Module) DeleteOwnAccount(
+func (m *Module) DeleteMyAccount(
 	ctx context.Context,
 	actor models.AccountActor,
 ) error {

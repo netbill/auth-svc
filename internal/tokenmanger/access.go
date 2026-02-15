@@ -27,7 +27,7 @@ func (m *Manager) GenerateAccess(account models.Account, sessionID uuid.UUID) (s
 	return tkn, nil
 }
 
-func (m *Manager) ParseAccountAuthAccessClaims(tokenStr string) (tokens.AccountAuthClaims, error) {
+func (m *Manager) ParseAccountAuthAccess(tokenStr string) (tokens.AccountAuthClaims, error) {
 	data, err := tokens.ParseAccountJWT(tokenStr, m.accessSK)
 	if err != nil {
 		return tokens.AccountAuthClaims{}, fmt.Errorf("failed to parse access token, cause: %w", err)

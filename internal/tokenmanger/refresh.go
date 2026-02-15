@@ -15,7 +15,7 @@ func (m *Manager) GenerateRefresh(account models.Account, sessionID uuid.UUID) (
 		RegisteredClaims: jwt.RegisteredClaims{
 			Subject:   account.ID.String(),
 			Issuer:    m.Issuer,
-			ExpiresAt: jwt.NewNumericDate(time.Now().UTC().Add(m.accessTTL)),
+			ExpiresAt: jwt.NewNumericDate(time.Now().UTC().Add(m.refreshTTL)),
 		},
 		Role:      account.Role,
 		SessionID: sessionID,
@@ -27,7 +27,7 @@ func (m *Manager) GenerateRefresh(account models.Account, sessionID uuid.UUID) (
 	return tkn, nil
 }
 
-func (m *Manager) ParseAccountAuthRefreshClaims(tokenStr string) (tokens.AccountAuthClaims, error) {
+func (m *Manager) ParseAccountAuthRefresh(tokenStr string) (tokens.AccountAuthClaims, error) {
 	data, err := tokens.ParseAccountJWT(tokenStr, m.refreshSK)
 	if err != nil {
 		return tokens.AccountAuthClaims{}, fmt.Errorf("failed to parse refresh token, cause: %w", err)

@@ -52,7 +52,7 @@ func (m *Module) Registration(
 
 	err = tokens.ValidateUserSystemRole(params.Role)
 	if err != nil {
-		return models.Account{}, err
+		return models.Account{}, errx.ErrorRoleNotSupported.Raise(err)
 	}
 
 	err = m.password.CheckRequirements(params.Password)

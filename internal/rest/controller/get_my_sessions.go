@@ -18,14 +18,11 @@ func (c *Controller) GetMySessions(w http.ResponseWriter, r *http.Request) {
 
 	limit, offset := pagi.GetPagination(r)
 
-	sessions, err := c.core.GetOwnSessions(r.Context(), scope.AccountActor(r), limit, offset)
+	sessions, err := c.core.GetMySessions(r.Context(), scope.AccountActor(r), limit, offset)
 	switch {
-	case errors.Is(err, errx.ErrorInitiatorNotFound):
-		log.Info("initiator account not found by credentials")
-		c.responser.RenderErr(w, problems.Unauthorized("initiator account not found by credentials"))
-	case errors.Is(err, errx.ErrorInitiatorInvalidSession):
-		log.Info("initiator session is invalid")
-		c.responser.RenderErr(w, problems.Unauthorized("initiator session is invalid"))
+	case errors.Is(err, errx.ErrorAccountNotFound) || errors.Is(err, errx.ErrorAccountInvalidSession):
+		log.Info("account not found by credentials")
+		c.responser.RenderErr(w, problems.Unauthorized("account not found by credentials"))
 	case err != nil:
 		log.WithError(err).Error("failed to get my sessions")
 		c.responser.RenderErr(w, problems.InternalError())

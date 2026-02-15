@@ -12,10 +12,10 @@ require (
 	github.com/google/uuid v1.6.0
 	github.com/jackc/pgx/v5 v5.8.0
 	github.com/netbill/ape v0.1.3
-	github.com/netbill/eventbox v0.1.1
+	github.com/netbill/eventbox v0.1.2
 	github.com/netbill/logium v0.2.5
 	github.com/netbill/pgdbx v0.3.1
-	github.com/netbill/restkit v0.2.2
+	github.com/netbill/restkit v0.2.3
 	github.com/pkg/errors v0.9.1
 	github.com/rubenv/sql-migrate v1.8.1
 	github.com/segmentio/kafka-go v0.4.50

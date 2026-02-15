@@ -18,6 +18,6 @@ func (c *Controller) Logout(w http.ResponseWriter, r *http.Request) {
 		log.WithError(err).Error("logout failed")
 		c.responser.RenderErr(w, problems.InternalError())
 	default:
-		c.responser.Render(w, http.StatusNoContent)
+		c.responser.Status(w, http.StatusNoContent)
 	}
 }

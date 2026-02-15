@@ -34,17 +34,14 @@ func (c *Controller) GetMySession(w http.ResponseWriter, r *http.Request) {
 
 	log = log.WithField("target_session_id", sessionID)
 
-	session, err := c.core.GetOwnSession(r.Context(), scope.AccountActor(r), sessionID)
+	session, err := c.core.GetMySession(r.Context(), scope.AccountActor(r), sessionID)
 	switch {
-	case errors.Is(err, errx.ErrorInitiatorNotFound):
-		log.Info("initiator account not found by credentials")
-		c.responser.RenderErr(w, problems.Unauthorized("initiator account not found by credentials"))
-	case errors.Is(err, errx.ErrorSessionNotFound):
-		log.Info("session not found")
-		c.responser.RenderErr(w, problems.Unauthorized("session not found"))
-	case errors.Is(err, errx.ErrorInitiatorInvalidSession):
-		log.Info("initiator session is invalid")
-		c.responser.RenderErr(w, problems.Unauthorized("initiator session is invalid"))
+	case errors.Is(err, errx.ErrorAccountNotFound),
+		errors.Is(err, errx.ErrorAccountInvalidSession),
+		errors.Is(err, errx.ErrorSessionNotFound):
+
+		log.Infof("account not found by credentials")
+		c.responser.RenderErr(w, problems.Unauthorized("account not found by credentials"))
 	case err != nil:
 		log.WithError(err).Error("failed to get my session")
 		c.responser.RenderErr(w, problems.InternalError())
