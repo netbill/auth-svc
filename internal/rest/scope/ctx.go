@@ -14,7 +14,6 @@ type ctxKey int
 const (
 	LogCtxKey ctxKey = iota
 	AccountDataCtxKey
-	UploadContentCtxKey
 )
 
 func CtxLog(ctx context.Context, log *logium.Entry) context.Context {
@@ -27,10 +26,6 @@ func Log(r *http.Request) *logium.Entry {
 	authClaims, ok := r.Context().Value(AccountDataCtxKey).(tokens.AccountAuthClaims)
 	if ok {
 		log = log.WithAccountAuthClaims(authClaims)
-	}
-	contentClaims, ok := r.Context().Value(UploadContentCtxKey).(tokens.UploadContentClaims)
-	if ok {
-		log = log.WithUploadContentClaims(contentClaims)
 	}
 
 	return log
