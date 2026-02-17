@@ -5,7 +5,7 @@ import (
 	"net/http"
 
 	validation "github.com/go-ozzo/ozzo-validation/v4"
-	"github.com/netbill/auth-svc/resources"
+	"github.com/netbill/auth-svc/pkg/resources"
 )
 
 func RefreshSession(r *http.Request) (req resources.RefreshSession, err error) {

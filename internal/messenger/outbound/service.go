@@ -1,15 +1,18 @@
 package outbound
 
 import (
+	"github.com/netbill/auth-svc/internal/messenger"
 	"github.com/netbill/eventbox"
 )
 
 type Outbound struct {
-	outbox eventbox.Producer
+	groupID string
+	outbox  eventbox.Producer
 }
 
 func New(producer eventbox.Producer) *Outbound {
 	return &Outbound{
-		outbox: producer,
+		groupID: messenger.AuthSvcGroup,
+		outbox:  producer,
 	}
 }

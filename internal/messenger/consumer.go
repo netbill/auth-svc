@@ -4,7 +4,7 @@ import (
 	"context"
 	"sync"
 
-	"github.com/netbill/auth-svc/internal/messenger/evtypes"
+	evtypes2 "github.com/netbill/auth-svc/pkg/evtypes"
 	eventpg "github.com/netbill/eventbox/pg"
 	"github.com/segmentio/kafka-go"
 )
@@ -16,8 +16,8 @@ func (m *Manager) RunConsumer(ctx context.Context) {
 
 	orgMemberReader := kafka.NewReader(kafka.ReaderConfig{
 		Brokers:        m.config.Brokers,
-		Topic:          evtypes.OrgMemberTopicV1,
-		GroupID:        evtypes.AuthSvcGroup,
+		Topic:          evtypes2.OrgMemberTopicV1,
+		GroupID:        AuthSvcGroup,
 		QueueCapacity:  m.config.Reader.Topics.OrgMembersV1.QueueCapacity,
 		MaxBytes:       m.config.Reader.Topics.OrgMembersV1.MaxBytes,
 		MinBytes:       m.config.Reader.Topics.OrgMembersV1.MinBytes,
@@ -27,8 +27,8 @@ func (m *Manager) RunConsumer(ctx context.Context) {
 
 	orgReader := kafka.NewReader(kafka.ReaderConfig{
 		Brokers:        m.config.Brokers,
-		Topic:          evtypes.OrgTopicV1,
-		GroupID:        evtypes.AuthSvcGroup,
+		Topic:          evtypes2.OrgTopicV1,
+		GroupID:        AuthSvcGroup,
 		QueueCapacity:  m.config.Reader.Topics.OrganizationsV1.QueueCapacity,
 		MaxBytes:       m.config.Reader.Topics.OrganizationsV1.MaxBytes,
 		MinBytes:       m.config.Reader.Topics.OrganizationsV1.MinBytes,

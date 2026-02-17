@@ -9,8 +9,8 @@ import (
 
 	"github.com/alecthomas/kingpin"
 	"github.com/netbill/auth-svc/internal/boot"
-	"github.com/netbill/auth-svc/internal/messenger/cleaning"
 	"github.com/netbill/auth-svc/migrations"
+	evcli "github.com/netbill/eventbox/pg/cli"
 	"github.com/netbill/logium"
 )
 
@@ -77,13 +77,13 @@ func Run(args []string) bool {
 	case migrateDownCmd.FullCommand():
 		err = migrations.MigrateDown(ctx, log, cfg.Database.SQL.URL)
 	case eventsOutboxFailed.FullCommand():
-		err = cleaning.CleanupOutboxFailed(ctx, log, cfg.Database.SQL.URL)
+		err = evcli.CleanupOutboxFailed(ctx, log, cfg.Database.SQL.URL)
 	case eventsOutboxProcessing.FullCommand():
-		err = cleaning.CleanupOutboxProcessing(ctx, log, cfg.Database.SQL.URL, *eventsOutboxProcessingProcessIDs...)
+		err = evcli.CleanupOutboxProcessing(ctx, log, cfg.Database.SQL.URL, *eventsOutboxProcessingProcessIDs...)
 	case eventsInboxFailed.FullCommand():
-		err = cleaning.CleanupInboxFailed(ctx, log, cfg.Database.SQL.URL)
+		err = evcli.CleanupInboxFailed(ctx, log, cfg.Database.SQL.URL)
 	case eventsInboxProcessing.FullCommand():
-		err = cleaning.CleanupInboxProcessing(ctx, log, cfg.Database.SQL.URL, *eventsInboxProcessingProcessIDs...)
+		err = evcli.CleanupInboxProcessing(ctx, log, cfg.Database.SQL.URL, *eventsInboxProcessingProcessIDs...)
 	default:
 		log.Errorf("unknown command %s", command)
 		return false

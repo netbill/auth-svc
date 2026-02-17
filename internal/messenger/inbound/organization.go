@@ -4,18 +4,18 @@ import (
 	"context"
 	"encoding/json"
 
-	"github.com/netbill/auth-svc/internal/messenger/evtypes"
+	"github.com/netbill/auth-svc/pkg/evtypes"
 	"github.com/segmentio/kafka-go"
 )
 
-func (i *Inbound) OrgMemberDeleted(
+func (i *Inbound) OrgDeleted(
 	ctx context.Context,
 	message kafka.Message,
 ) error {
-	var payload evtypes.OrgMemberDeletedPayload
+	var payload evtypes.OrgDeletedPayload
 	if err := json.Unmarshal(message.Value, &payload); err != nil {
 		return err
 	}
 
-	return i.modules.org.DeleteOrgMember(ctx, payload.MemberID)
+	return i.modules.org.DeleteOrgMembers(ctx, payload.OrganizationID)
 }

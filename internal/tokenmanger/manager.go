@@ -9,6 +9,8 @@ import (
 	"time"
 )
 
+const Issuer = "auth-svc"
+
 type Config struct {
 	AccountAccess struct {
 		SecretKey string        `mapstructure:"secret_key"`
@@ -22,19 +24,19 @@ type Config struct {
 }
 
 type Manager struct {
+	Issuer string
+
 	accessSK  string
 	refreshSK string
 	refreshHK string
 
 	accessTTL  time.Duration
 	refreshTTL time.Duration
-
-	Issuer string
 }
 
 func New(issuer string, config Config) *Manager {
 	return &Manager{
-		Issuer:     issuer,
+		Issuer:     Issuer,
 		accessSK:   config.AccountAccess.SecretKey,
 		refreshSK:  config.AccountRefresh.SecretKey,
 		refreshHK:  config.AccountRefresh.HashKey,

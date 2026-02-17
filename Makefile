@@ -3,7 +3,7 @@ CONFIG_FILE := ./config.yaml
 API_SRC := ./docs/api.yaml
 API_BUNDLED := ./docs/api-bundled.yaml
 OUTPUT_DIR := ./docs/web
-RESOURCES_DIR := ./resources
+RESOURCES_DIR := ./pkg/resources
 
 generate-models:
 	test -d $(RESOURCES_DIR) || mkdir -p $(RESOURCES_DIR)

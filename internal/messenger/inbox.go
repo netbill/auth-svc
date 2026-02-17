@@ -3,7 +3,7 @@ package messenger
 import (
 	"context"
 
-	"github.com/netbill/auth-svc/internal/messenger/evtypes"
+	"github.com/netbill/auth-svc/pkg/evtypes"
 	eventpg "github.com/netbill/eventbox/pg"
 	"github.com/segmentio/kafka-go"
 )

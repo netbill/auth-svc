@@ -9,6 +9,8 @@ import (
 	"github.com/netbill/pgdbx"
 )
 
+const AuthSvcGroup = "auth-svc"
+
 type TopicReaderConfig struct {
 	NumReaders     int           `mapstructure:"num_readers" validate:"required"`
 	MinBytes       int           `mapstructure:"min_bytes"`
