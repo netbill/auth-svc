@@ -1,4 +1,4 @@
-package tokenmanger
+package tokenmanager
 
 import (
 	"fmt"
@@ -14,7 +14,7 @@ func (m *Manager) GenerateRefresh(account models.Account, sessionID uuid.UUID) (
 	tkn, err := tokens.AccountAuthClaims{
 		RegisteredClaims: jwt.RegisteredClaims{
 			Subject:   account.ID.String(),
-			Issuer:    m.Issuer,
+			Issuer:    m.issuer,
 			ExpiresAt: jwt.NewNumericDate(time.Now().UTC().Add(m.refreshTTL)),
 		},
 		Role:      account.Role,

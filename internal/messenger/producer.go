@@ -1,71 +1,41 @@
 package messenger
 
 import (
+	"time"
+
+	"github.com/netbill/auth-svc/pkg/log"
 	"github.com/netbill/eventbox"
-	eventpg "github.com/netbill/eventbox/pg"
-	"github.com/segmentio/kafka-go"
+	"github.com/netbill/evtypes"
 )
 
-func (m *Manager) NewProducer() eventbox.Producer {
-	w := m.buildWriter()
-	return eventpg.NewProducer(w, m.db)
+type ProducerConfig struct {
+	Producer string   `json:"producer"`
+	Brokers  []string `json:"brokers"`
+
+	AccountV1 ProduceKafkaConfig `json:"account_v1"`
 }
 
-func (m *Manager) buildWriter() *kafka.Writer {
-	cfg := m.config.Writer
-
-	w := &kafka.Writer{
-		Addr:         kafka.TCP(m.config.Brokers...),
-		RequiredAcks: parseRequiredAcks(cfg.RequiredAcks),
-		Compression:  parseCompression(cfg.Compression),
-		Balancer:     parseBalancer(cfg.Balancer),
-		BatchSize:    cfg.BatchSize,
-		BatchTimeout: cfg.BatchTimeout,
-	}
-
-	if cfg.DialTimeout > 0 || cfg.IdleTimeout > 0 {
-		w.Transport = &kafka.Transport{
-			DialTimeout: cfg.DialTimeout,
-			IdleTimeout: cfg.IdleTimeout,
-		}
-	}
-
-	return w
+type ProduceKafkaConfig struct {
+	RequiredAcks string        `json:"required_acks"`
+	Compression  string        `json:"compression"`
+	Balancer     string        `json:"balancer"`
+	BatchSize    int           `json:"batch_size"`
+	BatchTimeout time.Duration `json:"batch_timeout"`
 }
 
-func parseRequiredAcks(v string) kafka.RequiredAcks {
-	switch v {
-	case "none":
-		return kafka.RequireNone
-	case "one":
-		return kafka.RequireOne
-	default:
-		return kafka.RequireAll
-	}
-}
+func NewProducer(log *log.Logger, cfg ProducerConfig) *eventbox.Producer {
+	producer := eventbox.NewProducer(log, cfg.Brokers...)
 
-func parseCompression(v string) kafka.Compression {
-	switch v {
-	case "gzip":
-		return kafka.Gzip
-	case "lz4":
-		return kafka.Lz4
-	case "zstd":
-		return kafka.Zstd
-	case "none":
-		return 0
-	default:
-		return kafka.Snappy
+	err := producer.AddWriter(evtypes.AccountsTopicV1, eventbox.WriterTopicConfig{
+		RequiredAcks: cfg.AccountV1.RequiredAcks,
+		Compression:  cfg.AccountV1.Compression,
+		Balancer:     cfg.AccountV1.Balancer,
+		BatchSize:    cfg.AccountV1.BatchSize,
+		BatchTimeout: cfg.AccountV1.BatchTimeout,
+	})
+	if err != nil {
+		panic(err)
 	}
-}
 
-func parseBalancer(v string) kafka.Balancer {
-	switch v {
-	case "round_robin":
-		return &kafka.RoundRobin{}
-	case "hash":
-		return &kafka.Hash{}
-	default:
-		return &kafka.LeastBytes{}
-	}
+	return producer
 }

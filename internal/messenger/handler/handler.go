@@ -1,4 +1,4 @@
-package inbound
+package handler
 
 import (
 	"context"
@@ -7,7 +7,7 @@ import (
 	"github.com/netbill/auth-svc/internal/core/models"
 )
 
-type Inbound struct {
+type Handler struct {
 	modules
 }
 
@@ -15,8 +15,8 @@ type modules struct {
 	org orgModule
 }
 
-func New(org orgModule) *Inbound {
-	return &Inbound{
+func New(org orgModule) *Handler {
+	return &Handler{
 		modules: modules{
 			org: org,
 		},

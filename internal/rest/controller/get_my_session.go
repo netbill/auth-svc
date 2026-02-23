@@ -40,7 +40,7 @@ func (c *Controller) GetMySession(w http.ResponseWriter, r *http.Request) {
 		errors.Is(err, errx.ErrorAccountInvalidSession),
 		errors.Is(err, errx.ErrorSessionNotFound):
 
-		log.Infof("account not found by credentials")
+		log.Info("account not found by credentials")
 		c.responser.RenderErr(w, problems.Unauthorized("account not found by credentials"))
 	case err != nil:
 		log.WithError(err).Error("failed to get my session")

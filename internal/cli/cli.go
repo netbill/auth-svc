@@ -4,26 +4,19 @@ import (
 	"context"
 	"os"
 	"os/signal"
-	"sync"
 	"syscall"
 
 	"github.com/alecthomas/kingpin"
-	"github.com/netbill/auth-svc/internal/boot"
-	"github.com/netbill/auth-svc/migrations"
-	evcli "github.com/netbill/eventbox/pg/cli"
-	"github.com/netbill/logium"
+	"github.com/netbill/auth-svc/internal/app"
+	"github.com/netbill/auth-svc/internal/config"
 )
 
-func Run(args []string) bool {
-	cfg, err := boot.LoadConfig()
-	if err != nil {
-		logium.Fatalf("failed to load config: %v", err)
-	}
-
-	log := boot.NewLogger(cfg.Log)
+func Run(args []string) {
+	cfg := config.LoadConfig()
+	log := cfg.Logger()
 
 	var (
-		service    = kingpin.New(boot.ServiceName, "A service for managing user profiles")
+		service    = kingpin.New(cfg.Service.Name, "")
 		runCmd     = service.Command("run", "run command flags: service")
 		serviceCmd = runCmd.Command("service", "starting all service processes")
 
@@ -61,51 +54,36 @@ func Run(args []string) bool {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 
-	var wg sync.WaitGroup
-
 	command, err := service.Parse(args[1:])
 	if err != nil {
 		log.WithError(err).Error("failed to parse arguments")
-		return false
+		return
 	}
 
+	application := app.New(log, cfg)
 	switch command {
 	case serviceCmd.FullCommand():
-		boot.RunService(ctx, log, &wg, cfg)
+		err = application.Run(ctx)
 	case migrateUpCmd.FullCommand():
-		err = migrations.MigrateUp(ctx, log, cfg.Database.SQL.URL)
+		err = application.MigrateUp(ctx)
 	case migrateDownCmd.FullCommand():
-		err = migrations.MigrateDown(ctx, log, cfg.Database.SQL.URL)
+		err = application.MigrateDown(ctx)
 	case eventsOutboxFailed.FullCommand():
-		err = evcli.CleanupOutboxFailed(ctx, log, cfg.Database.SQL.URL)
+		err = application.CleanupOutboxFailedEvents(ctx)
 	case eventsOutboxProcessing.FullCommand():
-		err = evcli.CleanupOutboxProcessing(ctx, log, cfg.Database.SQL.URL, *eventsOutboxProcessingProcessIDs...)
+		err = application.CleanupOutboxProcessingEvents(ctx, *eventsOutboxProcessingProcessIDs...)
 	case eventsInboxFailed.FullCommand():
-		err = evcli.CleanupInboxFailed(ctx, log, cfg.Database.SQL.URL)
+		err = application.CleanupInboxFailedEvents(ctx)
 	case eventsInboxProcessing.FullCommand():
-		err = evcli.CleanupInboxProcessing(ctx, log, cfg.Database.SQL.URL, *eventsInboxProcessingProcessIDs...)
+		err = application.CleanupInboxProcessingEvents(ctx, *eventsInboxProcessingProcessIDs...)
 	default:
-		log.Errorf("unknown command %s", command)
-		return false
+		log.Error("unknown command %s", command)
+		return
 	}
 	if err != nil {
 		log.WithError(err).Error("failed to exec cmd")
-		return false
+		return
 	}
 
-	wgch := make(chan struct{})
-	go func() {
-		wg.Wait()
-		close(wgch)
-	}()
-
-	select {
-	case <-ctx.Done():
-		log.Infof("Interrupt signal received: %v", ctx.Err())
-		<-wgch
-	case <-wgch:
-		log.Info("All services stopped")
-	}
-
-	return true
+	log.Info("all processes finished successfully")
 }

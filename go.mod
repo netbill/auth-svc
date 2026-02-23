@@ -1,6 +1,6 @@
 module github.com/netbill/auth-svc
 
-go 1.25.6
+go 1.25.7
 
 require (
 	github.com/Masterminds/squirrel v1.5.4
@@ -12,14 +12,13 @@ require (
 	github.com/google/uuid v1.6.0
 	github.com/jackc/pgx/v5 v5.8.0
 	github.com/netbill/ape v0.1.3
-	github.com/netbill/eventbox v0.1.3
-	github.com/netbill/logium v0.2.6
+	github.com/netbill/eventbox v0.1.6
+	github.com/netbill/evtypes v0.1.0
+	github.com/netbill/logium v0.3.0
 	github.com/netbill/pgdbx v0.3.1
 	github.com/netbill/restkit v0.2.4
 	github.com/pkg/errors v0.9.1
 	github.com/rubenv/sql-migrate v1.8.1
-	github.com/segmentio/kafka-go v0.4.50
-	github.com/sirupsen/logrus v1.9.3
 	github.com/spf13/viper v1.21.0
 	golang.org/x/crypto v0.46.0
 	golang.org/x/oauth2 v0.34.0
@@ -43,6 +42,7 @@ require (
 	github.com/pelletier/go-toml/v2 v2.2.4 // indirect
 	github.com/pierrec/lz4/v4 v4.1.15 // indirect
 	github.com/sagikazarmark/locafero v0.11.0 // indirect
+	github.com/segmentio/kafka-go v0.4.50 // indirect
 	github.com/sourcegraph/conc v0.3.1-0.20240121214520-5f936abd7ae8 // indirect
 	github.com/spf13/afero v1.15.0 // indirect
 	github.com/spf13/cast v1.10.0 // indirect

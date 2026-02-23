@@ -86,13 +86,7 @@ func (q sessions) UpdateOne(ctx context.Context) (repository.SessionRow, error) 
 		return repository.SessionRow{}, fmt.Errorf("building update query for %s: %w", sessionsTable, err)
 	}
 
-	rows, err := q.db.Query(ctx, query, args...)
-	if err != nil {
-		return repository.SessionRow{}, err
-	}
-	defer rows.Close()
-
-	return scanSession(rows)
+	return scanSession(q.db.QueryRow(ctx, query, args...))
 }
 
 func (q sessions) UpdateToken(token string) repository.SessionsQ {

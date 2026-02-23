@@ -3,11 +3,12 @@ package rest
 import (
 	"context"
 	"errors"
+	"fmt"
 	"net/http"
 	"time"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/netbill/logium"
+	"github.com/netbill/auth-svc/pkg/log"
 	"github.com/netbill/restkit/tokens"
 )
 
@@ -41,7 +42,7 @@ type Middlewares interface {
 	AccountAuth(
 		allowedRoles ...string,
 	) func(next http.Handler) http.Handler
-	Logger(log *logium.Entry) func(next http.Handler) http.Handler
+	Logger(log *log.Logger) func(next http.Handler) http.Handler
 	CorsDocs() func(next http.Handler) http.Handler
 }
 
@@ -61,20 +62,16 @@ func New(
 }
 
 type Config struct {
-	Port     string `mapstructure:"port"`
-	Timeouts struct {
-		Read       time.Duration `mapstructure:"read"`
-		ReadHeader time.Duration `mapstructure:"read_header"`
-		Write      time.Duration `mapstructure:"write"`
-		Idle       time.Duration `mapstructure:"idle"`
-	} `mapstructure:"timeouts"`
+	Port              int
+	ReadTimeout       time.Duration
+	ReadHeaderTimeout time.Duration
+	WriteTimeout      time.Duration
+	IdleTimeout       time.Duration
 }
 
-func (s *Server) Run(ctx context.Context, log *logium.Entry, cfg Config) {
+func (s *Server) Run(ctx context.Context, log *log.Logger, cfg Config) {
 	auth := s.middlewares.AccountAuth()
 	sysadmin := s.middlewares.AccountAuth(tokens.RoleSystemAdmin)
-
-	log = log.WithField("component", "rest")
 
 	r := chi.NewRouter()
 	r.Use(
@@ -124,15 +121,15 @@ func (s *Server) Run(ctx context.Context, log *logium.Entry, cfg Config) {
 	})
 
 	srv := &http.Server{
-		Addr:              cfg.Port,
+		Addr:              fmt.Sprintf(":%d", cfg.Port),
 		Handler:           r,
-		ReadTimeout:       cfg.Timeouts.Read,
-		ReadHeaderTimeout: cfg.Timeouts.ReadHeader,
-		WriteTimeout:      cfg.Timeouts.Write,
-		IdleTimeout:       cfg.Timeouts.Idle,
+		ReadTimeout:       cfg.ReadTimeout,
+		ReadHeaderTimeout: cfg.ReadHeaderTimeout,
+		WriteTimeout:      cfg.WriteTimeout,
+		IdleTimeout:       cfg.IdleTimeout,
 	}
 
-	log.Infof("starting http service on %s", cfg.Port)
+	log.WithField("port", cfg.Port).Info("starting http service...")
 
 	errCh := make(chan error, 1)
 	go func() {
@@ -145,18 +142,18 @@ func (s *Server) Run(ctx context.Context, log *logium.Entry, cfg Config) {
 
 	select {
 	case <-ctx.Done():
-		log.Infof("shutting down http service...")
+		log.Info("shutting down http service...")
 	case err := <-errCh:
 		if err != nil {
-			log.Errorf("http server error: %v", err)
+			log.WithError(err).Error("http server error")
 		}
 	}
 
 	shCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	if err := srv.Shutdown(shCtx); err != nil {
-		log.Errorf("http shutdown error: %v", err)
+		log.WithError(err).Error("failed to shutdown http server gracefully")
 	} else {
-		log.Infof("http server stopped")
+		log.Info("http server shutdown gracefully")
 	}
 }
