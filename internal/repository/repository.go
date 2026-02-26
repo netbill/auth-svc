@@ -5,15 +5,19 @@ import (
 )
 
 type Repository struct {
-	AccountsQ      AccountsQ
-	AccountEmailsQ AccountEmailsQ
-	AccountPassQ   AccountPasswordsQ
-	SessionsQ      SessionsQ
-	OrgMembersQ    OrganizationMembersQ
+	AccountsSql      AccountsQ
+	AccountEmailsSql AccountEmailsQ
+	AccountPassSql   AccountPasswordsQ
+	SessionsSql      SessionsQ
+	OrgMembersSql    OrganizationMembersQ
 
-	Transactioner
+	TransactionSql Transaction
 }
 
-type Transactioner interface {
-	Transaction(ctx context.Context, fn func(ctx context.Context) error) error
+type Transaction interface {
+	Begin(ctx context.Context, fn func(ctx context.Context) error) error
+}
+
+func (r *Repository) Transaction(ctx context.Context, fn func(ctx context.Context) error) error {
+	return r.TransactionSql.Begin(ctx, fn)
 }

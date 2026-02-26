@@ -20,7 +20,6 @@ import (
 	"github.com/netbill/eventbox"
 	eventpg "github.com/netbill/eventbox/pg"
 	"github.com/netbill/pgdbx"
-	"github.com/netbill/restkit"
 )
 
 func (a *App) Run(ctx context.Context) error {
@@ -45,12 +44,12 @@ func (a *App) Run(ctx context.Context) error {
 	db := pgdbx.NewDB(pool)
 
 	repo := &repository.Repository{
-		AccountsQ:      pg.NewAccountsQ(db),
-		AccountEmailsQ: pg.NewAccountEmailsQ(db),
-		AccountPassQ:   pg.NewAccountPasswordsQ(db),
-		SessionsQ:      pg.NewSessionsQ(db),
-		OrgMembersQ:    pg.NewOrganizationMembersQ(db),
-		Transactioner:  pg.NewTransaction(db),
+		AccountsSql:      pg.NewAccountsQ(db),
+		AccountEmailsSql: pg.NewAccountEmailsQ(db),
+		AccountPassSql:   pg.NewAccountPasswordsQ(db),
+		SessionsSql:      pg.NewSessionsQ(db),
+		OrgMembersSql:    pg.NewOrganizationMembersQ(db),
+		TransactionSql:   pg.NewTransaction(db),
 	}
 
 	outbox := eventpg.NewOutbox(db)
@@ -83,9 +82,8 @@ func (a *App) Run(ctx context.Context) error {
 	authModule := auth.New(repo, tokenManager, outbound, passmanager.New())
 	orgModule := organization.New(repo)
 
-	responser := restkit.NewResponser()
-	ctrl := controller.New(authModule, a.config.GoogleOAuth(), responser)
-	mdll := middlewares.New(tokenManager, responser)
+	ctrl := controller.New(authModule, a.config.GoogleOAuth())
+	mdll := middlewares.New(tokenManager)
 	router := rest.New(mdll, ctrl)
 
 	run(func() {

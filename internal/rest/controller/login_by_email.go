@@ -9,6 +9,7 @@ import (
 	"github.com/netbill/auth-svc/internal/rest/responses"
 	"github.com/netbill/auth-svc/internal/rest/scope"
 	"github.com/netbill/restkit/problems"
+	"github.com/netbill/restkit/render"
 )
 
 const operationLoginByEmail = "login_by_email"
@@ -19,7 +20,7 @@ func (c *Controller) LoginByEmail(w http.ResponseWriter, r *http.Request) {
 	req, err := requests.LoginByEmail(r)
 	if err != nil {
 		log.WithError(err).Info("invalid login request")
-		c.responser.RenderErr(w, problems.BadRequest(err)...)
+		render.ResponseError(w, problems.BadRequest(err)...)
 		return
 	}
 
@@ -27,11 +28,11 @@ func (c *Controller) LoginByEmail(w http.ResponseWriter, r *http.Request) {
 	switch {
 	case errors.Is(err, errx.ErrorPasswordInvalid) || errors.Is(err, errx.ErrorAccountNotFound):
 		log.Info("invalid login or password")
-		c.responser.RenderErr(w, problems.Unauthorized("invalid login or password"))
+		render.ResponseError(w, problems.Unauthorized("invalid login or password"))
 	case err != nil:
 		log.WithError(err).Error("login by email failed")
-		c.responser.RenderErr(w, problems.InternalError())
+		render.ResponseError(w, problems.InternalError())
 	default:
-		c.responser.Render(w, http.StatusOK, responses.TokensPair(token))
+		render.Response(w, http.StatusOK, responses.TokensPair(token))
 	}
 }

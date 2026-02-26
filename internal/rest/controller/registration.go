@@ -9,6 +9,7 @@ import (
 	"github.com/netbill/auth-svc/internal/rest/requests"
 	"github.com/netbill/auth-svc/internal/rest/scope"
 	"github.com/netbill/restkit/problems"
+	"github.com/netbill/restkit/render"
 	"github.com/netbill/restkit/tokens"
 
 	validation "github.com/go-ozzo/ozzo-validation/v4"
@@ -22,7 +23,7 @@ func (c *Controller) Registration(w http.ResponseWriter, r *http.Request) {
 	req, err := requests.Registration(r)
 	if err != nil {
 		log.WithError(err).Info("invalid registration request")
-		c.responser.RenderErr(w, problems.BadRequest(err)...)
+		render.ResponseError(w, problems.BadRequest(err)...)
 		return
 	}
 
@@ -36,23 +37,23 @@ func (c *Controller) Registration(w http.ResponseWriter, r *http.Request) {
 	switch {
 	case errors.Is(err, errx.ErrorEmailAlreadyExist):
 		log.Info("email already exists")
-		c.responser.RenderErr(w, problems.Conflict("user with this email already exists"))
+		render.ResponseError(w, problems.Conflict("user with this email already exists"))
 	case errors.Is(err, errx.ErrorUsernameAlreadyTaken):
 		log.Info("username already taken")
-		c.responser.RenderErr(w, problems.Conflict("user with this username already exists"))
+		render.ResponseError(w, problems.Conflict("user with this username already exists"))
 	case errors.Is(err, errx.ErrorUsernameIsNotAllowed):
 		log.Info("username is not allowed")
-		c.responser.RenderErr(w, problems.BadRequest(validation.Errors{
+		render.ResponseError(w, problems.BadRequest(validation.Errors{
 			"repo/attributes/username": err,
 		})...)
 	case errors.Is(err, errx.ErrorPasswordIsNotAllowed):
 		log.Info("password is not allowed")
-		c.responser.RenderErr(w, problems.BadRequest(validation.Errors{
+		render.ResponseError(w, problems.BadRequest(validation.Errors{
 			"repo/attributes/password": err,
 		})...)
 	case err != nil:
 		log.WithError(err).Error("registration failed")
-		c.responser.RenderErr(w, problems.InternalError())
+		render.ResponseError(w, problems.InternalError())
 	default:
 		w.WriteHeader(http.StatusCreated)
 	}

@@ -11,12 +11,12 @@ type transaction struct {
 	db *pgdbx.DB
 }
 
-func NewTransaction(db *pgdbx.DB) repository.Transactioner {
+func NewTransaction(db *pgdbx.DB) repository.Transaction {
 	return &transaction{
 		db: db,
 	}
 }
 
-func (q *transaction) Transaction(ctx context.Context, fn func(ctx context.Context) error) error {
+func (q *transaction) Begin(ctx context.Context, fn func(ctx context.Context) error) error {
 	return q.db.Transaction(ctx, fn)
 }

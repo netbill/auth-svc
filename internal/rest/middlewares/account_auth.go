@@ -6,6 +6,7 @@ import (
 	"github.com/netbill/auth-svc/internal/rest/scope"
 	"github.com/netbill/restkit/headers"
 	"github.com/netbill/restkit/problems"
+	"github.com/netbill/restkit/render"
 )
 
 func (p *Provider) AccountAuth(allowedRoles ...string) func(next http.Handler) http.Handler {
@@ -19,7 +20,7 @@ func (p *Provider) AccountAuth(allowedRoles ...string) func(next http.Handler) h
 			token, err := headers.GetAuthorizationToken(r)
 			if err != nil {
 				scope.Log(r).WithError(err).Debug("account authentication failed")
-				p.responser.RenderErr(w, problems.Unauthorized("account authentication failed"))
+				render.ResponseError(w, problems.Unauthorized("account authentication failed"))
 
 				return
 			}
@@ -27,7 +28,7 @@ func (p *Provider) AccountAuth(allowedRoles ...string) func(next http.Handler) h
 			claims, err := p.tokenManager.ParseAccountAuthAccess(token)
 			if err != nil {
 				scope.Log(r).WithError(err).Info("account authentication failed")
-				p.responser.RenderErr(w, problems.Unauthorized("account authentication failed"))
+				render.ResponseError(w, problems.Unauthorized("account authentication failed"))
 
 				return
 			}
@@ -35,7 +36,7 @@ func (p *Provider) AccountAuth(allowedRoles ...string) func(next http.Handler) h
 			if len(allowed) > 0 {
 				if _, ok := allowed[claims.Role]; !ok {
 					scope.Log(r).Debug("account authentication rejected by role")
-					p.responser.RenderErr(w, problems.Unauthorized("invalid authentication role"))
+					render.ResponseError(w, problems.Unauthorized("invalid authentication role"))
 
 					return
 				}

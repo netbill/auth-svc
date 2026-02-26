@@ -9,6 +9,7 @@ import (
 	"github.com/netbill/auth-svc/internal/rest/responses"
 	"github.com/netbill/auth-svc/internal/rest/scope"
 	"github.com/netbill/restkit/problems"
+	"github.com/netbill/restkit/render"
 
 	"github.com/go-chi/chi/v5"
 	validation "github.com/go-ozzo/ozzo-validation/v4"
@@ -26,7 +27,7 @@ func (c *Controller) GetMySession(w http.ResponseWriter, r *http.Request) {
 			WithField("target_session_id", chi.URLParam(r, "session_id")).
 			Warn("invalid session id")
 
-		c.responser.RenderErr(w, problems.BadRequest(validation.Errors{
+		render.ResponseError(w, problems.BadRequest(validation.Errors{
 			"path": fmt.Errorf("invalid session id: %s", chi.URLParam(r, "session_id")),
 		})...)
 		return
@@ -41,11 +42,11 @@ func (c *Controller) GetMySession(w http.ResponseWriter, r *http.Request) {
 		errors.Is(err, errx.ErrorSessionNotFound):
 
 		log.Info("account not found by credentials")
-		c.responser.RenderErr(w, problems.Unauthorized("account not found by credentials"))
+		render.ResponseError(w, problems.Unauthorized("account not found by credentials"))
 	case err != nil:
 		log.WithError(err).Error("failed to get my session")
-		c.responser.RenderErr(w, problems.InternalError())
+		render.ResponseError(w, problems.InternalError())
 	default:
-		c.responser.Render(w, http.StatusOK, responses.AccountSession(session))
+		render.Response(w, http.StatusOK, responses.AccountSession(session))
 	}
 }

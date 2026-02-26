@@ -11,6 +11,7 @@ import (
 	"github.com/netbill/auth-svc/internal/core/errx"
 	"github.com/netbill/auth-svc/internal/rest/scope"
 	"github.com/netbill/restkit/problems"
+	"github.com/netbill/restkit/render"
 )
 
 const operationDeleteMySession = "delete_my_session"
@@ -21,7 +22,7 @@ func (c *Controller) DeleteMySession(w http.ResponseWriter, r *http.Request) {
 	sessionID, err := uuid.Parse(chi.URLParam(r, "session_id"))
 	if err != nil {
 		log.WithError(err).WithField("session_id", chi.URLParam(r, "session_id")).Error("invalid session id")
-		c.responser.RenderErr(w, problems.BadRequest(validation.Errors{
+		render.ResponseError(w, problems.BadRequest(validation.Errors{
 			"query": fmt.Errorf("invalid session id: %s", chi.URLParam(r, "session_id")),
 		})...)
 
@@ -34,12 +35,12 @@ func (c *Controller) DeleteMySession(w http.ResponseWriter, r *http.Request) {
 	switch {
 	case errors.Is(err, errx.ErrorAccountNotFound) || errors.Is(err, errx.ErrorAccountInvalidSession):
 		log.Info("account not found by credentials")
-		c.responser.RenderErr(w, problems.Unauthorized("account not found by credentials"))
+		render.ResponseError(w, problems.Unauthorized("account not found by credentials"))
 	case err != nil:
 		log.WithError(err).Error("failed to delete My session")
-		c.responser.RenderErr(w, problems.InternalError())
+		render.ResponseError(w, problems.InternalError())
 	default:
 		log.Info("session deleted")
-		c.responser.Status(w, http.StatusNoContent)
+		render.Response(w, http.StatusNoContent, nil)
 	}
 }

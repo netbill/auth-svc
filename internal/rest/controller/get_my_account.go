@@ -8,6 +8,7 @@ import (
 	"github.com/netbill/auth-svc/internal/rest/responses"
 	"github.com/netbill/auth-svc/internal/rest/scope"
 	"github.com/netbill/restkit/problems"
+	"github.com/netbill/restkit/render"
 )
 
 const operationGetMyAccount = "get_my_account"
@@ -19,11 +20,11 @@ func (c *Controller) GetMyAccount(w http.ResponseWriter, r *http.Request) {
 	switch {
 	case errors.Is(err, errx.ErrorAccountNotFound) || errors.Is(err, errx.ErrorAccountInvalidSession):
 		log.Info("account not found by credentials")
-		c.responser.RenderErr(w, problems.Unauthorized("account not found by credentials"))
+		render.ResponseError(w, problems.Unauthorized("account not found by credentials"))
 	case err != nil:
 		log.WithError(err).Error("failed to get my account")
-		c.responser.RenderErr(w, problems.InternalError())
+		render.ResponseError(w, problems.InternalError())
 	default:
-		c.responser.Render(w, http.StatusOK, responses.Account(account))
+		render.Response(w, http.StatusOK, responses.Account(account))
 	}
 }

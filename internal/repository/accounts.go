@@ -60,7 +60,7 @@ type AccountsQ interface {
 func (r *Repository) CreateAccount(ctx context.Context, params auth.RegistrationParams) (models.Account, error) {
 	accountID := uuid.New()
 
-	acc, err := r.AccountsQ.New().Insert(ctx, AccountRow{
+	acc, err := r.AccountsSql.New().Insert(ctx, AccountRow{
 		ID:       accountID,
 		Username: params.Username,
 		Role:     params.Role,
@@ -69,7 +69,7 @@ func (r *Repository) CreateAccount(ctx context.Context, params auth.Registration
 		return models.Account{}, fmt.Errorf("failed to insert account, cause: %w", err)
 	}
 
-	if _, err = r.AccountEmailsQ.New().Insert(ctx, AccountEmailRow{
+	if _, err = r.AccountEmailsSql.New().Insert(ctx, AccountEmailRow{
 		AccountID: accountID,
 		Email:     params.Email,
 		Verified:  false,
@@ -77,7 +77,7 @@ func (r *Repository) CreateAccount(ctx context.Context, params auth.Registration
 		return models.Account{}, fmt.Errorf("failed to insert account email, cause: %w", err)
 	}
 
-	if _, err = r.AccountPassQ.New().Insert(ctx, AccountPasswordRow{
+	if _, err = r.AccountPassSql.New().Insert(ctx, AccountPasswordRow{
 		AccountID: accountID,
 		Hash:      params.GetPassHash(),
 	}); err != nil {
@@ -88,7 +88,7 @@ func (r *Repository) CreateAccount(ctx context.Context, params auth.Registration
 }
 
 func (r *Repository) GetAccountByID(ctx context.Context, accountID uuid.UUID) (models.Account, error) {
-	row, err := r.AccountsQ.New().FilterID(accountID).Get(ctx)
+	row, err := r.AccountsSql.New().FilterID(accountID).Get(ctx)
 	switch {
 	case err != nil:
 		return models.Account{}, fmt.Errorf("failed to get account, cause: %w", err)
@@ -102,7 +102,7 @@ func (r *Repository) GetAccountByID(ctx context.Context, accountID uuid.UUID) (m
 }
 
 func (r *Repository) ExistsAccountByID(ctx context.Context, accountID uuid.UUID) (bool, error) {
-	exist, err := r.AccountsQ.New().FilterID(accountID).Exists(ctx)
+	exist, err := r.AccountsSql.New().FilterID(accountID).Exists(ctx)
 	if err != nil {
 		return false, fmt.Errorf("failed to check account existence by id %s, cause: %w", accountID, err)
 	}
@@ -111,7 +111,7 @@ func (r *Repository) ExistsAccountByID(ctx context.Context, accountID uuid.UUID)
 }
 
 func (r *Repository) GetAccountByUsername(ctx context.Context, username string) (models.Account, error) {
-	row, err := r.AccountsQ.New().FilterUsername(username).Get(ctx)
+	row, err := r.AccountsSql.New().FilterUsername(username).Get(ctx)
 	switch {
 	case err != nil:
 		return models.Account{}, fmt.Errorf("failed to get account by username, cause: %w", err)
@@ -125,7 +125,7 @@ func (r *Repository) GetAccountByUsername(ctx context.Context, username string) 
 }
 
 func (r *Repository) GetAccountByEmail(ctx context.Context, email string) (models.Account, error) {
-	row, err := r.AccountsQ.New().FilterEmail(email).Get(ctx)
+	row, err := r.AccountsSql.New().FilterEmail(email).Get(ctx)
 	switch {
 	case err != nil:
 		return models.Account{}, fmt.Errorf("failed to get account by email, cause: %w", err)
@@ -139,7 +139,7 @@ func (r *Repository) GetAccountByEmail(ctx context.Context, email string) (model
 }
 
 func (r *Repository) ExistsAccountByUsername(ctx context.Context, username string) (bool, error) {
-	exist, err := r.AccountsQ.New().FilterUsername(username).Exists(ctx)
+	exist, err := r.AccountsSql.New().FilterUsername(username).Exists(ctx)
 	if err != nil {
 		return false, fmt.Errorf("failed to check account existence by username %s, cause: %w", username, err)
 	}
@@ -152,7 +152,7 @@ func (r *Repository) UpdateAccountUsername(
 	accountID uuid.UUID,
 	username string,
 ) (models.Account, error) {
-	row, err := r.AccountsQ.New().
+	row, err := r.AccountsSql.New().
 		FilterID(accountID).
 		UpdateUsername(username).
 		UpdateOne(ctx)
@@ -166,7 +166,7 @@ func (r *Repository) UpdateAccountUsername(
 }
 
 func (r *Repository) DeleteAccount(ctx context.Context, accountID uuid.UUID) error {
-	err := r.AccountsQ.New().FilterID(accountID).Delete(ctx)
+	err := r.AccountsSql.New().FilterID(accountID).Delete(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to delete account %s, cause: %w", accountID, err)
 	}

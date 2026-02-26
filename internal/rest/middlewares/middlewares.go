@@ -18,15 +18,12 @@ type tokenManager interface {
 
 type Provider struct {
 	tokenManager tokenManager
-	responser    responser
 }
 
 func New(
 	tokenManager tokenManager,
-	responser responser,
 ) *Provider {
 	return &Provider{
 		tokenManager: tokenManager,
-		responser:    responser,
 	}
 }

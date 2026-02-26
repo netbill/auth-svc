@@ -75,10 +75,10 @@ func (p *Publisher) WriteAccountUsernameUpdated(
 	account models.Account,
 ) error {
 	payload, err := json.Marshal(evtypes.AccountUsernameUpdatedPayload{
-		AccountID:   account.ID,
-		NewUsername: account.Username,
-		Version:     account.Version,
-		UpdatedAt:   account.UpdatedAt,
+		AccountID: account.ID,
+		Username:  account.Username,
+		Version:   account.Version,
+		UpdatedAt: account.UpdatedAt,
 	})
 	if err != nil {
 		return fmt.Errorf("failed to marshal account username updated payload, cause: %w", err)

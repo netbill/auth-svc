@@ -2,7 +2,6 @@ package controller
 
 import (
 	"context"
-	"net/http"
 
 	"github.com/google/uuid"
 	"github.com/netbill/auth-svc/internal/core/models"
@@ -51,23 +50,14 @@ type core interface {
 	DeleteMySessions(ctx context.Context, actor models.AccountActor) error
 }
 
-type responser interface {
-	Status(w http.ResponseWriter, status int)
-	Render(w http.ResponseWriter, status int, res interface{})
-	RenderErr(w http.ResponseWriter, errs ...error)
-}
-
 type Controller struct {
 	google oauth2.Config
-
-	core      core
-	responser responser
+	core   core
 }
 
-func New(core core, google oauth2.Config, responser responser) *Controller {
+func New(core core, google oauth2.Config) *Controller {
 	return &Controller{
-		google:    google,
-		core:      core,
-		responser: responser,
+		google: google,
+		core:   core,
 	}
 }

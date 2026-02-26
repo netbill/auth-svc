@@ -5,6 +5,7 @@ import (
 
 	"github.com/netbill/auth-svc/internal/rest/scope"
 	"github.com/netbill/restkit/problems"
+	"github.com/netbill/restkit/render"
 )
 
 const operationLogout = "logout"
@@ -16,8 +17,8 @@ func (c *Controller) Logout(w http.ResponseWriter, r *http.Request) {
 	switch {
 	case err != nil:
 		log.WithError(err).Error("logout failed")
-		c.responser.RenderErr(w, problems.InternalError())
+		render.ResponseError(w, problems.InternalError())
 	default:
-		c.responser.Status(w, http.StatusNoContent)
+		render.Response(w, http.StatusNoContent, nil)
 	}
 }

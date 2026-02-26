@@ -10,6 +10,7 @@ import (
 	"github.com/netbill/auth-svc/internal/rest/responses"
 	"github.com/netbill/auth-svc/internal/rest/scope"
 	"github.com/netbill/restkit/problems"
+	"github.com/netbill/restkit/render"
 
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 )
@@ -21,7 +22,7 @@ func (c *Controller) LoginByGoogleOAuthCallback(w http.ResponseWriter, r *http.R
 
 	code := r.URL.Query().Get("code")
 	if code == "" {
-		c.responser.RenderErr(w, problems.BadRequest(validation.Errors{
+		render.ResponseError(w, problems.BadRequest(validation.Errors{
 			"query": fmt.Errorf("code is required"),
 		})...)
 		return
@@ -30,7 +31,7 @@ func (c *Controller) LoginByGoogleOAuthCallback(w http.ResponseWriter, r *http.R
 	token, err := c.google.Exchange(r.Context(), code)
 	if err != nil {
 		log.WithError(err).Error("google oauth exchange failed")
-		c.responser.RenderErr(w, problems.InternalError())
+		render.ResponseError(w, problems.InternalError())
 		return
 	}
 
@@ -38,7 +39,7 @@ func (c *Controller) LoginByGoogleOAuthCallback(w http.ResponseWriter, r *http.R
 	resp, err := client.Get("https://www.googleapis.com/oauth2/v2/userinfo")
 	if err != nil {
 		log.WithError(err).Error("google userinfo request failed")
-		c.responser.RenderErr(w, problems.InternalError())
+		render.ResponseError(w, problems.InternalError())
 		return
 	}
 	defer func() {
@@ -49,7 +50,7 @@ func (c *Controller) LoginByGoogleOAuthCallback(w http.ResponseWriter, r *http.R
 
 	if resp.StatusCode != http.StatusOK {
 		log.WithField("google_status", resp.StatusCode).Error("google userinfo returned non-200")
-		c.responser.RenderErr(w, problems.InternalError())
+		render.ResponseError(w, problems.InternalError())
 		return
 	}
 
@@ -58,7 +59,7 @@ func (c *Controller) LoginByGoogleOAuthCallback(w http.ResponseWriter, r *http.R
 	}
 	if err = json.NewDecoder(resp.Body).Decode(&userInfo); err != nil {
 		log.WithError(err).Error("failed to decode google userinfo")
-		c.responser.RenderErr(w, problems.InternalError())
+		render.ResponseError(w, problems.InternalError())
 		return
 	}
 
@@ -66,11 +67,11 @@ func (c *Controller) LoginByGoogleOAuthCallback(w http.ResponseWriter, r *http.R
 	switch {
 	case errors.Is(err, errx.ErrorAccountNotFound):
 		log.Info("account not found for google email")
-		c.responser.RenderErr(w, problems.NotFound("user with this email not found"))
+		render.ResponseError(w, problems.NotFound("user with this email not found"))
 	case err != nil:
 		log.WithError(err).Error("login by google failed")
-		c.responser.RenderErr(w, problems.InternalError())
+		render.ResponseError(w, problems.InternalError())
 	default:
-		c.responser.Render(w, http.StatusOK, responses.TokensPair(tokensPair))
+		render.Response(w, http.StatusOK, responses.TokensPair(tokensPair))
 	}
 }

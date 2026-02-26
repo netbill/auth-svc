@@ -90,16 +90,6 @@ func (l *Logger) WithError(err error) logium.Logger {
 	return &Logger{base: l.base.With(slog.String("error", err.Error()))}
 }
 
-func (l *Logger) WithRequest(r *http.Request) logium.Logger {
-	if r == nil {
-		return l
-	}
-	return &Logger{base: l.base.With(
-		slog.String(HTTPMethodField, r.Method),
-		slog.String(HTTPPathField, r.URL.Path),
-	)}
-}
-
 func (l *Logger) WithOperation(operation string) logium.Logger {
 	return &Logger{base: l.base.With(slog.String(OperationField, operation))}
 }
@@ -135,6 +125,16 @@ func (l *Logger) WarnContext(ctx context.Context, msg string, args ...any) {
 }
 func (l *Logger) ErrorContext(ctx context.Context, msg string, args ...any) {
 	l.base.ErrorContext(ctx, msg, args...)
+}
+
+func (l *Logger) WithRequest(r *http.Request) *Logger {
+	if r == nil {
+		return l
+	}
+	return &Logger{base: l.base.With(
+		slog.String(HTTPMethodField, r.Method),
+		slog.String(HTTPPathField, r.URL.Path),
+	)}
 }
 
 func (l *Logger) WithAccountAuthClaims(auth interface {
