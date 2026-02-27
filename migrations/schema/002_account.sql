@@ -94,6 +94,15 @@ BEFORE DELETE ON account_passwords
 FOR EACH ROW
 EXECUTE FUNCTION forbid_delete_account_password_if_account_exists();
 
+CREATE TABLE tombstones (
+    id           UUID        PRIMARY KEY DEFAULT uuid_generate_v4(),
+    entity_type  VARCHAR(64) NOT NULL,  -- 'account', 'session', etc.
+    entity_id    UUID        NOT NULL,
+    deleted_at   TIMESTAMPTZ NOT NULL DEFAULT now(),
+
+    UNIQUE (entity_type, entity_id)
+);
+
 -- +migrate Down
 DROP TRIGGER IF EXISTS tr_forbid_delete_account_email ON account_emails;
 DROP FUNCTION IF EXISTS forbid_delete_account_email_if_account_exists();
@@ -106,12 +115,9 @@ DROP TABLE IF EXISTS account_passwords CASCADE;
 DROP TABLE IF EXISTS account_emails CASCADE;
 DROP TABLE IF EXISTS accounts CASCADE;
 
-DROP TABLE IF EXISTS outbox_events CASCADE;
-DROP TABLE IF EXISTS inbox_events CASCADE;
+DROP TABLE IF EXISTS tombstones CASCADE;
 
 DROP TYPE IF EXISTS account_role;
 DROP TYPE IF EXISTS account_status;
-DROP TYPE IF EXISTS outbox_event_status;
-DROP TYPE IF EXISTS inbox_event_status;
 
 DROP EXTENSION IF EXISTS "uuid-ossp";

@@ -32,7 +32,7 @@ func (c *Controller) UpdatePassword(w http.ResponseWriter, r *http.Request) {
 	)
 	switch {
 	case errors.Is(err, errx.ErrorAccountNotFound) || errors.Is(err, errx.ErrorAccountInvalidSession):
-		log.Info("account not found by credentials")
+		log.Info("invalid credentials")
 		render.ResponseError(w, problems.Unauthorized("failed to update password user not found"))
 	case errors.Is(err, errx.ErrorPasswordInvalid):
 		log.Info("invalid password")

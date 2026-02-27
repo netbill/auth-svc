@@ -29,7 +29,7 @@ func (c *Controller) UpdateUsername(w http.ResponseWriter, r *http.Request) {
 	res, err := c.core.UpdateUsername(r.Context(), scope.AccountActor(r), req.Data.Attributes.Username)
 	switch {
 	case errors.Is(err, errx.ErrorAccountNotFound) || errors.Is(err, errx.ErrorAccountInvalidSession):
-		log.Info("account not found by credentials")
+		log.Info("invalid credentials")
 		render.ResponseError(w, problems.Unauthorized("failed to update password user not found"))
 	case errors.Is(err, errx.ErrorPasswordInvalid):
 		log.Info("invalid password")

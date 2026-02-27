@@ -44,11 +44,10 @@ func (m *Module) UpdatePassword(
 			return err
 		}
 
-		err = m.repo.DeleteSessionsForAccount(ctx, account.ID)
-		if err != nil {
+		if err = m.repo.BuryAccountSessions(ctx, actor.ID); err != nil {
 			return err
 		}
 
-		return nil
+		return m.repo.DeleteSessionsForAccount(ctx, account.ID)
 	})
 }

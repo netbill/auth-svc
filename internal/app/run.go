@@ -49,7 +49,8 @@ func (a *App) Run(ctx context.Context) error {
 		AccountPassSql:   pg.NewAccountPasswordsQ(db),
 		SessionsSql:      pg.NewSessionsQ(db),
 		OrgMembersSql:    pg.NewOrganizationMembersQ(db),
-		TransactionSql:   pg.NewTransaction(db),
+		TombstonesSql:    pg.NewTombstonesQ(db),
+		TransactionSql:   db,
 	}
 
 	outbox := eventpg.NewOutbox(db)

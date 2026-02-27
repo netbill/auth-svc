@@ -88,6 +88,10 @@ type repo interface {
 
 	ExistOrgMemberByAccount(ctx context.Context, accountID uuid.UUID) (bool, error)
 
+	BuryAccount(ctx context.Context, accountID uuid.UUID) error
+	BurySession(ctx context.Context, sessionID uuid.UUID) error
+	BuryAccountSessions(ctx context.Context, accountID uuid.UUID) error
+
 	Transaction(ctx context.Context, fn func(ctx context.Context) error) error
 }
 

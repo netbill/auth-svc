@@ -18,8 +18,8 @@ func (c *Controller) DeleteMyAccount(w http.ResponseWriter, r *http.Request) {
 	err := c.core.DeleteMyAccount(r.Context(), scope.AccountActor(r))
 	switch {
 	case errors.Is(err, errx.ErrorAccountNotFound) || errors.Is(err, errx.ErrorAccountInvalidSession):
-		log.Info("account not found by credentials")
-		render.ResponseError(w, problems.Unauthorized("account not found by credentials"))
+		log.Info("invalid credentials")
+		render.ResponseError(w, problems.Unauthorized("invalid credentials"))
 	case errors.Is(err, errx.AccountHaveMembershipInOrg):
 		render.ResponseError(w, problems.Forbidden("account cannot be deleted while having membership in organization"))
 	case err != nil:

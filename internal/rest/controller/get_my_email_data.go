@@ -19,8 +19,8 @@ func (c *Controller) GetMyEmailData(w http.ResponseWriter, r *http.Request) {
 	emailData, err := c.core.GetMyAccountEmail(r.Context(), scope.AccountActor(r))
 	switch {
 	case errors.Is(err, errx.ErrorAccountNotFound) || errors.Is(err, errx.ErrorAccountInvalidSession):
-		log.Info("account not found by credentials")
-		render.ResponseError(w, problems.Unauthorized("account not found by credentials"))
+		log.Info("invalid credentials")
+		render.ResponseError(w, problems.Unauthorized("invalid credentials"))
 	case err != nil:
 		log.WithError(err).Error("failed to get my email data")
 		render.ResponseError(w, problems.InternalError())

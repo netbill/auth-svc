@@ -39,8 +39,8 @@ func scanSession(row sq.RowScanner) (r repository.SessionRow, err error) {
 
 type sessions struct {
 	db       *pgdbx.DB
-	selector sq.SelectBuilder
 	inserter sq.InsertBuilder
+	selector sq.SelectBuilder
 	updater  sq.UpdateBuilder
 	deleter  sq.DeleteBuilder
 	counter  sq.SelectBuilder
@@ -50,8 +50,8 @@ func NewSessionsQ(db *pgdbx.DB) repository.SessionsQ {
 	builder := sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
 	return sessions{
 		db:       db,
-		selector: builder.Select(sessionsColumns).From(sessionsTable),
 		inserter: builder.Insert(sessionsTable),
+		selector: builder.Select(sessionsColumns).From(sessionsTable),
 		updater:  builder.Update(sessionsTable),
 		deleter:  builder.Delete(sessionsTable),
 		counter:  builder.Select("COUNT(*) AS count").From(sessionsTable),

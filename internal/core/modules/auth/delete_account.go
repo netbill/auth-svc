@@ -28,6 +28,11 @@ func (m *Module) DeleteMyAccount(
 	}
 
 	return m.repo.Transaction(ctx, func(ctx context.Context) error {
+		err = m.repo.BuryAccount(ctx, account.ID)
+		if err != nil {
+			return err
+		}
+
 		err = m.repo.DeleteAccount(ctx, actor.ID)
 		if err != nil {
 			return err

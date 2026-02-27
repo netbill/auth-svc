@@ -10,14 +10,14 @@ type Repository struct {
 	AccountPassSql   AccountPasswordsQ
 	SessionsSql      SessionsQ
 	OrgMembersSql    OrganizationMembersQ
-
-	TransactionSql Transaction
+	TombstonesSql
+	TransactionSql
 }
 
-type Transaction interface {
-	Begin(ctx context.Context, fn func(ctx context.Context) error) error
+type TransactionSql interface {
+	Transaction(ctx context.Context, fn func(ctx context.Context) error) error
 }
 
 func (r *Repository) Transaction(ctx context.Context, fn func(ctx context.Context) error) error {
-	return r.TransactionSql.Begin(ctx, fn)
+	return r.TransactionSql.Transaction(ctx, fn)
 }

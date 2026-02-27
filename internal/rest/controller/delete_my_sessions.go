@@ -18,8 +18,8 @@ func (c *Controller) DeleteMySessions(w http.ResponseWriter, r *http.Request) {
 	err := c.core.DeleteMySessions(r.Context(), scope.AccountActor(r))
 	switch {
 	case errors.Is(err, errx.ErrorAccountNotFound) || errors.Is(err, errx.ErrorAccountInvalidSession):
-		log.Info("account not found by credentials")
-		render.ResponseError(w, problems.Unauthorized("account not found by credentials"))
+		log.Info("invalid credentials")
+		render.ResponseError(w, problems.Unauthorized("invalid credentials"))
 	case err != nil:
 		log.WithError(err).Error("failed to delete my sessions")
 		render.ResponseError(w, problems.InternalError())
