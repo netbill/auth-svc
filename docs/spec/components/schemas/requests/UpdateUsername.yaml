@@ -10,12 +10,12 @@ properties:
     properties:
       type:
         type: string
-        enum: [ update_account_username ]
+        enum: [ account_username ]
       attributes:
         type: object
         required:
-          - new_username
+          - username
         properties:
-          new_username:
+          username:
             type: string
             description: The account's username.

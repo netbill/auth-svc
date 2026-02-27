@@ -1,11 +1,13 @@
 package tokenmanager
 
 import (
+	"errors"
 	"fmt"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
+	"github.com/netbill/auth-svc/internal/core/errx"
 	"github.com/netbill/auth-svc/internal/core/models"
 	"github.com/netbill/restkit/tokens"
 )
@@ -30,6 +32,9 @@ func (m *Manager) GenerateRefresh(account models.Account, sessionID uuid.UUID) (
 func (m *Manager) ParseAccountAuthRefresh(tokenStr string) (tokens.AccountAuthClaims, error) {
 	data, err := tokens.ParseAccountJWT(tokenStr, m.refreshSK)
 	if err != nil {
+		if errors.Is(err, jwt.ErrTokenExpired) {
+			return tokens.AccountAuthClaims{}, errx.ErrorSessionExpired.Raise(err)
+		}
 		return tokens.AccountAuthClaims{}, fmt.Errorf("failed to parse refresh token, cause: %w", err)
 	}
 

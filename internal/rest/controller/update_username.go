@@ -26,7 +26,7 @@ func (c *Controller) UpdateUsername(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	res, err := c.core.UpdateUsername(r.Context(), scope.AccountActor(r), req.Data.Attributes.NewUsername)
+	res, err := c.core.UpdateUsername(r.Context(), scope.AccountActor(r), req.Data.Attributes.Username)
 	switch {
 	case errors.Is(err, errx.ErrorAccountNotFound) || errors.Is(err, errx.ErrorAccountInvalidSession):
 		log.Info("account not found by credentials")
@@ -40,7 +40,7 @@ func (c *Controller) UpdateUsername(w http.ResponseWriter, r *http.Request) {
 	case errors.Is(err, errx.ErrorUsernameIsNotAllowed):
 		log.Info("username is not allowed")
 		render.ResponseError(w, problems.BadRequest(validation.Errors{
-			"data/attributes/new_username": err,
+			"data/attributes/username": err,
 		})...)
 	case err != nil:
 		log.WithError(err).Error("update username failed")

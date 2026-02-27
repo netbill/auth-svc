@@ -26,7 +26,7 @@ func RegistrationAdmin(r *http.Request) (req resources.RegistrationAdmin, err er
 	}
 
 	errs := validation.Errors{
-		"data/type":       validation.Validate(req.Data.Type, validation.Required, validation.In("registration_account_by_admin")),
+		"data/type":       validation.Validate(req.Data.Type, validation.Required, validation.In("account")),
 		"data/attributes": validation.Validate(req.Data.Attributes, validation.Required),
 
 		"data/attributes/email": validation.Validate(

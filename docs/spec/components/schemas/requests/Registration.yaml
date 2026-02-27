@@ -10,7 +10,7 @@ properties:
     properties:
       type:
         type: string
-        enum: [ registration_account ]
+        enum: [ account ]
       attributes:
         type: object
         required:

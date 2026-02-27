@@ -278,7 +278,7 @@ import (
 )
 
 func main() {
-	updateUsername := *openapiclient.NewUpdateUsername(*openapiclient.NewUpdateUsernameData("Type_example", *openapiclient.NewUpdateUsernameDataAttributes("NewUsername_example"))) // UpdateUsername | 
+	updateUsername := *openapiclient.NewUpdateUsername(*openapiclient.NewUpdateUsernameData("Type_example", *openapiclient.NewUpdateUsernameDataAttributes("Username_example"))) // UpdateUsername | 
 
 	configuration := openapiclient.NewConfiguration()
 	apiClient := openapiclient.NewAPIClient(configuration)

@@ -1072,7 +1072,7 @@ components:
           attributes:
             password: StrongP@ssw0rd!
             email: example@gmail.com
-          type: login_by_email
+          type: account_session
       properties:
         data:
           $ref: "#/components/schemas/LoginByEmail_data"
@@ -1084,7 +1084,7 @@ components:
           attributes:
             password: StrongP@ssw0rd!
             username: example
-          type: login_by_username
+          type: account_session
       properties:
         data:
           $ref: "#/components/schemas/LoginByUsername_data"
@@ -1097,7 +1097,7 @@ components:
             password: StrongP@ssw0rd!
             email: example@gmail.com
             username: user123
-          type: registration_account
+          type: account
       properties:
         data:
           $ref: "#/components/schemas/Registration_data"
@@ -1111,7 +1111,7 @@ components:
             role: admin
             email: example1312@gmail.com
             username: adminUser
-          type: registration_account_by_admin
+          type: account
       properties:
         data:
           $ref: "#/components/schemas/RegistrationAdmin_data"
@@ -1122,7 +1122,7 @@ components:
         data:
           attributes:
             refresh_token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
-          type: refresh_account_session
+          type: account_session
       properties:
         data:
           $ref: "#/components/schemas/RefreshSession_data"
@@ -1134,7 +1134,7 @@ components:
           attributes:
             old_password: OldP@ssw0rd!
             new_password: StrongP@ssw0rd!
-          type: update_account_password
+          type: account_password
       properties:
         data:
           $ref: "#/components/schemas/UpdatePassword_data"
@@ -1144,8 +1144,8 @@ components:
       example:
         data:
           attributes:
-            new_username: new_username
-          type: update_account_username
+            username: username
+          type: account_username
       properties:
         data:
           $ref: "#/components/schemas/UpdateUsername_data"
@@ -1362,11 +1362,11 @@ components:
         attributes:
           password: StrongP@ssw0rd!
           email: example@gmail.com
-        type: login_by_email
+        type: account_session
       properties:
         type:
           enum:
-          - login_by_email
+          - account_session
           type: string
         attributes:
           $ref: "#/components/schemas/LoginByEmail_data_attributes"
@@ -1395,11 +1395,11 @@ components:
         attributes:
           password: StrongP@ssw0rd!
           username: example
-        type: login_by_username
+        type: account_session
       properties:
         type:
           enum:
-          - login_by_username
+          - account_session
           type: string
         attributes:
           $ref: "#/components/schemas/LoginByUsername_data_attributes"
@@ -1436,11 +1436,11 @@ components:
           password: StrongP@ssw0rd!
           email: example@gmail.com
           username: user123
-        type: registration_account
+        type: account
       properties:
         type:
           enum:
-          - registration_account
+          - account
           type: string
         attributes:
           $ref: "#/components/schemas/Registration_data_attributes"
@@ -1487,11 +1487,11 @@ components:
           role: admin
           email: example1312@gmail.com
           username: adminUser
-        type: registration_account_by_admin
+        type: account
       properties:
         type:
           enum:
-          - registration_account_by_admin
+          - account
           type: string
         attributes:
           $ref: "#/components/schemas/RegistrationAdmin_data_attributes"
@@ -1512,11 +1512,11 @@ components:
       example:
         attributes:
           refresh_token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
-        type: refresh_account_session
+        type: account_session
       properties:
         type:
           enum:
-          - refresh_account_session
+          - account_session
           type: string
         attributes:
           $ref: "#/components/schemas/RefreshSession_data_attributes"
@@ -1546,11 +1546,11 @@ components:
         attributes:
           old_password: OldP@ssw0rd!
           new_password: StrongP@ssw0rd!
-        type: update_account_password
+        type: account_password
       properties:
         type:
           enum:
-          - update_account_password
+          - account_password
           type: string
         attributes:
           $ref: "#/components/schemas/UpdatePassword_data_attributes"
@@ -1559,22 +1559,22 @@ components:
       - type
     UpdateUsername_data_attributes:
       example:
-        new_username: new_username
+        username: username
       properties:
-        new_username:
+        username:
           description: The account's username.
           type: string
       required:
-      - new_username
+      - username
     UpdateUsername_data:
       example:
         attributes:
-          new_username: new_username
-        type: update_account_username
+          username: username
+        type: account_username
       properties:
         type:
           enum:
-          - update_account_username
+          - account_username
           type: string
         attributes:
           $ref: "#/components/schemas/UpdateUsername_data_attributes"

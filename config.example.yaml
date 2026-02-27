@@ -45,7 +45,7 @@ kafka:
       accounts_v1: #topic name for accounts events
         required_acks: "all"     # "all" | "one" | "none"
         compression: "snappy"    # "snappy" | "gzip" | "lz4" | "zstd" | "none"
-        balancer: "least_bytes"  # "least_bytes" | "round_robin" | "hash"
+        balancer: "hash"         # "least_bytes" | "round_robin" | "hash"
         batch_size: 100          # sender batching (0 = default)
         batch_timeout: 10ms      # sender batching timeout (0 = default)
         write_timeout: 5s        # timeout for a write call (0 = default)

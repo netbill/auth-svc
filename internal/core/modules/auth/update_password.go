@@ -33,14 +33,13 @@ func (m *Module) UpdatePassword(
 		return err
 	}
 
-	//TODO remove from here
 	hash, err := m.password.GenerateHash(newPassword)
 	if err != nil {
 		return err
 	}
 
 	return m.repo.Transaction(ctx, func(ctx context.Context) error {
-		_, err = m.repo.UpdateAccountPassword(ctx, actor.ID, string(hash))
+		_, err = m.repo.UpdateAccountPassword(ctx, actor.ID, hash)
 		if err != nil {
 			return err
 		}

@@ -22,7 +22,7 @@ var _ MappedNullable = &UpdateUsernameDataAttributes{}
 // UpdateUsernameDataAttributes struct for UpdateUsernameDataAttributes
 type UpdateUsernameDataAttributes struct {
 	// The account's username.
-	NewUsername string `json:"new_username"`
+	Username string `json:"username"`
 }
 
 type _UpdateUsernameDataAttributes UpdateUsernameDataAttributes
@@ -31,9 +31,9 @@ type _UpdateUsernameDataAttributes UpdateUsernameDataAttributes
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewUpdateUsernameDataAttributes(newUsername string) *UpdateUsernameDataAttributes {
+func NewUpdateUsernameDataAttributes(username string) *UpdateUsernameDataAttributes {
 	this := UpdateUsernameDataAttributes{}
-	this.NewUsername = newUsername
+	this.Username = username
 	return &this
 }
 
@@ -45,28 +45,28 @@ func NewUpdateUsernameDataAttributesWithDefaults() *UpdateUsernameDataAttributes
 	return &this
 }
 
-// GetNewUsername returns the NewUsername field value
-func (o *UpdateUsernameDataAttributes) GetNewUsername() string {
+// GetUsername returns the Username field value
+func (o *UpdateUsernameDataAttributes) GetUsername() string {
 	if o == nil {
 		var ret string
 		return ret
 	}
 
-	return o.NewUsername
+	return o.Username
 }
 
-// GetNewUsernameOk returns a tuple with the NewUsername field value
+// GetUsernameOk returns a tuple with the Username field value
 // and a boolean to check if the value has been set.
-func (o *UpdateUsernameDataAttributes) GetNewUsernameOk() (*string, bool) {
+func (o *UpdateUsernameDataAttributes) GetUsernameOk() (*string, bool) {
 	if o == nil {
 		return nil, false
 	}
-	return &o.NewUsername, true
+	return &o.Username, true
 }
 
-// SetNewUsername sets field value
-func (o *UpdateUsernameDataAttributes) SetNewUsername(v string) {
-	o.NewUsername = v
+// SetUsername sets field value
+func (o *UpdateUsernameDataAttributes) SetUsername(v string) {
+	o.Username = v
 }
 
 func (o UpdateUsernameDataAttributes) MarshalJSON() ([]byte, error) {
@@ -79,7 +79,7 @@ func (o UpdateUsernameDataAttributes) MarshalJSON() ([]byte, error) {
 
 func (o UpdateUsernameDataAttributes) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
-	toSerialize["new_username"] = o.NewUsername
+	toSerialize["username"] = o.Username
 	return toSerialize, nil
 }
 
@@ -88,7 +88,7 @@ func (o *UpdateUsernameDataAttributes) UnmarshalJSON(data []byte) (err error) {
 	// by unmarshalling the object into a generic map with string keys and checking
 	// that every required field exists as a key in the generic map.
 	requiredProperties := []string{
-		"new_username",
+		"username",
 	}
 
 	allProperties := make(map[string]interface{})

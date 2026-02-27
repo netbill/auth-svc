@@ -10,7 +10,7 @@ properties:
     properties:
       type:
         type: string
-        enum: [ registration_account_by_admin ]
+        enum: [ account ]
       attributes:
         type: object
         required:

@@ -1047,7 +1047,7 @@ components:
             type:
               type: string
               enum:
-                - login_by_email
+                - account_session
             attributes:
               type: object
               required:
@@ -1078,7 +1078,7 @@ components:
             type:
               type: string
               enum:
-                - login_by_username
+                - account_session
             attributes:
               type: object
               required:
@@ -1108,7 +1108,7 @@ components:
             type:
               type: string
               enum:
-                - registration_account
+                - account
             attributes:
               type: object
               required:
@@ -1144,7 +1144,7 @@ components:
             type:
               type: string
               enum:
-                - registration_account_by_admin
+                - account
             attributes:
               type: object
               required:
@@ -1188,7 +1188,7 @@ components:
             type:
               type: string
               enum:
-                - refresh_account_session
+                - account_session
             attributes:
               type: object
               required:
@@ -1212,7 +1212,7 @@ components:
             type:
               type: string
               enum:
-                - update_account_password
+                - account_password
             attributes:
               type: object
               required:
@@ -1243,13 +1243,13 @@ components:
             type:
               type: string
               enum:
-                - update_account_username
+                - account_username
             attributes:
               type: object
               required:
-                - new_username
+                - username
               properties:
-                new_username:
+                username:
                   type: string
                   description: The account's username.
     TokensPair:

@@ -26,6 +26,9 @@ func (c *Controller) RefreshSession(w http.ResponseWriter, r *http.Request) {
 
 	tokensPair, err := c.core.Refresh(r.Context(), req.Data.Attributes.RefreshToken)
 	switch {
+	case errors.Is(err, errx.ErrorSessionExpired):
+		log.Info("refresh token expired")
+		render.ResponseError(w, problems.Unauthorized("refresh token expired"))
 	case errors.Is(err, errx.ErrorAccountNotFound):
 		log.Info("account not found")
 		render.ResponseError(w, problems.Unauthorized("account not found"))

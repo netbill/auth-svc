@@ -4,13 +4,13 @@
 
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-**NewUsername** | **string** | The account&#39;s username. | 
+**Username** | **string** | The account&#39;s username. | 
 
 ## Methods
 
 ### NewUpdateUsernameDataAttributes
 
-`func NewUpdateUsernameDataAttributes(newUsername string, ) *UpdateUsernameDataAttributes`
+`func NewUpdateUsernameDataAttributes(username string, ) *UpdateUsernameDataAttributes`
 
 NewUpdateUsernameDataAttributes instantiates a new UpdateUsernameDataAttributes object
 This constructor will assign default values to properties that have it defined,
@@ -25,24 +25,24 @@ NewUpdateUsernameDataAttributesWithDefaults instantiates a new UpdateUsernameDat
 This constructor will only assign default values to properties that have it defined,
 but it doesn't guarantee that properties required by API are set
 
-### GetNewUsername
+### GetUsername
 
-`func (o *UpdateUsernameDataAttributes) GetNewUsername() string`
+`func (o *UpdateUsernameDataAttributes) GetUsername() string`
 
-GetNewUsername returns the NewUsername field if non-nil, zero value otherwise.
+GetUsername returns the Username field if non-nil, zero value otherwise.
 
-### GetNewUsernameOk
+### GetUsernameOk
 
-`func (o *UpdateUsernameDataAttributes) GetNewUsernameOk() (*string, bool)`
+`func (o *UpdateUsernameDataAttributes) GetUsernameOk() (*string, bool)`
 
-GetNewUsernameOk returns a tuple with the NewUsername field if it's non-nil, zero value otherwise
+GetUsernameOk returns a tuple with the Username field if it's non-nil, zero value otherwise
 and a boolean to check if the value has been set.
 
-### SetNewUsername
+### SetUsername
 
-`func (o *UpdateUsernameDataAttributes) SetNewUsername(v string)`
+`func (o *UpdateUsernameDataAttributes) SetUsername(v string)`
 
-SetNewUsername sets NewUsername field to given value.
+SetUsername sets Username field to given value.
 
 
 
