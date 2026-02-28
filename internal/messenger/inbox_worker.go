@@ -34,9 +34,11 @@ func NewInboxWorker(
 
 	worker := eventbox.NewInboxWorker(id, logger, inbox, cfg)
 
+	worker.Route(evtypes.OrganizationCreatedEvent, handlers.OrgDeleted)
+	worker.Route(evtypes.OrganizationDeletedEvent, handlers.OrgDeleted)
+
 	worker.Route(evtypes.OrgMemberCreatedEvent, handlers.OrgMemberCreated)
 	worker.Route(evtypes.OrgMemberDeletedEvent, handlers.OrgMemberDeleted)
-	worker.Route(evtypes.OrganizationDeletedEvent, handlers.OrgDeleted)
 
 	return worker
 }

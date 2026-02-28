@@ -48,6 +48,7 @@ func (a *App) Run(ctx context.Context) error {
 		AccountEmailsSql: pg.NewAccountEmailsQ(db),
 		AccountPassSql:   pg.NewAccountPasswordsQ(db),
 		SessionsSql:      pg.NewSessionsQ(db),
+		OrganizationsSql: pg.NewOrganizationsQ(db),
 		OrgMembersSql:    pg.NewOrganizationMembersQ(db),
 		TombstonesSql:    pg.NewTombstonesQ(db),
 		TransactionSql:   db,
@@ -112,7 +113,7 @@ func (a *App) Run(ctx context.Context) error {
 		outboxWorker.Run(ctx)
 	})
 
-	inbound := handler.New(orgModule)
+	inbound := handler.New(a.log, orgModule)
 
 	inboxWorker := messenger.NewInboxWorker(a.log, inbox, eventbox.InboxWorkerConfig{
 		Routines:       a.config.Kafka.Inbox.Routines,

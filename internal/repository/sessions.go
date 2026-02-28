@@ -69,52 +69,52 @@ func (r *Repository) CreateSession(ctx context.Context, sessionID, accountID uui
 func (r *Repository) GetSession(ctx context.Context, sessionID uuid.UUID) (models.Session, error) {
 	row, err := r.SessionsSql.New().FilterID(sessionID).Get(ctx)
 	switch {
+	case err != nil:
+		return models.Session{}, err
 	case row.IsNil():
 		return models.Session{}, errx.ErrorSessionNotFound.Raise(
 			fmt.Errorf("session with id %s not found", sessionID),
 		)
-	case err != nil:
-		return models.Session{}, err
 	}
 
 	return row.ToModel(), nil
 }
 
-func (r *Repository) GetAccountSession(ctx context.Context, userID, sessionID uuid.UUID) (models.Session, error) {
+func (r *Repository) GetAccountSession(ctx context.Context, accountID, sessionID uuid.UUID) (models.Session, error) {
 	row, err := r.SessionsSql.New().
 		FilterID(sessionID).
-		FilterAccountID(userID).
+		FilterAccountID(accountID).
 		Get(ctx)
 	switch {
-	case row.IsNil():
-		return models.Session{}, errx.ErrorSessionNotFound.Raise(
-			fmt.Errorf("failed to get session with id %s for account %s, cause: %w", sessionID, userID, err),
-		)
 	case err != nil:
 		return models.Session{}, err
+	case row.IsNil():
+		return models.Session{}, errx.ErrorSessionNotFound.Raise(
+			fmt.Errorf("failed to get session with id %s for account %s, cause: %w", sessionID, accountID, err),
+		)
 	}
 
 	return row.ToModel(), nil
 }
 
-func (r *Repository) GetSessionsForAccount(ctx context.Context, userID uuid.UUID, limit, offset uint) (pagi.Page[[]models.Session], error) {
+func (r *Repository) GetSessionsForAccount(ctx context.Context, accountID uuid.UUID, limit, offset uint) (pagi.Page[[]models.Session], error) {
 	rows, err := r.SessionsSql.New().
-		FilterAccountID(userID).
+		FilterAccountID(accountID).
 		OrderCreatedAt(false).
 		Page(limit, offset).
 		Select(ctx)
 	if err != nil {
 		return pagi.Page[[]models.Session]{}, fmt.Errorf(
-			"failed to get sessions for account %s, cause: %w", userID, err,
+			"failed to get sessions for account %s, cause: %w", accountID, err,
 		)
 	}
 
 	total, err := r.SessionsSql.New().
-		FilterAccountID(userID).
+		FilterAccountID(accountID).
 		Count(ctx)
 	if err != nil {
 		return pagi.Page[[]models.Session]{}, fmt.Errorf(
-			"failed to count sessions for account %s, cause: %w", userID, err,
+			"failed to count sessions for account %s, cause: %w", accountID, err,
 		)
 	}
 

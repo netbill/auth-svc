@@ -13,8 +13,7 @@ func (m *Module) LoginByEmail(ctx context.Context, email, password string) (mode
 		return models.TokensPair{}, err
 	}
 
-	err = m.checkAccountPassword(ctx, account.ID, password)
-	if err != nil {
+	if err = m.checkAccountPassword(ctx, account.ID, password); err != nil {
 		return models.TokensPair{}, err
 	}
 
@@ -36,8 +35,7 @@ func (m *Module) LoginByUsername(ctx context.Context, username, password string)
 		return models.TokensPair{}, err
 	}
 
-	err = m.checkAccountPassword(ctx, account.ID, password)
-	if err != nil {
+	if err = m.checkAccountPassword(ctx, account.ID, password); err != nil {
 		return models.TokensPair{}, err
 	}
 

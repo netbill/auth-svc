@@ -21,7 +21,7 @@ func (c *Controller) GetMySessions(w http.ResponseWriter, r *http.Request) {
 
 	sessions, err := c.core.GetMySessions(r.Context(), scope.AccountActor(r), limit, offset)
 	switch {
-	case errors.Is(err, errx.ErrorAccountNotFound) || errors.Is(err, errx.ErrorAccountInvalidSession):
+	case errors.Is(err, errx.ErrorAccountInvalidSession):
 		log.Info("invalid credentials")
 		render.ResponseError(w, problems.Unauthorized("invalid credentials"))
 	case err != nil:

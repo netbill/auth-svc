@@ -10,6 +10,7 @@ type Repository struct {
 	AccountPassSql   AccountPasswordsQ
 	SessionsSql      SessionsQ
 	OrgMembersSql    OrganizationMembersQ
+	OrganizationsSql OrganizationsQ
 	TombstonesSql
 	TransactionSql
 }

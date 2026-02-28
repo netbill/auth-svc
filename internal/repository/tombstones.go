@@ -23,7 +23,8 @@ type TombstonesSql interface {
 	SessionIsBuried(ctx context.Context, sessionID uuid.UUID) (bool, error)
 
 	BuryOrgMember(ctx context.Context, orgMemberID uuid.UUID) error
-	BuryOrgMembers(ctx context.Context, orgID uuid.UUID) error
-
 	OrgMemberIsBuried(ctx context.Context, orgMemberID uuid.UUID) (bool, error)
+
+	BuryOrganization(ctx context.Context, orgID uuid.UUID) error
+	OrganizationIsBuried(ctx context.Context, orgID uuid.UUID) (bool, error)
 }

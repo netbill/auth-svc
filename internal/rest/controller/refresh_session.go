@@ -29,10 +29,12 @@ func (c *Controller) RefreshSession(w http.ResponseWriter, r *http.Request) {
 	case errors.Is(err, errx.ErrorSessionExpired):
 		log.Info("refresh token expired")
 		render.ResponseError(w, problems.Unauthorized("refresh token expired"))
-	case errors.Is(err, errx.ErrorAccountNotFound):
+	case errors.Is(err, errx.ErrorAccountNotFound),
+		errors.Is(err, errx.ErrorAccountDeleted):
 		log.Info("account not found")
 		render.ResponseError(w, problems.Unauthorized("account not found"))
-	case errors.Is(err, errx.ErrorSessionNotFound):
+	case errors.Is(err, errx.ErrorSessionNotFound),
+		errors.Is(err, errx.ErrorSessionDeleted):
 		log.Info("session not found")
 		render.ResponseError(w, problems.Unauthorized("session not found"))
 	case errors.Is(err, errx.ErrorSessionTokenMismatch):

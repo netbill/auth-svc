@@ -92,6 +92,9 @@ type repo interface {
 	BurySession(ctx context.Context, sessionID uuid.UUID) error
 	BuryAccountSessions(ctx context.Context, accountID uuid.UUID) error
 
+	AccountIsBuried(ctx context.Context, accountID uuid.UUID) (bool, error)
+	SessionIsBuried(ctx context.Context, sessionID uuid.UUID) (bool, error)
+
 	Transaction(ctx context.Context, fn func(ctx context.Context) error) error
 }
 
@@ -155,27 +158,43 @@ func (m *Module) validateActorSession(
 	actor models.AccountActor,
 ) (models.Account, models.Session, error) {
 	account, err := m.repo.GetAccountByID(ctx, actor.ID)
-	switch {
-	case errors.Is(err, errx.ErrorAccountNotFound):
-		return models.Account{}, models.Session{}, errx.ErrorAccountNotFound.Raise(
-			fmt.Errorf("account with id '%s' not found", actor.SessionID),
+	if errors.Is(err, errx.ErrorAccountNotFound) {
+		buried, err := m.repo.AccountIsBuried(ctx, actor.ID)
+		if err != nil {
+			return models.Account{}, models.Session{}, err
+		}
+		if buried {
+			return models.Account{}, models.Session{}, errx.ErrorAccountInvalidSession.Raise(
+				fmt.Errorf("account with id %s is buried", actor.ID),
+			)
+		}
+
+		return models.Account{}, models.Session{}, errx.ErrorAccountInvalidSession.Raise(
+			fmt.Errorf("account with id %s not found", actor.ID),
 		)
-	case err != nil:
-		return models.Account{}, models.Session{}, errx.ErrorAccountNotFound.Raise(
-			fmt.Errorf("failed to get account with id '%s', cause: %w", actor.SessionID, err),
-		)
+	}
+	if err != nil {
+		return models.Account{}, models.Session{}, err
 	}
 
 	session, err := m.repo.GetSession(ctx, actor.SessionID)
-	switch {
-	case errors.Is(err, errx.ErrorSessionNotFound):
+	if errors.Is(err, errx.ErrorSessionNotFound) {
+		buried, err := m.repo.SessionIsBuried(ctx, actor.SessionID)
+		if err != nil {
+			return models.Account{}, models.Session{}, err
+		}
+		if buried {
+			return models.Account{}, models.Session{}, errx.ErrorAccountInvalidSession.Raise(
+				fmt.Errorf("session with id %s is buried", actor.SessionID),
+			)
+		}
+
 		return models.Account{}, models.Session{}, errx.ErrorAccountInvalidSession.Raise(
-			fmt.Errorf("failed to get session with id '%s', cause: %w", actor.SessionID, err),
+			fmt.Errorf("session with id %s not found", actor.SessionID),
 		)
-	case session.AccountID != actor.ID:
-		return models.Account{}, models.Session{}, errx.ErrorAccountInvalidSession.Raise(
-			fmt.Errorf("session with id '%s' not found for account '%s'", actor.SessionID, actor.ID),
-		)
+	}
+	if err != nil {
+		return models.Account{}, models.Session{}, err
 	}
 
 	return account, session, nil

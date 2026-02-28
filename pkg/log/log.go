@@ -10,6 +10,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/netbill/ape"
+	"github.com/netbill/eventbox"
 	"github.com/netbill/logium"
 )
 
@@ -23,6 +24,13 @@ const (
 
 	HTTPMethodField = "http_method"
 	HTTPPathField   = "http_path"
+
+	EventIDField       = "event_id"
+	EventTypeField     = "event_type"
+	EventTopicField    = "event_topic"
+	EventVersionField  = "event_version"
+	EventProducerField = "event_producer"
+	EventAttemptField  = "event_attempt"
 )
 
 type Logger struct {
@@ -147,6 +155,17 @@ func (l *Logger) WithAccountAuthClaims(auth interface {
 	return &Logger{base: l.base.With(
 		slog.String(AccountIDField, auth.GetAccountID().String()),
 		slog.String(AccountSessionIDField, auth.GetSessionID().String()),
+	)}
+}
+
+func (l *Logger) WithInboxEvent(ev eventbox.InboxEvent) *Logger {
+	return &Logger{base: l.base.With(
+		slog.String(EventIDField, ev.EventID.String()),
+		slog.String(EventTopicField, ev.Topic),
+		slog.String(EventTypeField, ev.Type),
+		slog.Int(EventVersionField, int(ev.Version)),
+		slog.String(EventProducerField, ev.Producer),
+		slog.Int(EventAttemptField, int(ev.Attempts)),
 	)}
 }
 

@@ -76,9 +76,14 @@ func (r *Repository) UpdateAccountPassword(
 		FilterAccountID(accountID).
 		UpdateHash(passwordHash).
 		UpdateOne(ctx)
-	if err != nil {
+	switch {
+	case err != nil:
 		return models.AccountPassword{}, fmt.Errorf(
 			"failed to update account password for account %s, cause: %w", accountID, err,
+		)
+	case acc.IsNil():
+		return models.AccountPassword{}, errx.ErrorAccountNotFound.Raise(
+			fmt.Errorf("account password for account %s not found", accountID),
 		)
 	}
 

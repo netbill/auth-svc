@@ -18,10 +18,15 @@ func New(repo repo) *Module {
 type repo interface {
 	CreateOrgMember(ctx context.Context, member models.OrgMember) error
 	DeleteOrgMember(ctx context.Context, memberID uuid.UUID) error
-	DeleteOrgMembers(ctx context.Context, accountID uuid.UUID) error
+
+	CreateOrganization(ctx context.Context, organization models.Organization) error
+	GetOrganizationByID(ctx context.Context, orgID uuid.UUID) (models.Organization, error)
+	DeleteOrganization(ctx context.Context, accountID uuid.UUID) error
+
+	OrganizationIsBuried(ctx context.Context, orgID uuid.UUID) (bool, error)
+	BuryOrganization(ctx context.Context, orgID uuid.UUID) error
 
 	BuryOrgMember(ctx context.Context, orgMemberID uuid.UUID) error
-	BuryOrgMembers(ctx context.Context, orgID uuid.UUID) error
 	OrgMemberIsBuried(ctx context.Context, orgMemberID uuid.UUID) (bool, error)
 
 	AccountIsBuried(ctx context.Context, accountID uuid.UUID) (bool, error)

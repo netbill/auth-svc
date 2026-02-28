@@ -12,3 +12,8 @@ type OrgMember struct {
 	OrganizationID uuid.UUID `json:"organization_id"`
 	CreatedAt      time.Time `json:"created_at"`
 }
+
+type Organization struct {
+	ID        uuid.UUID `json:"id"`
+	CreatedAt time.Time `json:"created_at"`
+}

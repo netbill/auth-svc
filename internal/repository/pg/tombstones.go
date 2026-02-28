@@ -94,17 +94,49 @@ func (t *tombstones) BuryOrgMember(ctx context.Context, orgMemberID uuid.UUID) e
 	return nil
 }
 
-func (t *tombstones) BuryOrgMembers(ctx context.Context, orgID uuid.UUID) error {
+func (t *tombstones) OrgMemberIsBuried(ctx context.Context, orgMemberID uuid.UUID) (bool, error) {
+	var exists bool
+	err := t.db.QueryRow(ctx, `
+		SELECT EXISTS (
+			SELECT 1 FROM tombstones
+			WHERE entity_type = $1 AND entity_id = $2
+		)
+	`, "organization_member", orgMemberID).Scan(&exists)
+	if err != nil {
+		return false, fmt.Errorf("checking org member is buried: %w", err)
+	}
+
+	return exists, nil
+}
+
+func (t *tombstones) BuryOrganization(ctx context.Context, orgID uuid.UUID) error {
 	_, err := t.db.Exec(ctx, `
 		INSERT INTO tombstones (entity_type, entity_id)
+		SELECT 'organization', $1
+		UNION ALL
 		SELECT 'organization_member', om.id FROM organization_members om WHERE om.organization_id = $1
 		ON CONFLICT (entity_type, entity_id) DO NOTHING
 	`, orgID)
 	if err != nil {
-		return fmt.Errorf("burying org members: %w", err)
+		return fmt.Errorf("burying organization: %w", err)
 	}
 
 	return nil
+}
+
+func (t *tombstones) OrganizationIsBuried(ctx context.Context, orgID uuid.UUID) (bool, error) {
+	var exists bool
+	err := t.db.QueryRow(ctx, `
+		SELECT EXISTS (
+			SELECT 1 FROM tombstones
+			WHERE entity_type = 'organization' AND entity_id = $1
+		)
+	`, orgID).Scan(&exists)
+	if err != nil {
+		return false, fmt.Errorf("checking organization is buried: %w", err)
+	}
+
+	return exists, nil
 }
 
 func (t *tombstones) AccountIsBuried(ctx context.Context, accountID uuid.UUID) (bool, error) {
@@ -132,21 +164,6 @@ func (t *tombstones) SessionIsBuried(ctx context.Context, sessionID uuid.UUID) (
 	`, EntityTypeSession, sessionID).Scan(&exists)
 	if err != nil {
 		return false, fmt.Errorf("checking session is buried: %w", err)
-	}
-
-	return exists, nil
-}
-
-func (t *tombstones) OrgMemberIsBuried(ctx context.Context, orgMemberID uuid.UUID) (bool, error) {
-	var exists bool
-	err := t.db.QueryRow(ctx, `
-		SELECT EXISTS (
-			SELECT 1 FROM tombstones
-			WHERE entity_type = $1 AND entity_id = $2
-		)
-	`, "organization_member", orgMemberID).Scan(&exists)
-	if err != nil {
-		return false, fmt.Errorf("checking org member is buried: %w", err)
 	}
 
 	return exists, nil

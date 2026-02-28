@@ -22,27 +22,20 @@ func (m *Module) DeleteMyAccount(
 		return err
 	}
 	if exists {
-		return errx.AccountHaveMembershipInOrg.Raise(
+		return errx.ErrorAccountHaveMembershipInOrg.Raise(
 			fmt.Errorf("account %s has a member of organizations", actor.ID),
 		)
 	}
 
 	return m.repo.Transaction(ctx, func(ctx context.Context) error {
-		err = m.repo.BuryAccount(ctx, account.ID)
-		if err != nil {
+		if err = m.repo.BuryAccount(ctx, account.ID); err != nil {
 			return err
 		}
 
-		err = m.repo.DeleteAccount(ctx, actor.ID)
-		if err != nil {
+		if err = m.repo.DeleteAccount(ctx, actor.ID); err != nil {
 			return err
 		}
 
-		err = m.messenger.WriteAccountDeleted(ctx, account.ID)
-		if err != nil {
-			return err
-		}
-
-		return nil
+		return m.messenger.WriteAccountDeleted(ctx, account.ID)
 	})
 }

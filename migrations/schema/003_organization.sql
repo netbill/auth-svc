@@ -1,8 +1,17 @@
 -- +migrate Up
+
+CREATE TYPE organization_status AS ENUM
+
+CREATE TABLE organizations (
+    id      UUID PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
+    source_created_at  TIMESTAMPTZ NOT NULL,
+    replica_created_at TIMESTAMPTZ NOT NULL DEFAULT (now() at time zone 'utc'),
+);
+
 CREATE TABLE organization_members (
       id              UUID PRIMARY KEY NOT NULL,
       account_id      UUID NOT NULL REFERENCES accounts(id) ON DELETE RESTRICT,
-      organization_id UUID NOT NULL,
+      organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
 
       source_created_at  TIMESTAMPTZ NOT NULL,
       replica_created_at TIMESTAMPTZ NOT NULL DEFAULT (now() AT TIME ZONE 'utc'),
@@ -15,3 +24,4 @@ CREATE INDEX organization_members_organization_id_idx ON organization_members(or
 
 -- +migrate Down
 DROP TABLE IF EXISTS organization_members;
+DROP TABLE IF EXISTS organizations;

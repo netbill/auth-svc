@@ -25,12 +25,7 @@ func (m *Module) UpdateUsername(
 		if err != nil {
 			return err
 		}
-
-		if err = m.messenger.WriteAccountUsernameUpdated(ctx, account); err != nil {
-			return err
-		}
-
-		return nil
+		return m.messenger.WriteAccountUsernameUpdated(ctx, account)
 	})
 	if err != nil {
 		return models.Account{}, err

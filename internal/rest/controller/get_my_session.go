@@ -37,12 +37,12 @@ func (c *Controller) GetMySession(w http.ResponseWriter, r *http.Request) {
 
 	session, err := c.core.GetMySession(r.Context(), scope.AccountActor(r), sessionID)
 	switch {
-	case errors.Is(err, errx.ErrorAccountNotFound),
-		errors.Is(err, errx.ErrorAccountInvalidSession),
-		errors.Is(err, errx.ErrorSessionNotFound):
-
+	case errors.Is(err, errx.ErrorAccountInvalidSession):
 		log.Info("invalid credentials")
 		render.ResponseError(w, problems.Unauthorized("invalid credentials"))
+	case errors.Is(err, errx.ErrorSessionDeleted) || errors.Is(err, errx.ErrorSessionNotFound):
+		log.Info("session not found")
+		render.ResponseError(w, problems.NotFound("session not found"))
 	case err != nil:
 		log.WithError(err).Error("failed to get my session")
 		render.ResponseError(w, problems.InternalError())

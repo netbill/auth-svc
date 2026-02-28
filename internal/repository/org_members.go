@@ -64,15 +64,6 @@ func (r *Repository) DeleteOrgMember(ctx context.Context, memberID uuid.UUID) er
 	return nil
 }
 
-func (r *Repository) DeleteOrgMembers(ctx context.Context, accountID uuid.UUID) error {
-	err := r.OrgMembersSql.New().FilterByAccountID(accountID).Delete(ctx)
-	if err != nil {
-		return fmt.Errorf("failed to delete organization members with account id %s, cause: %w", accountID, err)
-	}
-
-	return nil
-}
-
 func (r *Repository) ExistOrgMemberByAccount(ctx context.Context, accountID uuid.UUID) (bool, error) {
 	exist, err := r.OrgMembersSql.New().FilterByID(accountID).Exists(ctx)
 	if err != nil {

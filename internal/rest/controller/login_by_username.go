@@ -26,7 +26,9 @@ func (c *Controller) LoginByUsername(w http.ResponseWriter, r *http.Request) {
 
 	token, err := c.core.LoginByUsername(r.Context(), req.Data.Attributes.Username, req.Data.Attributes.Password)
 	switch {
-	case errors.Is(err, errx.ErrorPasswordInvalid) || errors.Is(err, errx.ErrorAccountNotFound):
+	case errors.Is(err, errx.ErrorPasswordInvalid),
+		errors.Is(err, errx.ErrorAccountNotFound),
+		errors.Is(err, errx.ErrorAccountDeleted):
 		log.Info("invalid login or password")
 		render.ResponseError(w, problems.Unauthorized("invalid login or password"))
 	case err != nil:
