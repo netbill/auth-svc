@@ -1,11 +1,9 @@
 -- +migrate Up
 
-CREATE TYPE organization_status AS ENUM
-
 CREATE TABLE organizations (
     id      UUID PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
     source_created_at  TIMESTAMPTZ NOT NULL,
-    replica_created_at TIMESTAMPTZ NOT NULL DEFAULT (now() at time zone 'utc'),
+    replica_created_at TIMESTAMPTZ NOT NULL DEFAULT (now() at time zone 'utc')
 );
 
 CREATE TABLE organization_members (

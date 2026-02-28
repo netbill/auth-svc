@@ -18,6 +18,10 @@ type handlers interface {
 		ctx context.Context,
 		event eventbox.InboxEvent,
 	) error
+	OrgCreated(
+		ctx context.Context,
+		event eventbox.InboxEvent,
+	) error
 	OrgDeleted(
 		ctx context.Context,
 		event eventbox.InboxEvent,
@@ -34,7 +38,7 @@ func NewInboxWorker(
 
 	worker := eventbox.NewInboxWorker(id, logger, inbox, cfg)
 
-	worker.Route(evtypes.OrganizationCreatedEvent, handlers.OrgDeleted)
+	worker.Route(evtypes.OrganizationCreatedEvent, handlers.OrgCreated)
 	worker.Route(evtypes.OrganizationDeletedEvent, handlers.OrgDeleted)
 
 	worker.Route(evtypes.OrgMemberCreatedEvent, handlers.OrgMemberCreated)
