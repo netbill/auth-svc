@@ -21,7 +21,7 @@ func (c *Controller) UpdateUsername(w http.ResponseWriter, r *http.Request) {
 
 	req, err := requests.UpdateUsername(r)
 	if err != nil {
-		log.WithError(err).Info("invalid update username request")
+		log.WithError(err).Info("failed to parse update username request")
 		render.ResponseError(w, problems.BadRequest(err)...)
 		return
 	}
@@ -29,23 +29,24 @@ func (c *Controller) UpdateUsername(w http.ResponseWriter, r *http.Request) {
 	res, err := c.core.UpdateUsername(r.Context(), scope.AccountActor(r), req.Data.Attributes.Username)
 	switch {
 	case errors.Is(err, errx.ErrorAccountInvalidSession):
-		log.Info("invalid credentials")
+		log.WithError(err).Warn("invalid credentials")
 		render.ResponseError(w, problems.Unauthorized("failed to update password user not found"))
 	case errors.Is(err, errx.ErrorPasswordInvalid):
-		log.Info("invalid password")
+		log.WithError(err).Warn("invalid password")
 		render.ResponseError(w, problems.Unauthorized("invalid password"))
 	case errors.Is(err, errx.ErrorUsernameAlreadyTaken):
-		log.Info("username already taken")
+		log.WithError(err).Warn("username is already taken")
 		render.ResponseError(w, problems.Conflict("user with this username already exists"))
 	case errors.Is(err, errx.ErrorUsernameIsNotAllowed):
-		log.Info("username is not allowed")
+		log.WithError(err).Warn("username is not allowed")
 		render.ResponseError(w, problems.BadRequest(validation.Errors{
 			"data/attributes/username": err,
 		})...)
 	case err != nil:
-		log.WithError(err).Error("update username failed")
+		log.WithError(err).Error("unexpected error")
 		render.ResponseError(w, problems.InternalError())
 	default:
+		log.Info("username updated successfully")
 		render.Response(w, http.StatusOK, responses.Account(res))
 	}
 }

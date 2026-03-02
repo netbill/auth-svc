@@ -83,7 +83,6 @@ func (l *Logger) WithError(err error) logium.Logger {
 	if errors.As(err, &ae) {
 		return &Logger{base: l.base.With(
 			slog.String("error", ae.Error()),
-			slog.Any("ape", ae),
 		)}
 	}
 

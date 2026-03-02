@@ -42,6 +42,7 @@ func (c *Controller) LoginByGoogleOAuthCallback(w http.ResponseWriter, r *http.R
 		render.ResponseError(w, problems.InternalError())
 		return
 	}
+
 	defer func() {
 		if err := resp.Body.Close(); err != nil {
 			log.WithError(err).Warn("failed to close google userinfo response body")
@@ -63,15 +64,18 @@ func (c *Controller) LoginByGoogleOAuthCallback(w http.ResponseWriter, r *http.R
 		return
 	}
 
+	log = log.WithField("user_email", userInfo.Email)
+
 	tokensPair, err := c.core.LoginByGoogle(r.Context(), userInfo.Email)
 	switch {
 	case errors.Is(err, errx.ErrorAccountNotFound):
-		log.Info("account not found for google email")
+		log.WithError(err).Warn("account with this email not found")
 		render.ResponseError(w, problems.NotFound("user with this email not found"))
 	case err != nil:
-		log.WithError(err).Error("login by google failed")
+		log.WithError(err).Error("unexpected error")
 		render.ResponseError(w, problems.InternalError())
 	default:
+		log.Info("login by google successful")
 		render.Response(w, http.StatusOK, responses.TokensPair(tokensPair))
 	}
 }

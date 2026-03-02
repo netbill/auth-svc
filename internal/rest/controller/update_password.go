@@ -19,7 +19,7 @@ func (c *Controller) UpdatePassword(w http.ResponseWriter, r *http.Request) {
 
 	req, err := requests.UpdatePassword(r)
 	if err != nil {
-		log.WithError(err).Info("invalid update password request")
+		log.WithError(err).Info("failed to parse update password request")
 		render.ResponseError(w, problems.BadRequest(err)...)
 		return
 	}
@@ -32,23 +32,24 @@ func (c *Controller) UpdatePassword(w http.ResponseWriter, r *http.Request) {
 	)
 	switch {
 	case errors.Is(err, errx.ErrorAccountInvalidSession):
-		log.Info("invalid credentials")
-		render.ResponseError(w, problems.Unauthorized("failed to update password user not found"))
+		log.WithError(err).Warn("invalid credentials")
+		render.ResponseError(w, problems.Unauthorized("invalid credentials"))
 	case errors.Is(err, errx.ErrorPasswordInvalid):
-		log.Info("invalid password")
+		log.WithError(err).Warn("invalid password")
 		render.ResponseError(w, problems.Unauthorized("invalid password"))
 	case errors.Is(err, errx.ErrorCannotChangePasswordYet):
-		log.Info("cannot change password yet")
+		log.WithError(err).Warn("cannot change password yet")
 		render.ResponseError(w, problems.Forbidden("cannot change password yet"))
 	case errors.Is(err, errx.ErrorPasswordIsNotAllowed):
-		log.Info("password is not allowed")
+		log.WithError(err).Warn("password is not allowed")
 		render.ResponseError(w, problems.BadRequest(validation.Errors{
-			"repo/attributes/password": err,
+			"data/attributes/password": err,
 		})...)
 	case err != nil:
-		log.WithError(err).Error("update password failed")
+		log.WithError(err).Error("unexpected error")
 		render.ResponseError(w, problems.InternalError())
 	default:
+		log.Info("password updated successfully")
 		render.Response(w, http.StatusNoContent, nil)
 	}
 }

@@ -27,6 +27,12 @@ func (c *Controller) RegistrationByAdmin(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
+	log = log.WithFields(map[string]interface{}{
+		"email":    req.Data.Attributes.Email,
+		"username": req.Data.Attributes.Username,
+		"role":     req.Data.Attributes.Role,
+	})
+
 	u, err := c.core.Registration(
 		r.Context(),
 		auth.RegistrationParams{
@@ -38,33 +44,34 @@ func (c *Controller) RegistrationByAdmin(w http.ResponseWriter, r *http.Request)
 	)
 	switch {
 	case errors.Is(err, errx.ErrorNotEnoughRights):
-		log.Info("not enough rights to register admin")
+		log.WithError(err).Warn("not enough rights to register admin")
 		render.ResponseError(w, problems.Forbidden("only admins can register new admin accounts"))
 	case errors.Is(err, errx.ErrorEmailAlreadyExist):
-		log.Info("email already exists")
+		log.WithError(err).Warn("email already exists")
 		render.ResponseError(w, problems.Conflict("user with this email already exists"))
 	case errors.Is(err, errx.ErrorUsernameAlreadyTaken):
-		log.Info("username already taken")
+		log.WithError(err).Warn("username already taken")
 		render.ResponseError(w, problems.Conflict("user with this username already exists"))
 	case errors.Is(err, errx.ErrorUsernameIsNotAllowed):
-		log.Info("username is not allowed")
+		log.WithError(err).Warn("username is not allowed")
 		render.ResponseError(w, problems.BadRequest(validation.Errors{
-			"repo/attributes/username": err,
+			"data/attributes/username": err,
 		})...)
 	case errors.Is(err, errx.ErrorPasswordIsNotAllowed):
-		log.Info("password is not allowed")
+		log.WithError(err).Warn("password is not allowed")
 		render.ResponseError(w, problems.BadRequest(validation.Errors{
-			"repo/attributes/password": err,
+			"data/attributes/password": err,
 		})...)
 	case errors.Is(err, errx.ErrorRoleNotSupported):
-		log.Info("role is not supported")
+		log.WithError(err).Warn("role is not supported")
 		render.ResponseError(w, problems.BadRequest(validation.Errors{
-			"repo/attributes/role": err,
+			"data/attributes/role": err,
 		})...)
 	case err != nil:
-		log.WithError(err).Error("registration by admin failed")
+		log.WithError(err).Error("unexpected error")
 		render.ResponseError(w, problems.InternalError())
 	default:
+		log.Info("account registered successfully by admin")
 		render.Response(w, http.StatusCreated, responses.Account(u))
 	}
 }

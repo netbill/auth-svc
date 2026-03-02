@@ -24,15 +24,17 @@ func (c *Controller) LoginByEmail(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	log = log.WithField("email", req.Data.Attributes.Email)
+
 	token, err := c.core.LoginByEmail(r.Context(), req.Data.Attributes.Email, req.Data.Attributes.Password)
 	switch {
 	case errors.Is(err, errx.ErrorPasswordInvalid),
 		errors.Is(err, errx.ErrorAccountNotFound),
 		errors.Is(err, errx.ErrorAccountDeleted):
-		log.Info("invalid login or password")
+		log.WithError(err).Warn("invalid login or password")
 		render.ResponseError(w, problems.Unauthorized("invalid login or password"))
 	case err != nil:
-		log.WithError(err).Error("login by email failed")
+		log.WithError(err).Error("unexpected error")
 		render.ResponseError(w, problems.InternalError())
 	default:
 		render.Response(w, http.StatusOK, responses.TokensPair(token))

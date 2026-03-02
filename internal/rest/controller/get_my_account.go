@@ -19,10 +19,10 @@ func (c *Controller) GetMyAccount(w http.ResponseWriter, r *http.Request) {
 	account, err := c.core.GetMyAccountByID(r.Context(), scope.AccountActor(r))
 	switch {
 	case errors.Is(err, errx.ErrorAccountInvalidSession):
-		log.Info("invalid credentials")
+		log.WithError(err).Warn("invalid credentials")
 		render.ResponseError(w, problems.Unauthorized("invalid credentials"))
 	case err != nil:
-		log.WithError(err).Error("failed to get my account")
+		log.WithError(err).Error("unexpected error")
 		render.ResponseError(w, problems.InternalError())
 	default:
 		render.Response(w, http.StatusOK, responses.Account(account))

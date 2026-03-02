@@ -22,10 +22,10 @@ func (c *Controller) GetMySessions(w http.ResponseWriter, r *http.Request) {
 	sessions, err := c.core.GetMySessions(r.Context(), scope.AccountActor(r), limit, offset)
 	switch {
 	case errors.Is(err, errx.ErrorAccountInvalidSession):
-		log.Info("invalid credentials")
+		log.WithError(err).Warn("invalid credentials")
 		render.ResponseError(w, problems.Unauthorized("invalid credentials"))
 	case err != nil:
-		log.WithError(err).Error("failed to get my sessions")
+		log.WithError(err).Error("unexpected error")
 		render.ResponseError(w, problems.InternalError())
 	default:
 		render.Response(w, http.StatusOK, responses.AccountSessionsCollection(r, sessions))

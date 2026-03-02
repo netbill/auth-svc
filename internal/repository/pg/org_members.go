@@ -13,7 +13,7 @@ import (
 	"github.com/netbill/pgdbx"
 )
 
-const OrganizationMemberTable = "organization_members"
+const OrganizationMembersTable = "organization_members"
 
 const OrganizationMemberColumns = "id, account_id, organization_id, source_created_at, replica_created_at"
 const OrganizationMemberColumnsM = "m.id, m.account_id, m.organization_id, m.source_created_at, m.replica_created_at"
@@ -48,10 +48,10 @@ func NewOrganizationMembersQ(db *pgdbx.DB) repository.OrganizationMembersQ {
 	builder := sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
 	return organizationMembers{
 		db:       db,
-		selector: builder.Select(OrganizationMemberColumnsM).From(OrganizationMemberTable + " m"),
-		inserter: builder.Insert(OrganizationMemberTable),
-		deleter:  builder.Delete(OrganizationMemberTable + " m"),
-		counter:  builder.Select("COUNT(*)").From(OrganizationMemberTable + " m"),
+		selector: builder.Select(OrganizationMemberColumnsM).From(OrganizationMembersTable + " m"),
+		inserter: builder.Insert(OrganizationMembersTable),
+		deleter:  builder.Delete(OrganizationMembersTable + " m"),
+		counter:  builder.Select("COUNT(*)").From(OrganizationMembersTable + " m"),
 	}
 }
 
@@ -67,7 +67,7 @@ func (q organizationMembers) Insert(ctx context.Context, data repository.Organiz
 		"source_created_at": pgtype.Timestamptz{Time: data.SourceCreatedAt.UTC(), Valid: true},
 	}).Suffix("RETURNING " + OrganizationMemberColumns).ToSql()
 	if err != nil {
-		return repository.OrganizationMemberRow{}, fmt.Errorf("building insert query for %s: %w", OrganizationMemberTable, err)
+		return repository.OrganizationMemberRow{}, fmt.Errorf("building insert query for %s: %w", OrganizationMembersTable, err)
 	}
 
 	return scanOrganizationMember(q.db.QueryRow(ctx, query, args...))
@@ -76,7 +76,7 @@ func (q organizationMembers) Insert(ctx context.Context, data repository.Organiz
 func (q organizationMembers) Get(ctx context.Context) (repository.OrganizationMemberRow, error) {
 	query, args, err := q.selector.Limit(1).ToSql()
 	if err != nil {
-		return repository.OrganizationMemberRow{}, fmt.Errorf("building select query for %s: %w", OrganizationMemberTable, err)
+		return repository.OrganizationMemberRow{}, fmt.Errorf("building select query for %s: %w", OrganizationMembersTable, err)
 	}
 
 	return scanOrganizationMember(q.db.QueryRow(ctx, query, args...))
@@ -85,12 +85,12 @@ func (q organizationMembers) Get(ctx context.Context) (repository.OrganizationMe
 func (q organizationMembers) Select(ctx context.Context) ([]repository.OrganizationMemberRow, error) {
 	query, args, err := q.selector.ToSql()
 	if err != nil {
-		return nil, fmt.Errorf("building select query for %s: %w", OrganizationMemberTable, err)
+		return nil, fmt.Errorf("building select query for %s: %w", OrganizationMembersTable, err)
 	}
 
 	rows, err := q.db.Query(ctx, query, args...)
 	if err != nil {
-		return nil, fmt.Errorf("executing select query for %s: %w", OrganizationMemberTable, err)
+		return nil, fmt.Errorf("executing select query for %s: %w", OrganizationMembersTable, err)
 	}
 	defer rows.Close()
 
@@ -118,27 +118,23 @@ func (q organizationMembers) Exists(ctx context.Context) (bool, error) {
 		return false, err
 	}
 
-	var one int
-	err = q.db.QueryRow(ctx, query, args...).Scan(&one)
-	if err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
-			return false, nil
-		}
-		return false, err
+	var ok bool
+	if err = q.db.QueryRow(ctx, "SELECT EXISTS ("+query+")", args...).Scan(&ok); err != nil {
+		return false, fmt.Errorf("scanning exists for %s: %w", OrganizationMembersTable, err)
 	}
 
-	return true, nil
+	return ok, nil
 }
 
 func (q organizationMembers) Delete(ctx context.Context) error {
 	query, args, err := q.deleter.ToSql()
 	if err != nil {
-		return fmt.Errorf("building delete query for %s: %w", OrganizationMemberTable, err)
+		return fmt.Errorf("building delete query for %s: %w", OrganizationMembersTable, err)
 	}
 
 	_, err = q.db.Exec(ctx, query, args...)
 	if err != nil {
-		return fmt.Errorf("executing delete query for %s: %w", OrganizationMemberTable, err)
+		return fmt.Errorf("executing delete query for %s: %w", OrganizationMembersTable, err)
 	}
 
 	return nil
@@ -179,15 +175,15 @@ func (q organizationMembers) Page(limit, offset uint) repository.OrganizationMem
 func (q organizationMembers) Count(ctx context.Context) (uint, error) {
 	query, args, err := q.counter.ToSql()
 	if err != nil {
-		return 0, fmt.Errorf("building count query for %s: %w", OrganizationMemberTable, err)
+		return 0, fmt.Errorf("building count query for %s: %w", OrganizationMembersTable, err)
 	}
 
 	var count int64
 	if err = q.db.QueryRow(ctx, query, args...).Scan(&count); err != nil {
-		return 0, fmt.Errorf("scanning count for %s: %w", OrganizationMemberTable, err)
+		return 0, fmt.Errorf("scanning count for %s: %w", OrganizationMembersTable, err)
 	}
 	if count < 0 {
-		return 0, fmt.Errorf("invalid count for %s: %d", OrganizationMemberTable, count)
+		return 0, fmt.Errorf("invalid count for %s: %d", OrganizationMembersTable, count)
 	}
 
 	return uint(count), nil

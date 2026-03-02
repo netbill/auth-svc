@@ -21,7 +21,9 @@ func (c *Controller) DeleteMySession(w http.ResponseWriter, r *http.Request) {
 
 	sessionID, err := uuid.Parse(chi.URLParam(r, "session_id"))
 	if err != nil {
-		log.WithError(err).WithField("session_id", chi.URLParam(r, "session_id")).Error("invalid session id")
+		log.WithError(err).
+			WithField("session_id", chi.URLParam(r, "session_id")).
+			Error("invalid session id")
 		render.ResponseError(w, problems.BadRequest(validation.Errors{
 			"query": fmt.Errorf("invalid session id: %s", chi.URLParam(r, "session_id")),
 		})...)
@@ -34,10 +36,10 @@ func (c *Controller) DeleteMySession(w http.ResponseWriter, r *http.Request) {
 	err = c.core.DeleteMySession(r.Context(), scope.AccountActor(r), sessionID)
 	switch {
 	case errors.Is(err, errx.ErrorAccountInvalidSession):
-		log.Info("invalid credentials")
+		log.WithError(err).Warn("invalid credentials")
 		render.ResponseError(w, problems.Unauthorized("invalid credentials"))
 	case err != nil:
-		log.WithError(err).Error("failed to delete My session")
+		log.WithError(err).Error("unexpected error")
 		render.ResponseError(w, problems.InternalError())
 	default:
 		log.Info("session deleted")

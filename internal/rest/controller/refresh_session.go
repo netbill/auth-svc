@@ -27,23 +27,22 @@ func (c *Controller) RefreshSession(w http.ResponseWriter, r *http.Request) {
 	tokensPair, err := c.core.Refresh(r.Context(), req.Data.Attributes.RefreshToken)
 	switch {
 	case errors.Is(err, errx.ErrorSessionExpired):
-		log.Info("refresh token expired")
+		log.WithError(err).Warn("refresh token expired")
 		render.ResponseError(w, problems.Unauthorized("refresh token expired"))
-	case errors.Is(err, errx.ErrorAccountNotFound),
-		errors.Is(err, errx.ErrorAccountDeleted):
-		log.Info("account not found")
+	case errors.Is(err, errx.ErrorAccountNotFound):
+		log.WithError(err).Warn("account not found")
 		render.ResponseError(w, problems.Unauthorized("account not found"))
-	case errors.Is(err, errx.ErrorSessionNotFound),
-		errors.Is(err, errx.ErrorSessionDeleted):
-		log.Info("session not found")
+	case errors.Is(err, errx.ErrorSessionNotFound):
+		log.WithError(err).Warn("session not found")
 		render.ResponseError(w, problems.Unauthorized("session not found"))
 	case errors.Is(err, errx.ErrorSessionTokenMismatch):
-		log.Info("refresh session token mismatch")
+		log.WithError(err).Warn("refresh token mismatch")
 		render.ResponseError(w, problems.Forbidden("refresh session token mismatch"))
 	case err != nil:
-		log.WithError(err).Error("refresh session failed")
+		log.WithError(err).Error("unexpected error")
 		render.ResponseError(w, problems.InternalError())
 	default:
+		log.Info("session refreshed successfully")
 		render.Response(w, http.StatusOK, responses.TokensPair(tokensPair))
 	}
 }

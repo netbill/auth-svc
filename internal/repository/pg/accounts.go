@@ -147,7 +147,7 @@ func (q accounts) Exists(ctx context.Context) (bool, error) {
 
 	var exists bool
 	if err = q.db.QueryRow(ctx, sql, subArgs...).Scan(&exists); err != nil {
-		return false, fmt.Errorf("sql=%s args=%v: %w", sql, subArgs, err)
+		return false, fmt.Errorf("executing exists query for %s: %w", accountsTable, err)
 	}
 	return exists, nil
 }
