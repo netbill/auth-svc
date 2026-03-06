@@ -4,7 +4,7 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/netbill/auth-svc/internal/core/models"
+	"github.com/netbill/auth-svc/internal/models"
 	"github.com/netbill/auth-svc/pkg/log"
 	"github.com/netbill/restkit/tokens"
 )

@@ -7,7 +7,7 @@ services:
     ports:
       - "8001:8000"
     networks:
-      - chains-net
+      - netbill-net
 
   auth-svc-postgres:
     image: postgres:15
@@ -21,7 +21,7 @@ services:
     volumes:
       - pgdata:/var/lib/postgresql/data
     networks:
-      - chains-net
+      - netbill-net
 
   auth-svc-swagger:
     image: swaggerapi/swagger-ui
@@ -33,11 +33,11 @@ services:
     ports:
       - "5001:8080"
     networks:
-      - chains-net
+      - netbill-net
 
 volumes:
   pgdata:
 
 networks:
-  chains-net:
+  netbill-net:
     external: true

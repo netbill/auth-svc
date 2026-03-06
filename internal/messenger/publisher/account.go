@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/netbill/auth-svc/internal/core/models"
+	"github.com/netbill/auth-svc/internal/models"
 	"github.com/netbill/eventbox"
 	"github.com/netbill/evtypes"
 )

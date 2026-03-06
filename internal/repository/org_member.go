@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/netbill/auth-svc/internal/core/models"
+	"github.com/netbill/auth-svc/internal/models"
 )
 
 type OrganizationMemberRow struct {
@@ -41,8 +41,18 @@ type OrganizationMembersQ interface {
 	Exists(ctx context.Context) (bool, error)
 }
 
-func (r *Repository) CreateOrgMember(ctx context.Context, member models.OrgMember) error {
-	_, err := r.OrgMembersSql.New().Insert(ctx, OrganizationMemberRow{
+type OrgMembersRepo struct {
+	query OrganizationMembersQ
+}
+
+func NewOrgMembersRepo(query OrganizationMembersQ) *OrgMembersRepo {
+	return &OrgMembersRepo{
+		query: query,
+	}
+}
+
+func (r *OrgMembersRepo) Create(ctx context.Context, member models.OrgMember) error {
+	_, err := r.query.New().Insert(ctx, OrganizationMemberRow{
 		ID:              member.ID,
 		AccountID:       member.AccountID,
 		OrganizationID:  member.OrganizationID,
@@ -55,8 +65,8 @@ func (r *Repository) CreateOrgMember(ctx context.Context, member models.OrgMembe
 	return err
 }
 
-func (r *Repository) DeleteOrgMember(ctx context.Context, memberID uuid.UUID) error {
-	err := r.OrgMembersSql.New().FilterByID(memberID).Delete(ctx)
+func (r *OrgMembersRepo) Delete(ctx context.Context, memberID uuid.UUID) error {
+	err := r.query.New().FilterByID(memberID).Delete(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to delete organization member with id %s, cause: %w", memberID, err)
 	}
@@ -64,8 +74,8 @@ func (r *Repository) DeleteOrgMember(ctx context.Context, memberID uuid.UUID) er
 	return nil
 }
 
-func (r *Repository) ExistOrgMemberByAccount(ctx context.Context, accountID uuid.UUID) (bool, error) {
-	exist, err := r.OrgMembersSql.New().FilterByAccountID(accountID).Exists(ctx)
+func (r *OrgMembersRepo) ExistMemberByAccount(ctx context.Context, accountID uuid.UUID) (bool, error) {
+	exist, err := r.query.New().FilterByAccountID(accountID).Exists(ctx)
 	if err != nil {
 		return false, fmt.Errorf("failed to check existence of organization member with account id %s, cause: %w", accountID, err)
 	}

@@ -4,7 +4,7 @@ import (
 	"errors"
 	"net/http"
 
-	"github.com/netbill/auth-svc/internal/core/errx"
+	"github.com/netbill/auth-svc/internal/errx"
 	"github.com/netbill/auth-svc/internal/rest/requests"
 	"github.com/netbill/auth-svc/internal/rest/responses"
 	"github.com/netbill/auth-svc/internal/rest/scope"
@@ -16,7 +16,7 @@ import (
 
 const operationUpdateUsername = "update_username"
 
-func (c *Controller) UpdateUsername(w http.ResponseWriter, r *http.Request) {
+func (c *AuthController) UpdateUsername(w http.ResponseWriter, r *http.Request) {
 	log := scope.Log(r).WithOperation(operationUpdateUsername)
 
 	req, err := requests.UpdateUsername(r)
@@ -26,14 +26,14 @@ func (c *Controller) UpdateUsername(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	res, err := c.core.UpdateUsername(r.Context(), scope.AccountActor(r), req.Data.Attributes.Username)
+	res, err := c.auth.UpdateUsername(r.Context(), scope.AccountActor(r), req.Data.Attributes.Username)
 	switch {
 	case errors.Is(err, errx.ErrorAccountInvalidSession):
 		log.WithError(err).Warn("invalid credentials")
-		render.ResponseError(w, problems.Unauthorized("failed to update password user not found"))
+		render.ResponseError(w, problems.Unauthorized())
 	case errors.Is(err, errx.ErrorPasswordInvalid):
 		log.WithError(err).Warn("invalid password")
-		render.ResponseError(w, problems.Unauthorized("invalid password"))
+		render.ResponseError(w, problems.Unauthorized())
 	case errors.Is(err, errx.ErrorUsernameAlreadyTaken):
 		log.WithError(err).Warn("username is already taken")
 		render.ResponseError(w, problems.Conflict("user with this username already exists"))

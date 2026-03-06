@@ -6,8 +6,8 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/netbill/auth-svc/internal/core/errx"
-	"github.com/netbill/auth-svc/internal/core/models"
+	"github.com/netbill/auth-svc/internal/errx"
+	"github.com/netbill/auth-svc/internal/models"
 )
 
 type AccountEmailRow struct {
@@ -54,8 +54,32 @@ type AccountEmailsQ interface {
 	Exists(ctx context.Context) (bool, error)
 }
 
-func (r *Repository) ExistsAccountByEmail(ctx context.Context, email string) (bool, error) {
-	exist, err := r.AccountEmailsSql.New().FilterEmail(email).Exists(ctx)
+type AccountEmailRepo struct {
+	query AccountEmailsQ
+}
+
+func NewAccountEmailRepo(query AccountEmailsQ) *AccountEmailRepo {
+	return &AccountEmailRepo{
+		query: query,
+	}
+}
+
+func (r *AccountEmailRepo) Create(ctx context.Context, params models.AccountEmail) error {
+	_, err := r.query.New().Insert(ctx, AccountEmailRow{
+		AccountID: params.AccountID,
+		Email:     params.Email,
+	})
+	if err != nil {
+		return fmt.Errorf(
+			"failed to create account email for account %s, cause: %w", params.AccountID, err,
+		)
+	}
+
+	return nil
+}
+
+func (r *AccountEmailRepo) ExistsByEmail(ctx context.Context, email string) (bool, error) {
+	exist, err := r.query.New().FilterEmail(email).Exists(ctx)
 	if err != nil {
 		return false, fmt.Errorf("failed to check account existence by email %s, cause: %w", email, err)
 	}
@@ -63,8 +87,8 @@ func (r *Repository) ExistsAccountByEmail(ctx context.Context, email string) (bo
 	return exist, nil
 }
 
-func (r *Repository) GetAccountEmail(ctx context.Context, accountID uuid.UUID) (models.AccountEmail, error) {
-	row, err := r.AccountEmailsSql.New().FilterAccountID(accountID).Get(ctx)
+func (r *AccountEmailRepo) GetByID(ctx context.Context, accountID uuid.UUID) (models.AccountEmail, error) {
+	row, err := r.query.New().FilterAccountID(accountID).Get(ctx)
 	switch {
 	case err != nil:
 		return models.AccountEmail{}, fmt.Errorf(

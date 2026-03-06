@@ -6,8 +6,8 @@ import (
 	"errors"
 	"log/slog"
 
-	"github.com/netbill/auth-svc/internal/core/errx"
-	"github.com/netbill/auth-svc/internal/core/models"
+	"github.com/netbill/auth-svc/internal/errx"
+	"github.com/netbill/auth-svc/internal/models"
 	"github.com/netbill/eventbox"
 	"github.com/netbill/evtypes"
 )

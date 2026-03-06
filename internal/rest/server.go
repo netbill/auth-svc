@@ -28,7 +28,6 @@ type Handlers interface {
 	GetMyAccount(w http.ResponseWriter, r *http.Request)
 	GetMySession(w http.ResponseWriter, r *http.Request)
 	GetMySessions(w http.ResponseWriter, r *http.Request)
-	GetMyEmailData(w http.ResponseWriter, r *http.Request)
 
 	UpdatePassword(w http.ResponseWriter, r *http.Request)
 	UpdateUsername(w http.ResponseWriter, r *http.Request)
@@ -49,15 +48,20 @@ type Middlewares interface {
 type Server struct {
 	handlers    Handlers
 	middlewares Middlewares
+	log         *log.Logger
 }
 
-func New(
-	middlewares Middlewares,
-	handlers Handlers,
-) *Server {
+type ServerDeps struct {
+	Controller  Handlers
+	Middlewares Middlewares
+	Log         *log.Logger
+}
+
+func New(deps ServerDeps) *Server {
 	return &Server{
-		middlewares: middlewares,
-		handlers:    handlers,
+		handlers:    deps.Controller,
+		middlewares: deps.Middlewares,
+		log:         deps.Log,
 	}
 }
 
@@ -69,13 +73,13 @@ type Config struct {
 	IdleTimeout       time.Duration
 }
 
-func (s *Server) Run(ctx context.Context, log *log.Logger, cfg Config) {
+func (s *Server) Run(ctx context.Context, cfg Config) {
 	auth := s.middlewares.AccountAuth()
 	sysadmin := s.middlewares.AccountAuth(tokens.RoleSystemAdmin)
 
 	r := chi.NewRouter()
 	r.Use(
-		s.middlewares.Logger(log),
+		s.middlewares.Logger(s.log),
 		s.middlewares.CorsDocs(),
 	)
 
@@ -102,7 +106,6 @@ func (s *Server) Run(ctx context.Context, log *log.Logger, cfg Config) {
 				r.Get("/", s.handlers.GetMyAccount)
 				r.Delete("/", s.handlers.DeleteMyAccount)
 
-				r.Get("/email", s.handlers.GetMyEmailData)
 				r.Post("/logout", s.handlers.Logout)
 				r.Post("/password", s.handlers.UpdatePassword)
 				r.Post("/username", s.handlers.UpdateUsername)
@@ -129,7 +132,7 @@ func (s *Server) Run(ctx context.Context, log *log.Logger, cfg Config) {
 		IdleTimeout:       cfg.IdleTimeout,
 	}
 
-	log.WithField("port", cfg.Port).Info("starting http service...")
+	s.log.WithField("port", cfg.Port).Info("starting http service...")
 
 	errCh := make(chan error, 1)
 	go func() {
@@ -142,18 +145,18 @@ func (s *Server) Run(ctx context.Context, log *log.Logger, cfg Config) {
 
 	select {
 	case <-ctx.Done():
-		log.Info("shutting down http service...")
+		s.log.Info("shutting down http service...")
 	case err := <-errCh:
 		if err != nil {
-			log.WithError(err).Error("http server error")
+			s.log.WithError(err).Error("http server error")
 		}
 	}
 
 	shCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	if err := srv.Shutdown(shCtx); err != nil {
-		log.WithError(err).Error("failed to shutdown http server gracefully")
+		s.log.WithError(err).Error("failed to shutdown http server gracefully")
 	} else {
-		log.Info("http server shutdown gracefully")
+		s.log.Info("http server shutdown gracefully")
 	}
 }

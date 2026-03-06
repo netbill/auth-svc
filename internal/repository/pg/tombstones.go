@@ -2,11 +2,9 @@ package pg
 
 import (
 	"context"
-	"errors"
 	"fmt"
 
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5"
 	"github.com/netbill/auth-svc/internal/repository"
 	"github.com/netbill/pgdbx"
 )
@@ -15,22 +13,6 @@ const (
 	EntityTypeAccount = "account"
 	EntityTypeSession = "session"
 )
-
-func scanTombstone(row pgx.Row) (r repository.TombstoneRow, err error) {
-	err = row.Scan(
-		&r.ID,
-		&r.EntityType,
-		&r.EntityID,
-		&r.DeletedAt,
-	)
-	switch {
-	case errors.Is(err, pgx.ErrNoRows):
-		return repository.TombstoneRow{}, nil
-	case err != nil:
-		return repository.TombstoneRow{}, fmt.Errorf("scanning tombstone: %w", err)
-	}
-	return r, nil
-}
 
 type tombstones struct {
 	db *pgdbx.DB
@@ -109,14 +91,14 @@ func (t *tombstones) OrgMemberIsBuried(ctx context.Context, orgMemberID uuid.UUI
 	return exists, nil
 }
 
-func (t *tombstones) BuryOrganization(ctx context.Context, orgID uuid.UUID) error {
+func (t *tombstones) BuryOrganization(ctx context.Context, organizationID uuid.UUID) error {
 	_, err := t.db.Exec(ctx, `
 		INSERT INTO tombstones (entity_type, entity_id)
 		SELECT 'organization', $1
 		UNION ALL
 		SELECT 'organization_member', om.id FROM organization_members om WHERE om.organization_id = $1
 		ON CONFLICT (entity_type, entity_id) DO NOTHING
-	`, orgID)
+	`, organizationID)
 	if err != nil {
 		return fmt.Errorf("burying organization: %w", err)
 	}
@@ -124,14 +106,14 @@ func (t *tombstones) BuryOrganization(ctx context.Context, orgID uuid.UUID) erro
 	return nil
 }
 
-func (t *tombstones) OrganizationIsBuried(ctx context.Context, orgID uuid.UUID) (bool, error) {
+func (t *tombstones) OrganizationIsBuried(ctx context.Context, organizationID uuid.UUID) (bool, error) {
 	var exists bool
 	err := t.db.QueryRow(ctx, `
 		SELECT EXISTS (
 			SELECT 1 FROM tombstones
 			WHERE entity_type = 'organization' AND entity_id = $1
 		)
-	`, orgID).Scan(&exists)
+	`, organizationID).Scan(&exists)
 	if err != nil {
 		return false, fmt.Errorf("checking organization is buried: %w", err)
 	}

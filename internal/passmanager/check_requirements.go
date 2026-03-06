@@ -5,7 +5,7 @@ import (
 	"strings"
 	"unicode"
 
-	"github.com/netbill/auth-svc/internal/core/errx"
+	"github.com/netbill/auth-svc/internal/errx"
 )
 
 func (p *Passer) CheckRequirements(password string) error {

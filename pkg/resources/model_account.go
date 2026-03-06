@@ -22,6 +22,7 @@ var _ MappedNullable = &Account{}
 // Account struct for Account
 type Account struct {
 	Data AccountData `json:"data"`
+	Included []AccountEmail `json:"included,omitempty"`
 }
 
 type _Account Account
@@ -68,6 +69,38 @@ func (o *Account) SetData(v AccountData) {
 	o.Data = v
 }
 
+// GetIncluded returns the Included field value if set, zero value otherwise.
+func (o *Account) GetIncluded() []AccountEmail {
+	if o == nil || IsNil(o.Included) {
+		var ret []AccountEmail
+		return ret
+	}
+	return o.Included
+}
+
+// GetIncludedOk returns a tuple with the Included field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *Account) GetIncludedOk() ([]AccountEmail, bool) {
+	if o == nil || IsNil(o.Included) {
+		return nil, false
+	}
+	return o.Included, true
+}
+
+// HasIncluded returns a boolean if a field has been set.
+func (o *Account) HasIncluded() bool {
+	if o != nil && !IsNil(o.Included) {
+		return true
+	}
+
+	return false
+}
+
+// SetIncluded gets a reference to the given []AccountEmail and assigns it to the Included field.
+func (o *Account) SetIncluded(v []AccountEmail) {
+	o.Included = v
+}
+
 func (o Account) MarshalJSON() ([]byte, error) {
 	toSerialize,err := o.ToMap()
 	if err != nil {
@@ -79,6 +112,9 @@ func (o Account) MarshalJSON() ([]byte, error) {
 func (o Account) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
 	toSerialize["data"] = o.Data
+	if !IsNil(o.Included) {
+		toSerialize["included"] = o.Included
+	}
 	return toSerialize, nil
 }
 

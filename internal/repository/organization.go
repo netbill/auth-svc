@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/netbill/auth-svc/internal/core/models"
+	"github.com/netbill/auth-svc/internal/models"
 )
 
 type OrganizationRow struct {
@@ -38,19 +38,29 @@ type OrganizationsQ interface {
 	Delete(ctx context.Context) error
 }
 
-func (r *Repository) CreateOrganization(ctx context.Context, organization models.Organization) error {
-	return r.OrganizationsSql.New().Insert(ctx, OrganizationRow{
+type OrganizationRepo struct {
+	query OrganizationsQ
+}
+
+func NewOrganizationRepo(query OrganizationsQ) *OrganizationRepo {
+	return &OrganizationRepo{
+		query: query,
+	}
+}
+
+func (r *OrganizationRepo) Create(ctx context.Context, organization models.Organization) error {
+	return r.query.New().Insert(ctx, OrganizationRow{
 		ID:              organization.ID,
 		SourceCreatedAt: organization.CreatedAt,
 	})
 }
 
-func (r *Repository) DeleteOrganization(ctx context.Context, orgID uuid.UUID) error {
-	return r.OrganizationsSql.New().FilterByID(orgID).Delete(ctx)
+func (r *OrganizationRepo) Delete(ctx context.Context, organizationID uuid.UUID) error {
+	return r.query.New().FilterByID(organizationID).Delete(ctx)
 }
 
-func (r *Repository) GetOrganizationByID(ctx context.Context, orgID uuid.UUID) (models.Organization, error) {
-	row, err := r.OrganizationsSql.New().FilterByID(orgID).Get(ctx)
+func (r *OrganizationRepo) Get(ctx context.Context, organizationID uuid.UUID) (models.Organization, error) {
+	row, err := r.query.New().FilterByID(organizationID).Get(ctx)
 	if err != nil {
 		return models.Organization{}, err
 	}

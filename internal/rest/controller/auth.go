@@ -4,16 +4,16 @@ import (
 	"context"
 
 	"github.com/google/uuid"
-	"github.com/netbill/auth-svc/internal/core/models"
-	"github.com/netbill/auth-svc/internal/core/modules/auth"
+	core2 "github.com/netbill/auth-svc/internal/core/auth"
+	"github.com/netbill/auth-svc/internal/models"
 	"github.com/netbill/restkit/pagi"
 	"golang.org/x/oauth2"
 )
 
-type core interface {
+type authModule interface {
 	Registration(
 		ctx context.Context,
-		params auth.RegistrationParams,
+		params core2.RegistrationParams,
 	) (models.Account, error)
 
 	LoginByEmail(ctx context.Context, email, password string) (models.TokensPair, error)
@@ -50,14 +50,14 @@ type core interface {
 	DeleteMySessions(ctx context.Context, actor models.AccountActor) error
 }
 
-type Controller struct {
+type AuthController struct {
 	google oauth2.Config
-	core   core
+	auth   authModule
 }
 
-func New(core core, google oauth2.Config) *Controller {
-	return &Controller{
+func NewAuth(core authModule, google oauth2.Config) *AuthController {
+	return &AuthController{
 		google: google,
-		core:   core,
+		auth:   core,
 	}
 }

@@ -42,3 +42,8 @@ properties:
             type: string
             format: date-time
             description: "The date and time when the account was last updated"
+  included:
+    type: array
+    items:
+      oneOf:
+        - $ref: './AccountEmail.yaml'

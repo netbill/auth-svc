@@ -17,11 +17,11 @@ import (
 	"fmt"
 )
 
-// checks if the AccountEmailDataAttributes type satisfies the MappedNullable interface at compile time
-var _ MappedNullable = &AccountEmailDataAttributes{}
+// checks if the AccountEmailAttributes type satisfies the MappedNullable interface at compile time
+var _ MappedNullable = &AccountEmailAttributes{}
 
-// AccountEmailDataAttributes struct for AccountEmailDataAttributes
-type AccountEmailDataAttributes struct {
+// AccountEmailAttributes struct for AccountEmailAttributes
+type AccountEmailAttributes struct {
 	// The email address associated with the account
 	Email string `json:"email"`
 	// The version number of the account record
@@ -30,33 +30,36 @@ type AccountEmailDataAttributes struct {
 	Verified bool `json:"verified"`
 	// The date and time when the email information was last updated
 	UpdatedAt time.Time `json:"updated_at"`
+	// The date and time when the email information was created
+	CreatedAt time.Time `json:"created_at"`
 }
 
-type _AccountEmailDataAttributes AccountEmailDataAttributes
+type _AccountEmailAttributes AccountEmailAttributes
 
-// NewAccountEmailDataAttributes instantiates a new AccountEmailDataAttributes object
+// NewAccountEmailAttributes instantiates a new AccountEmailAttributes object
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewAccountEmailDataAttributes(email string, version int32, verified bool, updatedAt time.Time) *AccountEmailDataAttributes {
-	this := AccountEmailDataAttributes{}
+func NewAccountEmailAttributes(email string, version int32, verified bool, updatedAt time.Time, createdAt time.Time) *AccountEmailAttributes {
+	this := AccountEmailAttributes{}
 	this.Email = email
 	this.Version = version
 	this.Verified = verified
 	this.UpdatedAt = updatedAt
+	this.CreatedAt = createdAt
 	return &this
 }
 
-// NewAccountEmailDataAttributesWithDefaults instantiates a new AccountEmailDataAttributes object
+// NewAccountEmailAttributesWithDefaults instantiates a new AccountEmailAttributes object
 // This constructor will only assign default values to properties that have it defined,
 // but it doesn't guarantee that properties required by API are set
-func NewAccountEmailDataAttributesWithDefaults() *AccountEmailDataAttributes {
-	this := AccountEmailDataAttributes{}
+func NewAccountEmailAttributesWithDefaults() *AccountEmailAttributes {
+	this := AccountEmailAttributes{}
 	return &this
 }
 
 // GetEmail returns the Email field value
-func (o *AccountEmailDataAttributes) GetEmail() string {
+func (o *AccountEmailAttributes) GetEmail() string {
 	if o == nil {
 		var ret string
 		return ret
@@ -67,7 +70,7 @@ func (o *AccountEmailDataAttributes) GetEmail() string {
 
 // GetEmailOk returns a tuple with the Email field value
 // and a boolean to check if the value has been set.
-func (o *AccountEmailDataAttributes) GetEmailOk() (*string, bool) {
+func (o *AccountEmailAttributes) GetEmailOk() (*string, bool) {
 	if o == nil {
 		return nil, false
 	}
@@ -75,12 +78,12 @@ func (o *AccountEmailDataAttributes) GetEmailOk() (*string, bool) {
 }
 
 // SetEmail sets field value
-func (o *AccountEmailDataAttributes) SetEmail(v string) {
+func (o *AccountEmailAttributes) SetEmail(v string) {
 	o.Email = v
 }
 
 // GetVersion returns the Version field value
-func (o *AccountEmailDataAttributes) GetVersion() int32 {
+func (o *AccountEmailAttributes) GetVersion() int32 {
 	if o == nil {
 		var ret int32
 		return ret
@@ -91,7 +94,7 @@ func (o *AccountEmailDataAttributes) GetVersion() int32 {
 
 // GetVersionOk returns a tuple with the Version field value
 // and a boolean to check if the value has been set.
-func (o *AccountEmailDataAttributes) GetVersionOk() (*int32, bool) {
+func (o *AccountEmailAttributes) GetVersionOk() (*int32, bool) {
 	if o == nil {
 		return nil, false
 	}
@@ -99,12 +102,12 @@ func (o *AccountEmailDataAttributes) GetVersionOk() (*int32, bool) {
 }
 
 // SetVersion sets field value
-func (o *AccountEmailDataAttributes) SetVersion(v int32) {
+func (o *AccountEmailAttributes) SetVersion(v int32) {
 	o.Version = v
 }
 
 // GetVerified returns the Verified field value
-func (o *AccountEmailDataAttributes) GetVerified() bool {
+func (o *AccountEmailAttributes) GetVerified() bool {
 	if o == nil {
 		var ret bool
 		return ret
@@ -115,7 +118,7 @@ func (o *AccountEmailDataAttributes) GetVerified() bool {
 
 // GetVerifiedOk returns a tuple with the Verified field value
 // and a boolean to check if the value has been set.
-func (o *AccountEmailDataAttributes) GetVerifiedOk() (*bool, bool) {
+func (o *AccountEmailAttributes) GetVerifiedOk() (*bool, bool) {
 	if o == nil {
 		return nil, false
 	}
@@ -123,12 +126,12 @@ func (o *AccountEmailDataAttributes) GetVerifiedOk() (*bool, bool) {
 }
 
 // SetVerified sets field value
-func (o *AccountEmailDataAttributes) SetVerified(v bool) {
+func (o *AccountEmailAttributes) SetVerified(v bool) {
 	o.Verified = v
 }
 
 // GetUpdatedAt returns the UpdatedAt field value
-func (o *AccountEmailDataAttributes) GetUpdatedAt() time.Time {
+func (o *AccountEmailAttributes) GetUpdatedAt() time.Time {
 	if o == nil {
 		var ret time.Time
 		return ret
@@ -139,7 +142,7 @@ func (o *AccountEmailDataAttributes) GetUpdatedAt() time.Time {
 
 // GetUpdatedAtOk returns a tuple with the UpdatedAt field value
 // and a boolean to check if the value has been set.
-func (o *AccountEmailDataAttributes) GetUpdatedAtOk() (*time.Time, bool) {
+func (o *AccountEmailAttributes) GetUpdatedAtOk() (*time.Time, bool) {
 	if o == nil {
 		return nil, false
 	}
@@ -147,11 +150,35 @@ func (o *AccountEmailDataAttributes) GetUpdatedAtOk() (*time.Time, bool) {
 }
 
 // SetUpdatedAt sets field value
-func (o *AccountEmailDataAttributes) SetUpdatedAt(v time.Time) {
+func (o *AccountEmailAttributes) SetUpdatedAt(v time.Time) {
 	o.UpdatedAt = v
 }
 
-func (o AccountEmailDataAttributes) MarshalJSON() ([]byte, error) {
+// GetCreatedAt returns the CreatedAt field value
+func (o *AccountEmailAttributes) GetCreatedAt() time.Time {
+	if o == nil {
+		var ret time.Time
+		return ret
+	}
+
+	return o.CreatedAt
+}
+
+// GetCreatedAtOk returns a tuple with the CreatedAt field value
+// and a boolean to check if the value has been set.
+func (o *AccountEmailAttributes) GetCreatedAtOk() (*time.Time, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return &o.CreatedAt, true
+}
+
+// SetCreatedAt sets field value
+func (o *AccountEmailAttributes) SetCreatedAt(v time.Time) {
+	o.CreatedAt = v
+}
+
+func (o AccountEmailAttributes) MarshalJSON() ([]byte, error) {
 	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
@@ -159,16 +186,17 @@ func (o AccountEmailDataAttributes) MarshalJSON() ([]byte, error) {
 	return json.Marshal(toSerialize)
 }
 
-func (o AccountEmailDataAttributes) ToMap() (map[string]interface{}, error) {
+func (o AccountEmailAttributes) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
 	toSerialize["email"] = o.Email
 	toSerialize["version"] = o.Version
 	toSerialize["verified"] = o.Verified
 	toSerialize["updated_at"] = o.UpdatedAt
+	toSerialize["created_at"] = o.CreatedAt
 	return toSerialize, nil
 }
 
-func (o *AccountEmailDataAttributes) UnmarshalJSON(data []byte) (err error) {
+func (o *AccountEmailAttributes) UnmarshalJSON(data []byte) (err error) {
 	// This validates that all required properties are included in the JSON object
 	// by unmarshalling the object into a generic map with string keys and checking
 	// that every required field exists as a key in the generic map.
@@ -177,6 +205,7 @@ func (o *AccountEmailDataAttributes) UnmarshalJSON(data []byte) (err error) {
 		"version",
 		"verified",
 		"updated_at",
+		"created_at",
 	}
 
 	allProperties := make(map[string]interface{})
@@ -193,53 +222,53 @@ func (o *AccountEmailDataAttributes) UnmarshalJSON(data []byte) (err error) {
 		}
 	}
 
-	varAccountEmailDataAttributes := _AccountEmailDataAttributes{}
+	varAccountEmailAttributes := _AccountEmailAttributes{}
 
 	decoder := json.NewDecoder(bytes.NewReader(data))
 	decoder.DisallowUnknownFields()
-	err = decoder.Decode(&varAccountEmailDataAttributes)
+	err = decoder.Decode(&varAccountEmailAttributes)
 
 	if err != nil {
 		return err
 	}
 
-	*o = AccountEmailDataAttributes(varAccountEmailDataAttributes)
+	*o = AccountEmailAttributes(varAccountEmailAttributes)
 
 	return err
 }
 
-type NullableAccountEmailDataAttributes struct {
-	value *AccountEmailDataAttributes
+type NullableAccountEmailAttributes struct {
+	value *AccountEmailAttributes
 	isSet bool
 }
 
-func (v NullableAccountEmailDataAttributes) Get() *AccountEmailDataAttributes {
+func (v NullableAccountEmailAttributes) Get() *AccountEmailAttributes {
 	return v.value
 }
 
-func (v *NullableAccountEmailDataAttributes) Set(val *AccountEmailDataAttributes) {
+func (v *NullableAccountEmailAttributes) Set(val *AccountEmailAttributes) {
 	v.value = val
 	v.isSet = true
 }
 
-func (v NullableAccountEmailDataAttributes) IsSet() bool {
+func (v NullableAccountEmailAttributes) IsSet() bool {
 	return v.isSet
 }
 
-func (v *NullableAccountEmailDataAttributes) Unset() {
+func (v *NullableAccountEmailAttributes) Unset() {
 	v.value = nil
 	v.isSet = false
 }
 
-func NewNullableAccountEmailDataAttributes(val *AccountEmailDataAttributes) *NullableAccountEmailDataAttributes {
-	return &NullableAccountEmailDataAttributes{value: val, isSet: true}
+func NewNullableAccountEmailAttributes(val *AccountEmailAttributes) *NullableAccountEmailAttributes {
+	return &NullableAccountEmailAttributes{value: val, isSet: true}
 }
 
-func (v NullableAccountEmailDataAttributes) MarshalJSON() ([]byte, error) {
+func (v NullableAccountEmailAttributes) MarshalJSON() ([]byte, error) {
 	return json.Marshal(v.value)
 }
 
-func (v *NullableAccountEmailDataAttributes) UnmarshalJSON(src []byte) error {
+func (v *NullableAccountEmailAttributes) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }

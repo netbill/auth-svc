@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/netbill/auth-svc/internal/core/modules/auth"
-	"github.com/netbill/auth-svc/internal/core/modules/organization"
+	"github.com/netbill/auth-svc/internal/core/auth"
+	"github.com/netbill/auth-svc/internal/core/organization"
 	"github.com/netbill/auth-svc/internal/messenger"
 	"github.com/netbill/auth-svc/internal/messenger/handler"
 	"github.com/netbill/auth-svc/internal/messenger/publisher"
@@ -43,17 +43,6 @@ func (a *App) Run(ctx context.Context) error {
 
 	db := pgdbx.NewDB(pool)
 
-	repo := &repository.Repository{
-		AccountsSql:      pg.NewAccountsQ(db),
-		AccountEmailsSql: pg.NewAccountEmailsQ(db),
-		AccountPassSql:   pg.NewAccountPasswordsQ(db),
-		SessionsSql:      pg.NewSessionsQ(db),
-		OrganizationsSql: pg.NewOrganizationsQ(db),
-		OrgMembersSql:    pg.NewOrganizationMembersQ(db),
-		TombstonesSql:    pg.NewTombstonesQ(db),
-		TransactionSql:   db,
-	}
-
 	outbox := eventpg.NewOutbox(db)
 	inbox := eventpg.NewInbox(db)
 
@@ -81,15 +70,44 @@ func (a *App) Run(ctx context.Context) error {
 		AccountRefreshHashKey:   a.config.Auth.Tokens.AccountRefresh.HashKey,
 	})
 
-	authModule := auth.New(repo, tokenManager, outbound, passmanager.New())
-	orgModule := organization.New(repo)
+	accountRepo := repository.NewAccountRepo(pg.NewAccountsQ(db))
+	accountEmailRepo := repository.NewAccountEmailRepo(pg.NewAccountEmailsQ(db))
+	accountPassRepo := repository.NewAccountPasswordRepo(pg.NewAccountPasswordsQ(db))
+	sessionRepo := repository.NewSessionRepo(pg.NewSessionsQ(db))
+	orgRepo := repository.NewOrganizationRepo(pg.NewOrganizationsQ(db))
+	orgMembersRepo := repository.NewOrgMembersRepo(pg.NewOrganizationMembersQ(db))
+	tombstone := pg.NewTombstonesQ(db)
 
-	ctrl := controller.New(authModule, a.config.GoogleOAuth())
+	authCore := auth.NewService(auth.ServiceDeps{
+		Account:     accountRepo,
+		Email:       accountEmailRepo,
+		Password:    accountPassRepo,
+		Org:         orgMembersRepo,
+		Session:     sessionRepo,
+		Tombstone:   tombstone,
+		Tx:          db,
+		Token:       tokenManager,
+		Messenger:   outbound,
+		PassManager: passmanager.New(),
+	})
+
+	orgCore := organization.NewOrgModule(organization.OrgCoreDeps{
+		Org:       orgRepo,
+		Member:    orgMembersRepo,
+		Tombstone: tombstone,
+		Tx:        db,
+	})
+
+	ctrl := controller.NewAuth(authCore, a.config.GoogleOAuth())
 	mdll := middlewares.New(tokenManager)
-	router := rest.New(mdll, ctrl)
+	router := rest.New(rest.ServerDeps{
+		Controller:  ctrl,
+		Middlewares: mdll,
+		Log:         a.log,
+	})
 
 	run(func() {
-		router.Run(ctx, a.log, rest.Config{
+		router.Run(ctx, rest.Config{
 			Port:              a.config.Rest.Port,
 			ReadTimeout:       a.config.Rest.Timeouts.Read,
 			ReadHeaderTimeout: a.config.Rest.Timeouts.ReadHeader,
@@ -113,7 +131,7 @@ func (a *App) Run(ctx context.Context) error {
 		outboxWorker.Run(ctx)
 	})
 
-	inbound := handler.New(a.log, orgModule)
+	inbound := handler.New(a.log, orgCore)
 
 	inboxWorker := messenger.NewInboxWorker(a.log, inbox, eventbox.InboxWorkerConfig{
 		Routines:       a.config.Kafka.Inbox.Routines,

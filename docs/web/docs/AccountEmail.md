@@ -4,13 +4,15 @@
 
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-**Data** | [**AccountEmailData**](AccountEmailData.md) |  | 
+**Id** | [**uuid.UUID**](uuid.UUID.md) | account ID | 
+**Type** | **string** |  | 
+**Attributes** | [**AccountEmailAttributes**](AccountEmailAttributes.md) |  | 
 
 ## Methods
 
 ### NewAccountEmail
 
-`func NewAccountEmail(data AccountEmailData, ) *AccountEmail`
+`func NewAccountEmail(id uuid.UUID, type_ string, attributes AccountEmailAttributes, ) *AccountEmail`
 
 NewAccountEmail instantiates a new AccountEmail object
 This constructor will assign default values to properties that have it defined,
@@ -25,24 +27,64 @@ NewAccountEmailWithDefaults instantiates a new AccountEmail object
 This constructor will only assign default values to properties that have it defined,
 but it doesn't guarantee that properties required by API are set
 
-### GetData
+### GetId
 
-`func (o *AccountEmail) GetData() AccountEmailData`
+`func (o *AccountEmail) GetId() uuid.UUID`
 
-GetData returns the Data field if non-nil, zero value otherwise.
+GetId returns the Id field if non-nil, zero value otherwise.
 
-### GetDataOk
+### GetIdOk
 
-`func (o *AccountEmail) GetDataOk() (*AccountEmailData, bool)`
+`func (o *AccountEmail) GetIdOk() (*uuid.UUID, bool)`
 
-GetDataOk returns a tuple with the Data field if it's non-nil, zero value otherwise
+GetIdOk returns a tuple with the Id field if it's non-nil, zero value otherwise
 and a boolean to check if the value has been set.
 
-### SetData
+### SetId
 
-`func (o *AccountEmail) SetData(v AccountEmailData)`
+`func (o *AccountEmail) SetId(v uuid.UUID)`
 
-SetData sets Data field to given value.
+SetId sets Id field to given value.
+
+
+### GetType
+
+`func (o *AccountEmail) GetType() string`
+
+GetType returns the Type field if non-nil, zero value otherwise.
+
+### GetTypeOk
+
+`func (o *AccountEmail) GetTypeOk() (*string, bool)`
+
+GetTypeOk returns a tuple with the Type field if it's non-nil, zero value otherwise
+and a boolean to check if the value has been set.
+
+### SetType
+
+`func (o *AccountEmail) SetType(v string)`
+
+SetType sets Type field to given value.
+
+
+### GetAttributes
+
+`func (o *AccountEmail) GetAttributes() AccountEmailAttributes`
+
+GetAttributes returns the Attributes field if non-nil, zero value otherwise.
+
+### GetAttributesOk
+
+`func (o *AccountEmail) GetAttributesOk() (*AccountEmailAttributes, bool)`
+
+GetAttributesOk returns a tuple with the Attributes field if it's non-nil, zero value otherwise
+and a boolean to check if the value has been set.
+
+### SetAttributes
+
+`func (o *AccountEmail) SetAttributes(v AccountEmailAttributes)`
+
+SetAttributes sets Attributes field to given value.
 
 
 

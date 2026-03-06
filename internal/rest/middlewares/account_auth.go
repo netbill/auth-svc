@@ -20,7 +20,7 @@ func (p *Provider) AccountAuth(allowedRoles ...string) func(next http.Handler) h
 			token, err := headers.GetAuthorizationToken(r)
 			if err != nil {
 				scope.Log(r).WithError(err).Debug("account authentication failed")
-				render.ResponseError(w, problems.Unauthorized("account authentication failed"))
+				render.ResponseError(w, problems.Unauthorized())
 
 				return
 			}
@@ -28,7 +28,7 @@ func (p *Provider) AccountAuth(allowedRoles ...string) func(next http.Handler) h
 			claims, err := p.tokenManager.ParseAccountAuthAccess(token)
 			if err != nil {
 				scope.Log(r).WithError(err).Info("account authentication failed")
-				render.ResponseError(w, problems.Unauthorized("account authentication failed"))
+				render.ResponseError(w, problems.Unauthorized())
 
 				return
 			}
@@ -36,7 +36,7 @@ func (p *Provider) AccountAuth(allowedRoles ...string) func(next http.Handler) h
 			if len(allowed) > 0 {
 				if _, ok := allowed[claims.Role]; !ok {
 					scope.Log(r).Debug("account authentication rejected by role")
-					render.ResponseError(w, problems.Unauthorized("invalid authentication role"))
+					render.ResponseError(w, problems.Forbidden("account does not have enough permissions"))
 
 					return
 				}

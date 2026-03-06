@@ -15,8 +15,7 @@ docs/Account.md
 docs/AccountData.md
 docs/AccountDataAttributes.md
 docs/AccountEmail.md
-docs/AccountEmailData.md
-docs/AccountEmailDataAttributes.md
+docs/AccountEmailAttributes.md
 docs/AccountSession.md
 docs/AccountSessionAttributes.md
 docs/AccountSessionData.md
@@ -62,8 +61,7 @@ model_account.go
 model_account_data.go
 model_account_data_attributes.go
 model_account_email.go
-model_account_email_data.go
-model_account_email_data_attributes.go
+model_account_email_attributes.go
 model_account_session.go
 model_account_session_attributes.go
 model_account_session_data.go

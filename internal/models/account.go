@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/netbill/auth-svc/internal/core/errx"
+	"github.com/netbill/auth-svc/internal/errx"
 )
 
 const updatePasswordCooldown = 30 * 24 * time.Hour

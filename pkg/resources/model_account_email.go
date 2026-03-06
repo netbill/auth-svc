@@ -12,6 +12,7 @@ package resources
 
 import (
 	"encoding/json"
+	"github.com/google/uuid"
 	"bytes"
 	"fmt"
 )
@@ -21,7 +22,10 @@ var _ MappedNullable = &AccountEmail{}
 
 // AccountEmail struct for AccountEmail
 type AccountEmail struct {
-	Data AccountEmailData `json:"data"`
+	// account ID
+	Id uuid.UUID `json:"id"`
+	Type string `json:"type"`
+	Attributes AccountEmailAttributes `json:"attributes"`
 }
 
 type _AccountEmail AccountEmail
@@ -30,9 +34,11 @@ type _AccountEmail AccountEmail
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewAccountEmail(data AccountEmailData) *AccountEmail {
+func NewAccountEmail(id uuid.UUID, type_ string, attributes AccountEmailAttributes) *AccountEmail {
 	this := AccountEmail{}
-	this.Data = data
+	this.Id = id
+	this.Type = type_
+	this.Attributes = attributes
 	return &this
 }
 
@@ -44,28 +50,76 @@ func NewAccountEmailWithDefaults() *AccountEmail {
 	return &this
 }
 
-// GetData returns the Data field value
-func (o *AccountEmail) GetData() AccountEmailData {
+// GetId returns the Id field value
+func (o *AccountEmail) GetId() uuid.UUID {
 	if o == nil {
-		var ret AccountEmailData
+		var ret uuid.UUID
 		return ret
 	}
 
-	return o.Data
+	return o.Id
 }
 
-// GetDataOk returns a tuple with the Data field value
+// GetIdOk returns a tuple with the Id field value
 // and a boolean to check if the value has been set.
-func (o *AccountEmail) GetDataOk() (*AccountEmailData, bool) {
+func (o *AccountEmail) GetIdOk() (*uuid.UUID, bool) {
 	if o == nil {
 		return nil, false
 	}
-	return &o.Data, true
+	return &o.Id, true
 }
 
-// SetData sets field value
-func (o *AccountEmail) SetData(v AccountEmailData) {
-	o.Data = v
+// SetId sets field value
+func (o *AccountEmail) SetId(v uuid.UUID) {
+	o.Id = v
+}
+
+// GetType returns the Type field value
+func (o *AccountEmail) GetType() string {
+	if o == nil {
+		var ret string
+		return ret
+	}
+
+	return o.Type
+}
+
+// GetTypeOk returns a tuple with the Type field value
+// and a boolean to check if the value has been set.
+func (o *AccountEmail) GetTypeOk() (*string, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return &o.Type, true
+}
+
+// SetType sets field value
+func (o *AccountEmail) SetType(v string) {
+	o.Type = v
+}
+
+// GetAttributes returns the Attributes field value
+func (o *AccountEmail) GetAttributes() AccountEmailAttributes {
+	if o == nil {
+		var ret AccountEmailAttributes
+		return ret
+	}
+
+	return o.Attributes
+}
+
+// GetAttributesOk returns a tuple with the Attributes field value
+// and a boolean to check if the value has been set.
+func (o *AccountEmail) GetAttributesOk() (*AccountEmailAttributes, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return &o.Attributes, true
+}
+
+// SetAttributes sets field value
+func (o *AccountEmail) SetAttributes(v AccountEmailAttributes) {
+	o.Attributes = v
 }
 
 func (o AccountEmail) MarshalJSON() ([]byte, error) {
@@ -78,7 +132,9 @@ func (o AccountEmail) MarshalJSON() ([]byte, error) {
 
 func (o AccountEmail) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
-	toSerialize["data"] = o.Data
+	toSerialize["id"] = o.Id
+	toSerialize["type"] = o.Type
+	toSerialize["attributes"] = o.Attributes
 	return toSerialize, nil
 }
 
@@ -87,7 +143,9 @@ func (o *AccountEmail) UnmarshalJSON(data []byte) (err error) {
 	// by unmarshalling the object into a generic map with string keys and checking
 	// that every required field exists as a key in the generic map.
 	requiredProperties := []string{
-		"data",
+		"id",
+		"type",
+		"attributes",
 	}
 
 	allProperties := make(map[string]interface{})

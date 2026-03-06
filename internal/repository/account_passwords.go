@@ -6,8 +6,8 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/netbill/auth-svc/internal/core/errx"
-	"github.com/netbill/auth-svc/internal/core/models"
+	"github.com/netbill/auth-svc/internal/errx"
+	"github.com/netbill/auth-svc/internal/models"
 )
 
 type AccountPasswordRow struct {
@@ -51,8 +51,32 @@ type AccountPasswordsQ interface {
 	Exists(ctx context.Context) (bool, error)
 }
 
-func (r *Repository) GetAccountPassword(ctx context.Context, accountID uuid.UUID) (models.AccountPassword, error) {
-	row, err := r.AccountPassSql.New().FilterAccountID(accountID).Get(ctx)
+type AccountPasswordRepo struct {
+	query AccountPasswordsQ
+}
+
+func NewAccountPasswordRepo(query AccountPasswordsQ) *AccountPasswordRepo {
+	return &AccountPasswordRepo{
+		query: query,
+	}
+}
+
+func (r *AccountPasswordRepo) Create(ctx context.Context, params models.AccountPassword) error {
+	_, err := r.query.New().Insert(ctx, AccountPasswordRow{
+		AccountID: params.AccountID,
+		Hash:      params.Hash,
+	})
+	if err != nil {
+		return fmt.Errorf(
+			"failed to create account password for account %s, cause: %w", params.AccountID, err,
+		)
+	}
+
+	return nil
+}
+
+func (r *AccountPasswordRepo) GetByID(ctx context.Context, accountID uuid.UUID) (models.AccountPassword, error) {
+	row, err := r.query.New().FilterAccountID(accountID).Get(ctx)
 	switch {
 	case err != nil:
 		return models.AccountPassword{}, fmt.Errorf(
@@ -67,12 +91,12 @@ func (r *Repository) GetAccountPassword(ctx context.Context, accountID uuid.UUID
 	return row.ToModel(), nil
 }
 
-func (r *Repository) UpdateAccountPassword(
+func (r *AccountPasswordRepo) UpdatePassword(
 	ctx context.Context,
 	accountID uuid.UUID,
 	passwordHash string,
 ) (models.AccountPassword, error) {
-	acc, err := r.AccountPassSql.New().
+	acc, err := r.query.New().
 		FilterAccountID(accountID).
 		UpdateHash(passwordHash).
 		UpdateOne(ctx)

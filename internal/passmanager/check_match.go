@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/netbill/auth-svc/internal/core/errx"
+	"github.com/netbill/auth-svc/internal/errx"
 	"golang.org/x/crypto/bcrypt"
 )
 

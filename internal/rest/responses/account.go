@@ -1,24 +1,53 @@
 package responses
 
 import (
-	"github.com/netbill/auth-svc/internal/core/models"
-	resources2 "github.com/netbill/auth-svc/pkg/resources"
+	"github.com/netbill/auth-svc/internal/models"
+	"github.com/netbill/auth-svc/pkg/resources"
 )
 
-func Account(m models.Account) resources2.Account {
-	resp := resources2.Account{
-		Data: resources2.AccountData{
-			Id:   m.ID,
-			Type: "account",
-			Attributes: resources2.AccountDataAttributes{
-				Role:      m.Role,
-				Username:  m.Username,
-				Version:   m.Version,
-				CreatedAt: m.CreatedAt,
-				UpdatedAt: m.UpdatedAt,
-			},
+type accountResponse struct {
+	account models.Account
+	email   *models.AccountEmail
+}
+
+type AccountOption func(*accountResponse)
+
+func WithAccountEmail(email models.AccountEmail) AccountOption {
+	return func(res *accountResponse) {
+		res.email = &email
+	}
+}
+
+func Account(
+	m models.Account,
+	opts ...AccountOption,
+) resources.Account {
+	res := &accountResponse{
+		account: m,
+	}
+	for _, opt := range opts {
+		opt(res)
+	}
+
+	data := resources.AccountData{
+		Id:   m.ID,
+		Type: "account",
+		Attributes: resources.AccountDataAttributes{
+			Role:      m.Role,
+			Username:  m.Username,
+			Version:   m.Version,
+			CreatedAt: m.CreatedAt,
+			UpdatedAt: m.UpdatedAt,
 		},
 	}
 
-	return resp
+	included := make([]resources.AccountEmail, 0)
+	if res.email != nil {
+		included = append(included, AccountEmailData(*res.email))
+	}
+
+	return resources.Account{
+		Data:     data,
+		Included: included,
+	}
 }

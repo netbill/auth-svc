@@ -6,8 +6,8 @@ import (
 	"errors"
 	"log/slog"
 
-	"github.com/netbill/auth-svc/internal/core/errx"
-	"github.com/netbill/auth-svc/internal/core/models"
+	errx2 "github.com/netbill/auth-svc/internal/errx"
+	"github.com/netbill/auth-svc/internal/models"
 	"github.com/netbill/eventbox"
 	"github.com/netbill/evtypes"
 )
@@ -26,23 +26,23 @@ func (h *Handler) OrgMemberCreated(
 	log := h.log.WithOperation(operationOrgMemberCreated).
 		With(slog.String("member_id", payload.MemberID.String()))
 
-	err := h.modules.org.CreateOrgMember(ctx, models.OrgMember{
+	err := h.modules.org.CreateMember(ctx, models.OrgMember{
 		ID:             payload.MemberID,
 		AccountID:      payload.AccountID,
 		OrganizationID: payload.OrganizationID,
 		CreatedAt:      payload.CreatedAt,
 	})
 	switch {
-	case errors.Is(err, errx.ErrorOrgMemberDeleted):
+	case errors.Is(err, errx2.ErrorOrgMemberDeleted):
 		log.Debug("received org member created already deleted org member")
 		return nil
-	case errors.Is(err, errx.ErrorAccountDeleted):
+	case errors.Is(err, errx2.ErrorAccountDeleted):
 		log.Debug("received org member created event for already deleted account")
 		return nil
-	case errors.Is(err, errx.ErrorOrganizationDeleted):
+	case errors.Is(err, errx2.ErrorOrganizationDeleted):
 		log.Debug("received org member created event for already deleted organization")
 		return nil
-	case errors.Is(err, errx.ErrorOrgMemberAlreadyExists):
+	case errors.Is(err, errx2.ErrorOrgMemberAlreadyExists):
 		log.Debug("received org member created event for already existing org member")
 		return nil
 	case err != nil:
@@ -68,15 +68,15 @@ func (h *Handler) OrgMemberDeleted(
 	log := h.log.WithOperation(operationOrgMemberDeleted).
 		With(slog.String("member_id", payload.MemberID.String()))
 
-	err := h.modules.org.DeleteOrgMember(ctx, payload.MemberID)
+	err := h.modules.org.DeleteMember(ctx, payload.MemberID)
 	switch {
-	case errors.Is(err, errx.ErrorOrgMemberDeleted):
+	case errors.Is(err, errx2.ErrorOrgMemberDeleted):
 		log.Debug("received org member deleted event for already deleted org member")
 		return nil
-	case errors.Is(err, errx.ErrorAccountDeleted):
+	case errors.Is(err, errx2.ErrorAccountDeleted):
 		log.Debug("received org member deleted event for already deleted account")
 		return nil
-	case errors.Is(err, errx.ErrorOrganizationDeleted):
+	case errors.Is(err, errx2.ErrorOrganizationDeleted):
 		log.Debug("received org member deleted event for already deleted organization")
 		return nil
 	case err != nil:
