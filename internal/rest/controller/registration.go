@@ -4,8 +4,8 @@ import (
 	"errors"
 	"net/http"
 
-	core2 "github.com/netbill/auth-svc/internal/core/auth"
-	errx2 "github.com/netbill/auth-svc/internal/errx"
+	"github.com/netbill/auth-svc/internal/core/auth"
+	"github.com/netbill/auth-svc/internal/errx"
 	"github.com/netbill/auth-svc/internal/rest/requests"
 	"github.com/netbill/auth-svc/internal/rest/responses"
 	"github.com/netbill/auth-svc/internal/rest/scope"
@@ -28,7 +28,7 @@ func (c *AuthController) Registration(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, err = c.auth.Registration(r.Context(), core2.RegistrationParams{
+	_, err = c.auth.Registration(r.Context(), auth.RegistrationParams{
 		Email:    req.Data.Attributes.Email,
 		Password: req.Data.Attributes.Password,
 		Username: req.Data.Attributes.Username,
@@ -36,18 +36,18 @@ func (c *AuthController) Registration(w http.ResponseWriter, r *http.Request) {
 	})
 
 	switch {
-	case errors.Is(err, errx2.ErrorEmailAlreadyExist):
+	case errors.Is(err, errx.ErrorEmailAlreadyExist):
 		log.WithError(err).Warn("email already exists")
 		render.ResponseError(w, problems.Conflict("user with this email already exists"))
-	case errors.Is(err, errx2.ErrorUsernameAlreadyTaken):
+	case errors.Is(err, errx.ErrorUsernameAlreadyTaken):
 		log.WithError(err).Warn("username already taken")
 		render.ResponseError(w, problems.Conflict("user with this username already exists"))
-	case errors.Is(err, errx2.ErrorUsernameIsNotAllowed):
+	case errors.Is(err, errx.ErrorUsernameIsNotAllowed):
 		log.WithError(err).Warn("username is not allowed")
 		render.ResponseError(w, problems.BadRequest(validation.Errors{
 			"data/attributes/username": err,
 		})...)
-	case errors.Is(err, errx2.ErrorPasswordIsNotAllowed):
+	case errors.Is(err, errx.ErrorPasswordIsNotAllowed):
 		log.WithError(err).Warn("password is not allowed")
 		render.ResponseError(w, problems.BadRequest(validation.Errors{
 			"data/attributes/password": err,
@@ -79,36 +79,33 @@ func (c *AuthController) RegistrationByAdmin(w http.ResponseWriter, r *http.Requ
 		"role":     req.Data.Attributes.Role,
 	})
 
-	u, err := c.auth.Registration(
-		r.Context(),
-		core2.RegistrationParams{
-			Email:    req.Data.Attributes.Email,
-			Username: req.Data.Attributes.Username,
-			Password: req.Data.Attributes.Password,
-			Role:     req.Data.Attributes.Role,
-		},
-	)
+	u, err := c.auth.Registration(r.Context(), auth.RegistrationParams{
+		Email:    req.Data.Attributes.Email,
+		Username: req.Data.Attributes.Username,
+		Password: req.Data.Attributes.Password,
+		Role:     req.Data.Attributes.Role,
+	})
 	switch {
-	case errors.Is(err, errx2.ErrorNotEnoughRights):
+	case errors.Is(err, errx.ErrorNotEnoughRights):
 		log.WithError(err).Warn("not enough rights to register admin")
 		render.ResponseError(w, problems.Forbidden("only admins can register new admin accounts"))
-	case errors.Is(err, errx2.ErrorEmailAlreadyExist):
+	case errors.Is(err, errx.ErrorEmailAlreadyExist):
 		log.WithError(err).Warn("email already exists")
 		render.ResponseError(w, problems.Conflict("user with this email already exists"))
-	case errors.Is(err, errx2.ErrorUsernameAlreadyTaken):
+	case errors.Is(err, errx.ErrorUsernameAlreadyTaken):
 		log.WithError(err).Warn("username already taken")
 		render.ResponseError(w, problems.Conflict("user with this username already exists"))
-	case errors.Is(err, errx2.ErrorUsernameIsNotAllowed):
+	case errors.Is(err, errx.ErrorUsernameIsNotAllowed):
 		log.WithError(err).Warn("username is not allowed")
 		render.ResponseError(w, problems.BadRequest(validation.Errors{
 			"data/attributes/username": err,
 		})...)
-	case errors.Is(err, errx2.ErrorPasswordIsNotAllowed):
+	case errors.Is(err, errx.ErrorPasswordIsNotAllowed):
 		log.WithError(err).Warn("password is not allowed")
 		render.ResponseError(w, problems.BadRequest(validation.Errors{
 			"data/attributes/password": err,
 		})...)
-	case errors.Is(err, errx2.ErrorRoleNotSupported):
+	case errors.Is(err, errx.ErrorRoleNotSupported):
 		log.WithError(err).Warn("role is not supported")
 		render.ResponseError(w, problems.BadRequest(validation.Errors{
 			"data/attributes/role": err,

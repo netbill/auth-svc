@@ -1,7 +1,7 @@
 /*
 netbill auth-svc API
 
-swagger documentation for auth-svc
+API documentation for auth-svc
 
 API version: 0.1.0
 */
@@ -41,6 +41,7 @@ func (r ApiAuthSvcV1LoginEmailPostRequest) Execute() (*TokensPair, *http.Respons
 AuthSvcV1LoginEmailPost Login by email
 
 Endpoint to login a user using their email and password.
+
 
  @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
  @return ApiAuthSvcV1LoginEmailPostRequest
@@ -250,17 +251,6 @@ func (a *LoginAPIService) AuthSvcV1LoginGoogleCallbackGetExecute(r ApiAuthSvcV1L
 			error: localVarHTTPResponse.Status,
 		}
 		if localVarHTTPResponse.StatusCode == 400 {
-			var v Errors
-			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
-			if err != nil {
-				newErr.error = err.Error()
-				return localVarReturnValue, localVarHTTPResponse, newErr
-			}
-					newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
-					newErr.model = v
-			return localVarReturnValue, localVarHTTPResponse, newErr
-		}
-		if localVarHTTPResponse.StatusCode == 403 {
 			var v Errors
 			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
 			if err != nil {

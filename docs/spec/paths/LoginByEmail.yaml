@@ -2,13 +2,15 @@ post:
   tags:
     - login
   summary: Login by email
-  description: Endpoint to login a user using their email and password.
+  description: >
+    Endpoint to login a user using their email and password.
   requestBody:
     required: true
     content:
       application/json:
         schema:
           $ref: '../components/schemas/requests/LoginByEmail.yaml'
+
   responses:
     '200':
       description: Successful login
@@ -16,14 +18,15 @@ post:
         application/json:
           schema:
             $ref: '../components/schemas/responses/TokensPair.yaml'
+
     '401':
       description: >
         Unauthorized: Invalid email or password.
-        Check the 'detail' field in the response for more information.
       content:
         application/json:
           schema:
             $ref: '../components/schemas/responses/Errors.yaml'
+
     '500':
       description: Internal server error
       content:

@@ -14,6 +14,7 @@ post:
           schema:
             type: string
             format: uri
+
     '500':
       description: Internal Server Error
       content:

@@ -4,14 +4,13 @@ import (
 	"errors"
 	"net/http"
 
+	validation "github.com/go-ozzo/ozzo-validation/v4"
 	"github.com/netbill/auth-svc/internal/errx"
 	"github.com/netbill/auth-svc/internal/rest/requests"
 	"github.com/netbill/auth-svc/internal/rest/responses"
 	"github.com/netbill/auth-svc/internal/rest/scope"
 	"github.com/netbill/restkit/problems"
 	"github.com/netbill/restkit/render"
-
-	validation "github.com/go-ozzo/ozzo-validation/v4"
 )
 
 const operationUpdateUsername = "update_username"

@@ -1,7 +1,7 @@
 /*
 netbill auth-svc API
 
-swagger documentation for auth-svc
+API documentation for auth-svc
 
 API version: 0.1.0
 */
@@ -37,7 +37,6 @@ func (r ApiAuthSvcV1MeLogoutPostRequest) Execute() (*http.Response, error) {
 AuthSvcV1MeLogoutPost Logout
 
 Invalidates the current session of the authenticated account.
-**401 Unauthorized** is returned when the account cannot be resolved from the provided credentials.
 
 
  @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
@@ -229,17 +228,6 @@ func (a *SessionsAPIService) AuthSvcV1MeSessionsDeleteExecute(r ApiAuthSvcV1MeSe
 					newErr.model = v
 			return localVarHTTPResponse, newErr
 		}
-		if localVarHTTPResponse.StatusCode == 403 {
-			var v Errors
-			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
-			if err != nil {
-				newErr.error = err.Error()
-				return localVarHTTPResponse, newErr
-			}
-					newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
-					newErr.model = v
-			return localVarHTTPResponse, newErr
-		}
 		if localVarHTTPResponse.StatusCode == 500 {
 			var v Errors
 			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
@@ -373,17 +361,6 @@ func (a *SessionsAPIService) AuthSvcV1MeSessionsGetExecute(r ApiAuthSvcV1MeSessi
 					newErr.model = v
 			return localVarReturnValue, localVarHTTPResponse, newErr
 		}
-		if localVarHTTPResponse.StatusCode == 403 {
-			var v Errors
-			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
-			if err != nil {
-				newErr.error = err.Error()
-				return localVarReturnValue, localVarHTTPResponse, newErr
-			}
-					newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
-					newErr.model = v
-			return localVarReturnValue, localVarHTTPResponse, newErr
-		}
 		if localVarHTTPResponse.StatusCode == 500 {
 			var v Errors
 			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
@@ -422,7 +399,7 @@ func (r ApiAuthSvcV1MeSessionsSessionIdDeleteRequest) Execute() (*http.Response,
 /*
 AuthSvcV1MeSessionsSessionIdDelete Delete my sessions
 
-Deletes all sessions of the authenticated account (logout from all devices).
+Delete session by ID
 
 
  @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
@@ -497,17 +474,6 @@ func (a *SessionsAPIService) AuthSvcV1MeSessionsSessionIdDeleteExecute(r ApiAuth
 			error: localVarHTTPResponse.Status,
 		}
 		if localVarHTTPResponse.StatusCode == 401 {
-			var v Errors
-			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
-			if err != nil {
-				newErr.error = err.Error()
-				return localVarHTTPResponse, newErr
-			}
-					newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
-					newErr.model = v
-			return localVarHTTPResponse, newErr
-		}
-		if localVarHTTPResponse.StatusCode == 403 {
 			var v Errors
 			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
 			if err != nil {
@@ -654,17 +620,6 @@ func (a *SessionsAPIService) AuthSvcV1MeSessionsSessionIdGetExecute(r ApiAuthSvc
 					newErr.model = v
 			return localVarReturnValue, localVarHTTPResponse, newErr
 		}
-		if localVarHTTPResponse.StatusCode == 403 {
-			var v Errors
-			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
-			if err != nil {
-				newErr.error = err.Error()
-				return localVarReturnValue, localVarHTTPResponse, newErr
-			}
-					newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
-					newErr.model = v
-			return localVarReturnValue, localVarHTTPResponse, newErr
-		}
 		if localVarHTTPResponse.StatusCode == 500 {
 			var v Errors
 			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
@@ -799,17 +754,6 @@ func (a *SessionsAPIService) AuthSvcV1RefreshPostExecute(r ApiAuthSvcV1RefreshPo
 			return localVarReturnValue, localVarHTTPResponse, newErr
 		}
 		if localVarHTTPResponse.StatusCode == 401 {
-			var v Errors
-			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
-			if err != nil {
-				newErr.error = err.Error()
-				return localVarReturnValue, localVarHTTPResponse, newErr
-			}
-					newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
-					newErr.model = v
-			return localVarReturnValue, localVarHTTPResponse, newErr
-		}
-		if localVarHTTPResponse.StatusCode == 403 {
 			var v Errors
 			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
 			if err != nil {

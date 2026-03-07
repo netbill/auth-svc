@@ -30,7 +30,7 @@ type accountRepo interface {
 	Delete(ctx context.Context, accountID uuid.UUID) error
 }
 
-type accountEmailRepo interface {
+type emailRepo interface {
 	Create(ctx context.Context, params models.AccountEmail) error
 
 	GetByID(ctx context.Context, accountID uuid.UUID) (models.AccountEmail, error)
@@ -38,7 +38,7 @@ type accountEmailRepo interface {
 	ExistsByEmail(ctx context.Context, email string) (bool, error)
 }
 
-type accountPasswordRepo interface {
+type passwordRepo interface {
 	Create(ctx context.Context, params models.AccountPassword) error
 
 	GetByID(ctx context.Context, accountID uuid.UUID) (models.AccountPassword, error)
@@ -50,7 +50,7 @@ type accountPasswordRepo interface {
 	) (models.AccountPassword, error)
 }
 
-type accountSessionRepo interface {
+type sessionRepo interface {
 	Create(
 		ctx context.Context,
 		sessionID, accountID uuid.UUID,
@@ -79,11 +79,11 @@ type accountSessionRepo interface {
 	DeleteOneForAccount(ctx context.Context, accountID, sessionID uuid.UUID) error
 }
 
-type accountOrgRepo interface {
+type orgRepo interface {
 	ExistMemberByAccount(ctx context.Context, accountID uuid.UUID) (bool, error)
 }
 
-type accountTombstoneRepo interface {
+type tombstoneRepo interface {
 	BuryAccount(ctx context.Context, accountID uuid.UUID) error
 	BurySession(ctx context.Context, sessionID uuid.UUID) error
 	BuryAccountSessions(ctx context.Context, accountID uuid.UUID) error

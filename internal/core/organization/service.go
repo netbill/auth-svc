@@ -5,21 +5,21 @@ import (
 	"fmt"
 
 	"github.com/google/uuid"
-	errx2 "github.com/netbill/auth-svc/internal/errx"
+	"github.com/netbill/auth-svc/internal/errx"
 	"github.com/netbill/auth-svc/internal/models"
 )
 
 type Service struct {
 	org       orgRepo
-	member    orgMemberRepo
-	tombstone orgTombstoneRepo
+	member    memberRepo
+	tombstone tombstoneRepo
 	tx        transaction
 }
 
 type OrgCoreDeps struct {
 	Org       orgRepo
-	Member    orgMemberRepo
-	Tombstone orgTombstoneRepo
+	Member    memberRepo
+	Tombstone tombstoneRepo
 	Tx        transaction
 }
 
@@ -41,7 +41,7 @@ func (s *Service) Create(
 		return err
 	}
 	if buried {
-		return errx2.ErrorOrganizationDeleted.Raise(
+		return errx.ErrorOrganizationDeleted.Raise(
 			fmt.Errorf("organization with id %s is already deleted", organization.ID),
 		)
 	}
@@ -67,7 +67,7 @@ func (s *Service) Delete(ctx context.Context, organizationID uuid.UUID) error {
 		return err
 	}
 	if buried {
-		return errx2.ErrorOrganizationDeleted.Raise(
+		return errx.ErrorOrganizationDeleted.Raise(
 			fmt.Errorf("organization with id %s is already deleted", organizationID),
 		)
 	}
@@ -91,7 +91,7 @@ func (s *Service) CreateMember(ctx context.Context, member models.OrgMember) err
 		return err
 	}
 	if buried {
-		return errx2.ErrorOrgMemberDeleted.Raise(
+		return errx.ErrorOrgMemberDeleted.Raise(
 			fmt.Errorf("org member with id %s is already deleted", member.ID),
 		)
 	}
@@ -101,7 +101,7 @@ func (s *Service) CreateMember(ctx context.Context, member models.OrgMember) err
 		return err
 	}
 	if buried {
-		return errx2.ErrorAccountDeleted.Raise(
+		return errx.ErrorAccountDeleted.Raise(
 			fmt.Errorf("account with id %s is already deleted", member.AccountID),
 		)
 	}
@@ -111,7 +111,7 @@ func (s *Service) CreateMember(ctx context.Context, member models.OrgMember) err
 		return err
 	}
 	if buried {
-		return errx2.ErrorOrganizationDeleted.Raise(
+		return errx.ErrorOrganizationDeleted.Raise(
 			fmt.Errorf("organization with id %s is already deleted", member.OrganizationID),
 		)
 	}
@@ -125,7 +125,7 @@ func (s *Service) DeleteMember(ctx context.Context, memberID uuid.UUID) error {
 		return err
 	}
 	if buried {
-		return errx2.ErrorOrgMemberDeleted.Raise(
+		return errx.ErrorOrgMemberDeleted.Raise(
 			fmt.Errorf("org member with id %s is already deleted", memberID),
 		)
 	}
@@ -135,7 +135,7 @@ func (s *Service) DeleteMember(ctx context.Context, memberID uuid.UUID) error {
 		return err
 	}
 	if buried {
-		return errx2.ErrorAccountDeleted.Raise(
+		return errx.ErrorAccountDeleted.Raise(
 			fmt.Errorf("account with id %s is already deleted", memberID),
 		)
 	}

@@ -4,16 +4,16 @@ import (
 	"context"
 
 	"github.com/google/uuid"
-	core2 "github.com/netbill/auth-svc/internal/core/auth"
+	auth "github.com/netbill/auth-svc/internal/core/auth"
 	"github.com/netbill/auth-svc/internal/models"
 	"github.com/netbill/restkit/pagi"
 	"golang.org/x/oauth2"
 )
 
-type authModule interface {
+type authCore interface {
 	Registration(
 		ctx context.Context,
-		params core2.RegistrationParams,
+		params auth.RegistrationParams,
 	) (models.Account, error)
 
 	LoginByEmail(ctx context.Context, email, password string) (models.TokensPair, error)
@@ -52,10 +52,10 @@ type authModule interface {
 
 type AuthController struct {
 	google oauth2.Config
-	auth   authModule
+	auth   authCore
 }
 
-func NewAuth(core authModule, google oauth2.Config) *AuthController {
+func NewAuth(core authCore, google oauth2.Config) *AuthController {
 	return &AuthController{
 		google: google,
 		auth:   core,

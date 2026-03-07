@@ -51,3 +51,16 @@ func Account(
 		Included: included,
 	}
 }
+
+func AccountEmailData(ae models.AccountEmail) resources.AccountEmail {
+	return resources.AccountEmail{
+		Id:   ae.AccountID,
+		Type: "account_email",
+		Attributes: resources.AccountEmailAttributes{
+			Email:     ae.Email,
+			Version:   ae.Version,
+			Verified:  ae.Verified,
+			UpdatedAt: ae.UpdatedAt,
+		},
+	}
+}

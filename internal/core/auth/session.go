@@ -6,7 +6,7 @@ import (
 	"fmt"
 
 	"github.com/google/uuid"
-	errx2 "github.com/netbill/auth-svc/internal/errx"
+	"github.com/netbill/auth-svc/internal/errx"
 	"github.com/netbill/auth-svc/internal/models"
 	"github.com/netbill/restkit/pagi"
 )
@@ -16,18 +16,18 @@ func (s *Service) validateActorSession(
 	actor models.AccountActor,
 ) (models.Account, models.Session, error) {
 	account, err := s.account.GetByID(ctx, actor.ID)
-	if errors.Is(err, errx2.ErrorAccountNotFound) {
+	if errors.Is(err, errx.ErrorAccountNotFound) {
 		buried, err := s.tombstone.AccountIsBuried(ctx, actor.ID)
 		if err != nil {
 			return models.Account{}, models.Session{}, err
 		}
 		if buried {
-			return models.Account{}, models.Session{}, errx2.ErrorAccountInvalidSession.Raise(
+			return models.Account{}, models.Session{}, errx.ErrorAccountInvalidSession.Raise(
 				fmt.Errorf("account with id %s is buried", actor.ID),
 			)
 		}
 
-		return models.Account{}, models.Session{}, errx2.ErrorAccountInvalidSession.Raise(
+		return models.Account{}, models.Session{}, errx.ErrorAccountInvalidSession.Raise(
 			fmt.Errorf("account with id %s not found", actor.ID),
 		)
 	}
@@ -36,18 +36,18 @@ func (s *Service) validateActorSession(
 	}
 
 	session, err := s.session.GetByID(ctx, actor.SessionID)
-	if errors.Is(err, errx2.ErrorSessionNotFound) {
+	if errors.Is(err, errx.ErrorSessionNotFound) {
 		buried, err := s.tombstone.SessionIsBuried(ctx, actor.SessionID)
 		if err != nil {
 			return models.Account{}, models.Session{}, err
 		}
 		if buried {
-			return models.Account{}, models.Session{}, errx2.ErrorAccountInvalidSession.Raise(
+			return models.Account{}, models.Session{}, errx.ErrorAccountInvalidSession.Raise(
 				fmt.Errorf("session with id %s is buried", actor.SessionID),
 			)
 		}
 
-		return models.Account{}, models.Session{}, errx2.ErrorAccountInvalidSession.Raise(
+		return models.Account{}, models.Session{}, errx.ErrorAccountInvalidSession.Raise(
 			fmt.Errorf("session with id %s not found", actor.SessionID),
 		)
 	}
@@ -116,7 +116,7 @@ func (s *Service) Refresh(ctx context.Context, oldRefreshToken string) (models.T
 	}
 
 	if incomingHash != storedHash {
-		return models.TokensPair{}, errx2.ErrorSessionTokenMismatch.Raise(
+		return models.TokensPair{}, errx.ErrorSessionTokenMismatch.Raise(
 			fmt.Errorf(
 				"refresh token does not match for session %s and account %s",
 				tokenData.SessionID, tokenData.GetAccountID(),

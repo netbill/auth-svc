@@ -4,8 +4,6 @@ post:
   summary: Logout
   description: >
     Invalidates the current session of the authenticated account.
-
-    **401 Unauthorized** is returned when the account cannot be resolved from the provided credentials.
   security:
     - BearerAuth: [ ]
   responses:
@@ -20,15 +18,6 @@ post:
         application/json:
           schema:
             $ref: '../components/schemas/responses/Errors.yaml'
-          examples:
-            failedToGetUserFromContext:
-              summary: failed to get user from context
-              value:
-                errors:
-                  - status: 401
-                    title: Unauthorized
-                    code: UNAUTHORIZED
-                    detail: failed to get user from context
 
     '500':
       description: Internal Server Error

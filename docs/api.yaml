@@ -1,7 +1,7 @@
 openapi: 3.1.1
 info:
   title: netbill auth-svc API
-  description: swagger documentation for auth-svc 
+  description: API documentation for auth-svc
   version: 0.1.0
 
 servers:
@@ -21,13 +21,12 @@ paths:
     $ref: './spec/paths/LoginByGoogle.yaml'
   /auth-svc/v1/login/google/callback:
     $ref: './spec/paths/LoginByGoogleCallback.yaml'
+
   /auth-svc/v1/refresh:
     $ref: './spec/paths/RefreshSession.yaml'
 
   /auth-svc/v1/me:
     $ref: './spec/paths/MyAccount.yaml'
-  /auth-svc/v1/me/email:
-    $ref: './spec/paths/MyEmailData.yaml'
   /auth-svc/v1/me/logout:
     $ref: './spec/paths/Logout.yaml'
   /auth-svc/v1/me/password:
@@ -40,6 +39,12 @@ paths:
     $ref: './spec/paths/MySession.yaml'
 
 components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
   schemas:
     #requests
     LoginByEmail:

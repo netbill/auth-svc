@@ -1,4 +1,4 @@
-package handler
+package evcontroller
 
 import (
 	"context"
@@ -8,17 +8,17 @@ import (
 	"github.com/netbill/auth-svc/pkg/log"
 )
 
-type Handler struct {
+type OrgController struct {
 	log     *log.Logger
 	modules modules
 }
 
 type modules struct {
-	org orgModule
+	org orgCore
 }
 
-func New(log *log.Logger, org orgModule) *Handler {
-	return &Handler{
+func New(log *log.Logger, org orgCore) *OrgController {
+	return &OrgController{
 		log: log,
 		modules: modules{
 			org: org,
@@ -26,7 +26,7 @@ func New(log *log.Logger, org orgModule) *Handler {
 	}
 }
 
-type orgModule interface {
+type orgCore interface {
 	Create(ctx context.Context, organization models.Organization) error
 	Get(ctx context.Context, organizationID uuid.UUID) (models.Organization, error)
 	Delete(ctx context.Context, organizationID uuid.UUID) error

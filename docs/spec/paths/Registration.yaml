@@ -12,6 +12,7 @@ post:
   responses:
     '201':
       description: Account successfully registered
+
     '409':
       description: >
         Conflict: An account with this email or phone number already exists.
@@ -20,6 +21,7 @@ post:
         application/json:
           schema:
             $ref: '../components/schemas/responses/Errors.yaml'
+
     '500':
       description: Internal server error
       content:

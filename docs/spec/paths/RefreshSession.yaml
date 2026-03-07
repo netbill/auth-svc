@@ -32,55 +32,11 @@ post:
 
     '401':
       description: >
-        Unauthorized. Account not found or session not found.
-        Check the `detail` field in the response for more information.
+        Unauthorized. Account not found or session not found or invalid refresh token.
       content:
         application/json:
           schema:
             $ref: '../components/schemas/responses/Errors.yaml'
-          examples:
-            accountNotFound:
-              summary: account not found
-              value:
-                errors:
-                  - status: 401
-                    title: Unauthorized
-                    code: UNAUTHORIZED
-                    detail: account not found
-            sessionNotFound:
-              summary: session not found
-              value:
-                errors:
-                  - status: 401
-                    title: Unauthorized
-                    code: UNAUTHORIZED
-                    detail: session not found
-
-    '403':
-      description: >
-        Forbidden. Account is not active or refresh token mismatch.
-        Check the `detail` field in the response for more information.
-      content:
-        application/json:
-          schema:
-            $ref: '../components/schemas/responses/Errors.yaml'
-          examples:
-            accountNotActive:
-              summary: account is not active
-              value:
-                errors:
-                  - status: 403
-                    title: Forbidden
-                    code: FORBIDDEN
-                    detail: account is not active
-            refreshTokenMismatch:
-              summary: refresh session token mismatch
-              value:
-                errors:
-                  - status: 403
-                    title: Forbidden
-                    code: FORBIDDEN
-                    detail: refresh session token mismatch
 
     '500':
       description: Internal Server Error

@@ -1,7 +1,7 @@
 # ==============================
 # 1) BUILD STAGE
 # ==============================
-ARG GO_VERSION=1.25.4
+ARG GO_VERSION=1.25.7
 FROM golang:${GO_VERSION}-alpine AS builder
 
 WORKDIR /service

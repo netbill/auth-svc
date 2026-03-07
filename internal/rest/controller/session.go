@@ -8,7 +8,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 	"github.com/google/uuid"
-	errx2 "github.com/netbill/auth-svc/internal/errx"
+	"github.com/netbill/auth-svc/internal/errx"
 	"github.com/netbill/auth-svc/internal/rest/requests"
 	"github.com/netbill/auth-svc/internal/rest/responses"
 	"github.com/netbill/auth-svc/internal/rest/scope"
@@ -38,10 +38,10 @@ func (c *AuthController) GetMySession(w http.ResponseWriter, r *http.Request) {
 
 	session, err := c.auth.GetMySession(r.Context(), scope.AccountActor(r), sessionID)
 	switch {
-	case errors.Is(err, errx2.ErrorAccountInvalidSession):
+	case errors.Is(err, errx.ErrorAccountInvalidSession):
 		log.WithError(err).Warn("invalid credentials")
 		render.ResponseError(w, problems.Unauthorized())
-	case errors.Is(err, errx2.ErrorSessionDeleted) || errors.Is(err, errx2.ErrorSessionNotFound):
+	case errors.Is(err, errx.ErrorSessionDeleted) || errors.Is(err, errx.ErrorSessionNotFound):
 		log.WithError(err).Warn("session not found")
 		render.ResponseError(w, problems.NotFound("session not found"))
 	case err != nil:
@@ -61,7 +61,7 @@ func (c *AuthController) GetMySessions(w http.ResponseWriter, r *http.Request) {
 
 	sessions, err := c.auth.GetMySessions(r.Context(), scope.AccountActor(r), limit, offset)
 	switch {
-	case errors.Is(err, errx2.ErrorAccountInvalidSession):
+	case errors.Is(err, errx.ErrorAccountInvalidSession):
 		log.WithError(err).Warn("invalid credentials")
 		render.ResponseError(w, problems.Unauthorized())
 	case err != nil:
@@ -86,18 +86,18 @@ func (c *AuthController) RefreshSession(w http.ResponseWriter, r *http.Request) 
 
 	tokensPair, err := c.auth.Refresh(r.Context(), req.Data.Attributes.RefreshToken)
 	switch {
-	case errors.Is(err, errx2.ErrorSessionExpired):
+	case errors.Is(err, errx.ErrorSessionExpired):
 		log.WithError(err).Warn("refresh token expired")
 		render.ResponseError(w, problems.Unauthorized())
-	case errors.Is(err, errx2.ErrorAccountNotFound):
+	case errors.Is(err, errx.ErrorAccountNotFound):
 		log.WithError(err).Warn("account not found")
 		render.ResponseError(w, problems.Unauthorized())
-	case errors.Is(err, errx2.ErrorSessionNotFound):
+	case errors.Is(err, errx.ErrorSessionNotFound):
 		log.WithError(err).Warn("session not found")
 		render.ResponseError(w, problems.Unauthorized())
-	case errors.Is(err, errx2.ErrorSessionTokenMismatch):
+	case errors.Is(err, errx.ErrorSessionTokenMismatch):
 		log.WithError(err).Warn("refresh token mismatch")
-		render.ResponseError(w, problems.Forbidden("refresh session token mismatch"))
+		render.ResponseError(w, problems.Unauthorized())
 	case err != nil:
 		log.WithError(err).Error("unexpected error")
 		render.ResponseError(w, problems.InternalError())
@@ -128,7 +128,7 @@ func (c *AuthController) DeleteMySession(w http.ResponseWriter, r *http.Request)
 
 	err = c.auth.DeleteMySession(r.Context(), scope.AccountActor(r), sessionID)
 	switch {
-	case errors.Is(err, errx2.ErrorAccountInvalidSession):
+	case errors.Is(err, errx.ErrorAccountInvalidSession):
 		log.WithError(err).Warn("invalid credentials")
 		render.ResponseError(w, problems.Unauthorized())
 	case err != nil:
@@ -147,7 +147,7 @@ func (c *AuthController) DeleteMySessions(w http.ResponseWriter, r *http.Request
 
 	err := c.auth.DeleteMySessions(r.Context(), scope.AccountActor(r))
 	switch {
-	case errors.Is(err, errx2.ErrorAccountInvalidSession):
+	case errors.Is(err, errx.ErrorAccountInvalidSession):
 		log.WithError(err).Warn("invalid credentials")
 		render.ResponseError(w, problems.Unauthorized())
 	case err != nil:

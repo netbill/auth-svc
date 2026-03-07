@@ -1,6 +1,6 @@
 openapi: 3.1.1
 info:
-  description: swagger documentation for auth-svc
+  description: API documentation for auth-svc
   title: netbill auth-svc API
   version: 0.1.0
 servers:
@@ -38,7 +38,6 @@ paths:
     post:
       description: |
         Registers a new account by an authenticated admin.
-        **403 Forbidden** is returned when the initiator is not active or does not have enough rights. **409 Conflict** is returned when the email is already taken.
       requestBody:
         content:
           application/json:
@@ -55,27 +54,6 @@ paths:
         "400":
           content:
             application/json:
-              examples:
-                passwordNotAllowed:
-                  summary: password is not allowed
-                  value:
-                    errors:
-                    - status: 400
-                      title: Bad Request
-                      code: VALIDATION_ERROR
-                      detail: password is not allowed
-                      source:
-                        pointer: /data/attributes/password
-                roleNotSupported:
-                  summary: role is not supported
-                  value:
-                    errors:
-                    - status: 400
-                      title: Bad Request
-                      code: VALIDATION_ERROR
-                      detail: role is not supported
-                      source:
-                        pointer: /data/attributes/role
               schema:
                 $ref: "#/components/schemas/Errors"
           description: |
@@ -83,23 +61,6 @@ paths:
         "401":
           content:
             application/json:
-              examples:
-                failedToGetUserFromContext:
-                  summary: failed to get user from context
-                  value:
-                    errors:
-                    - status: 401
-                      title: Unauthorized
-                      code: UNAUTHORIZED
-                      detail: failed to get user from context
-                initiatorNotFound:
-                  summary: failed to register admin user not found
-                  value:
-                    errors:
-                    - status: 401
-                      title: Unauthorized
-                      code: UNAUTHORIZED
-                      detail: failed to register admin user not found
               schema:
                 $ref: "#/components/schemas/Errors"
           description: |
@@ -107,23 +68,6 @@ paths:
         "403":
           content:
             application/json:
-              examples:
-                initiatorNotActive:
-                  summary: initiator account is not active
-                  value:
-                    errors:
-                    - status: 403
-                      title: Forbidden
-                      code: FORBIDDEN
-                      detail: initiator account is not active
-                notEnoughRights:
-                  summary: only admins can register new admin accounts
-                  value:
-                    errors:
-                    - status: 403
-                      title: Forbidden
-                      code: FORBIDDEN
-                      detail: only admins can register new admin accounts
               schema:
                 $ref: "#/components/schemas/Errors"
           description: |
@@ -131,15 +75,6 @@ paths:
         "409":
           content:
             application/json:
-              examples:
-                emailAlreadyExists:
-                  summary: user with this email already exists
-                  value:
-                    errors:
-                    - status: 409
-                      title: Conflict
-                      code: CONFLICT
-                      detail: user with this email already exists
               schema:
                 $ref: "#/components/schemas/Errors"
           description: |
@@ -157,7 +92,8 @@ paths:
       - registration
   /auth-svc/v1/login/email:
     post:
-      description: Endpoint to login a user using their email and password.
+      description: |
+        Endpoint to login a user using their email and password.
       requestBody:
         content:
           application/json:
@@ -177,7 +113,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/Errors"
           description: |
-            Unauthorized: Invalid email or password. Check the 'detail' field in the response for more information.
+            Unauthorized: Invalid email or password.
         "500":
           content:
             application/json:
@@ -266,47 +202,12 @@ paths:
         "400":
           content:
             application/json:
-              examples:
-                codeRequired:
-                  summary: code is required
-                  value:
-                    errors:
-                    - status: 400
-                      title: Bad Request
-                      code: VALIDATION_ERROR
-                      detail: code is required
-                      source:
-                        parameter: code
               schema:
                 $ref: "#/components/schemas/Errors"
           description: Missing or invalid query parameter `code`
-        "403":
-          content:
-            application/json:
-              examples:
-                notActive:
-                  summary: account is not active
-                  value:
-                    errors:
-                    - status: 403
-                      title: Forbidden
-                      code: ACCOUNT_NOT_ACTIVE
-                      detail: account is not active
-              schema:
-                $ref: "#/components/schemas/Errors"
-          description: Account is not active
         "404":
           content:
             application/json:
-              examples:
-                notFound:
-                  summary: user with this email not found
-                  value:
-                    errors:
-                    - status: 404
-                      title: Not Found
-                      code: ACCOUNT_NOT_FOUND
-                      detail: user with this email not found
               schema:
                 $ref: "#/components/schemas/Errors"
           description: Account not found for this email
@@ -347,51 +248,10 @@ paths:
         "401":
           content:
             application/json:
-              examples:
-                accountNotFound:
-                  summary: account not found
-                  value:
-                    errors:
-                    - status: 401
-                      title: Unauthorized
-                      code: UNAUTHORIZED
-                      detail: account not found
-                sessionNotFound:
-                  summary: session not found
-                  value:
-                    errors:
-                    - status: 401
-                      title: Unauthorized
-                      code: UNAUTHORIZED
-                      detail: session not found
               schema:
                 $ref: "#/components/schemas/Errors"
           description: |
-            Unauthorized. Account not found or session not found. Check the `detail` field in the response for more information.
-        "403":
-          content:
-            application/json:
-              examples:
-                accountNotActive:
-                  summary: account is not active
-                  value:
-                    errors:
-                    - status: 403
-                      title: Forbidden
-                      code: FORBIDDEN
-                      detail: account is not active
-                refreshTokenMismatch:
-                  summary: refresh session token mismatch
-                  value:
-                    errors:
-                    - status: 403
-                      title: Forbidden
-                      code: FORBIDDEN
-                      detail: refresh session token mismatch
-              schema:
-                $ref: "#/components/schemas/Errors"
-          description: |
-            Forbidden. Account is not active or refresh token mismatch. Check the `detail` field in the response for more information.
+            Unauthorized. Account not found or session not found or invalid refresh token.
         "500":
           content:
             application/json:
@@ -405,38 +265,12 @@ paths:
     delete:
       description: |
         Deletes the authenticated account.
-        **401 Unauthorized** is returned when the account cannot be resolved from the provided credentials or the session is invalid. **403 Forbidden** is returned when the initiator account is blocked.
       responses:
         "204":
           description: Account successfully deleted
         "401":
           content:
             application/json:
-              examples:
-                failedToGetUserFromContext:
-                  summary: failed to get user from context
-                  value:
-                    errors:
-                    - status: 401
-                      title: Unauthorized
-                      code: UNAUTHORIZED
-                      detail: failed to get user from context
-                initiatorNotFound:
-                  summary: initiator account not found by credentials
-                  value:
-                    errors:
-                    - status: 401
-                      title: Unauthorized
-                      code: UNAUTHORIZED
-                      detail: initiator account not found by credentials
-                sessionInvalid:
-                  summary: initiator session is invalid
-                  value:
-                    errors:
-                    - status: 401
-                      title: Unauthorized
-                      code: UNAUTHORIZED
-                      detail: initiator session is invalid
               schema:
                 $ref: "#/components/schemas/Errors"
           description: |
@@ -444,19 +278,10 @@ paths:
         "403":
           content:
             application/json:
-              examples:
-                initiatorBlocked:
-                  summary: initiator is blocked
-                  value:
-                    errors:
-                    - status: 403
-                      title: Forbidden
-                      code: FORBIDDEN
-                      detail: initiator is blocked
               schema:
                 $ref: "#/components/schemas/Errors"
           description: |
-            Forbidden. Initiator account is blocked. Check the `detail` field in the response for more information.
+            Account is have membership in an organization,  must leave all organizations before deleting the account.
         "500":
           content:
             application/json:
@@ -471,7 +296,20 @@ paths:
     get:
       description: |
         Returns the authenticated account.
-        **401 Unauthorized** is returned when the account cannot be resolved from the provided credentials or the initiator account is not found.
+      parameters:
+      - description: |
+          Optional related resources to include. Supported values: `email`.
+        explode: false
+        in: query
+        name: include
+        required: false
+        schema:
+          items:
+            enum:
+            - email
+            type: string
+          type: array
+        style: form
       responses:
         "200":
           content:
@@ -482,23 +320,6 @@ paths:
         "401":
           content:
             application/json:
-              examples:
-                failedToGetAccountFromContext:
-                  summary: failed to get account from context
-                  value:
-                    errors:
-                    - status: 401
-                      title: Unauthorized
-                      code: UNAUTHORIZED
-                      detail: failed to get account from context
-                initiatorNotFound:
-                  summary: initiator account not found by credentials
-                  value:
-                    errors:
-                    - status: 401
-                      title: Unauthorized
-                      code: UNAUTHORIZED
-                      detail: initiator account not found by credentials
               schema:
                 $ref: "#/components/schemas/Errors"
           description: |
@@ -514,73 +335,16 @@ paths:
       summary: Get my account
       tags:
       - accounts
-  /auth-svc/v1/me/email:
-    get:
-      description: |
-        Returns the email data of the authenticated account.
-        **401 Unauthorized** is returned when the account cannot be resolved from the provided credentials or the initiator account is not found.
-      responses:
-        "200":
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/AccountEmail"
-          description: Email data successfully retrieved
-        "401":
-          content:
-            application/json:
-              examples:
-                failedToGetUserFromContext:
-                  summary: failed to get user from context
-                  value:
-                    errors:
-                    - status: 401
-                      title: Unauthorized
-                      code: UNAUTHORIZED
-                      detail: failed to get user from context
-                initiatorNotFound:
-                  summary: initiator account not found by credentials
-                  value:
-                    errors:
-                    - status: 401
-                      title: Unauthorized
-                      code: UNAUTHORIZED
-                      detail: initiator account not found by credentials
-              schema:
-                $ref: "#/components/schemas/Errors"
-          description: |
-            Unauthorized. Invalid credentials or initiator account not found. Check the `detail` field in the response for more information.
-        "500":
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Errors"
-          description: Internal Server Error
-      security:
-      - BearerAuth: []
-      summary: Get my email data
-      tags:
-      - accounts
   /auth-svc/v1/me/logout:
     post:
       description: |
         Invalidates the current session of the authenticated account.
-        **401 Unauthorized** is returned when the account cannot be resolved from the provided credentials.
       responses:
         "204":
           description: Successfully logged out
         "401":
           content:
             application/json:
-              examples:
-                failedToGetUserFromContext:
-                  summary: failed to get user from context
-                  value:
-                    errors:
-                    - status: 401
-                      title: Unauthorized
-                      code: UNAUTHORIZED
-                      detail: failed to get user from context
               schema:
                 $ref: "#/components/schemas/Errors"
           description: |
@@ -613,17 +377,6 @@ paths:
         "400":
           content:
             application/json:
-              examples:
-                passwordNotAllowed:
-                  summary: password is not allowed
-                  value:
-                    errors:
-                    - status: 400
-                      title: Bad Request
-                      code: VALIDATION_ERROR
-                      detail: password is not allowed
-                      source:
-                        pointer: /data/attributes/password
               schema:
                 $ref: "#/components/schemas/Errors"
           description: |
@@ -631,67 +384,17 @@ paths:
         "401":
           content:
             application/json:
-              examples:
-                failedToGetUserFromContext:
-                  summary: failed to get user from context
-                  value:
-                    errors:
-                    - status: 401
-                      title: Unauthorized
-                      code: UNAUTHORIZED
-                      detail: failed to get user from context
-                userNotFound:
-                  summary: failed to update password user not found
-                  value:
-                    errors:
-                    - status: 401
-                      title: Unauthorized
-                      code: UNAUTHORIZED
-                      detail: failed to update password user not found
-                sessionInvalid:
-                  summary: initiator session is invalid
-                  value:
-                    errors:
-                    - status: 401
-                      title: Unauthorized
-                      code: UNAUTHORIZED
-                      detail: initiator session is invalid
-                invalidPassword:
-                  summary: invalid password
-                  value:
-                    errors:
-                    - status: 401
-                      title: Unauthorized
-                      code: UNAUTHORIZED
-                      detail: invalid password
               schema:
                 $ref: "#/components/schemas/Errors"
           description: |
-            Unauthorized. Invalid credentials, invalid session, user not found, or invalid password. Check the `detail` field in the response for more information.
+            Unauthorized. Invalid credentials, invalid session, user not found, or invalid password.
         "403":
           content:
             application/json:
-              examples:
-                initiatorBlocked:
-                  summary: initiator is blocked
-                  value:
-                    errors:
-                    - status: 403
-                      title: Forbidden
-                      code: FORBIDDEN
-                      detail: initiator is blocked
-                cannotChangePasswordYet:
-                  summary: cannot change password yet
-                  value:
-                    errors:
-                    - status: 403
-                      title: Forbidden
-                      code: FORBIDDEN
-                      detail: cannot change password yet
               schema:
                 $ref: "#/components/schemas/Errors"
           description: |
-            Forbidden. Initiator is blocked or password cannot be changed yet. Check the `detail` field in the response for more information.
+            Forbidden. Cannot change password yet due, password change timeout.
         "500":
           content:
             application/json:
@@ -724,17 +427,6 @@ paths:
         "400":
           content:
             application/json:
-              examples:
-                usernameNotAllowed:
-                  summary: username is not allowed
-                  value:
-                    errors:
-                    - status: 400
-                      title: Bad Request
-                      code: VALIDATION_ERROR
-                      detail: username is not allowed
-                      source:
-                        pointer: /data/attributes/new_username
               schema:
                 $ref: "#/components/schemas/Errors"
           description: |
@@ -742,47 +434,13 @@ paths:
         "401":
           content:
             application/json:
-              examples:
-                failedToGetUserFromContext:
-                  summary: failed to get user from context
-                  value:
-                    errors:
-                    - status: 401
-                      title: Unauthorized
-                      code: UNAUTHORIZED
-                      detail: failed to get user from context
-                userNotFound:
-                  summary: failed to update password user not found
-                  value:
-                    errors:
-                    - status: 401
-                      title: Unauthorized
-                      code: UNAUTHORIZED
-                      detail: failed to update password user not found
-                sessionInvalid:
-                  summary: initiator session is invalid
-                  value:
-                    errors:
-                    - status: 401
-                      title: Unauthorized
-                      code: UNAUTHORIZED
-                      detail: initiator session is invalid
               schema:
                 $ref: "#/components/schemas/Errors"
           description: |
-            Unauthorized. Invalid credentials, invalid session, user not found, or invalid password. Check the `detail` field in the response for more information.
+            Unauthorized. Invalid credentials, invalid session, user not found, or invalid password.
         "409":
           content:
             application/json:
-              examples:
-                usernameAlreadyTaken:
-                  summary: user with this username already exists
-                  value:
-                    errors:
-                    - status: 409
-                      title: Conflict
-                      code: CONFLICT
-                      detail: user with this username already exists
               schema:
                 $ref: "#/components/schemas/Errors"
           description: |
@@ -808,51 +466,10 @@ paths:
         "401":
           content:
             application/json:
-              examples:
-                failedToGetAccountFromContext:
-                  summary: failed to get account from context
-                  value:
-                    errors:
-                    - status: 401
-                      title: Unauthorized
-                      code: UNAUTHORIZED
-                      detail: failed to get account from context
-                initiatorNotFound:
-                  summary: initiator account not found by credentials
-                  value:
-                    errors:
-                    - status: 401
-                      title: Unauthorized
-                      code: UNAUTHORIZED
-                      detail: initiator account not found by credentials
-                sessionInvalid:
-                  summary: initiator session is invalid
-                  value:
-                    errors:
-                    - status: 401
-                      title: Unauthorized
-                      code: UNAUTHORIZED
-                      detail: initiator session is invalid
               schema:
                 $ref: "#/components/schemas/Errors"
           description: |
-            Unauthorized. Invalid credentials, initiator account not found, or session is invalid. Check the `detail` field in the response for more information.
-        "403":
-          content:
-            application/json:
-              examples:
-                initiatorNotActive:
-                  summary: initiator is not active
-                  value:
-                    errors:
-                    - status: 403
-                      title: Forbidden
-                      code: FORBIDDEN
-                      detail: initiator is not active
-              schema:
-                $ref: "#/components/schemas/Errors"
-          description: |
-            Forbidden. Initiator is not active or blocked. Check the `detail` field in the response for more information.
+            Unauthorized. Invalid credentials, initiator account not found, or session is invalid.
         "500":
           content:
             application/json:
@@ -897,51 +514,10 @@ paths:
         "401":
           content:
             application/json:
-              examples:
-                failedToGetUserFromContext:
-                  summary: failed to get user from context
-                  value:
-                    errors:
-                    - status: 401
-                      title: Unauthorized
-                      code: UNAUTHORIZED
-                      detail: failed to get user from context
-                initiatorNotFound:
-                  summary: initiator account not found by credentials
-                  value:
-                    errors:
-                    - status: 401
-                      title: Unauthorized
-                      code: UNAUTHORIZED
-                      detail: initiator account not found by credentials
-                sessionInvalid:
-                  summary: initiator session is invalid
-                  value:
-                    errors:
-                    - status: 401
-                      title: Unauthorized
-                      code: UNAUTHORIZED
-                      detail: initiator session is invalid
               schema:
                 $ref: "#/components/schemas/Errors"
           description: |
-            Unauthorized. Invalid credentials, initiator account not found, or session is invalid. Check the `detail` field in the response for more information.
-        "403":
-          content:
-            application/json:
-              examples:
-                initiatorBlocked:
-                  summary: initiator is blocked
-                  value:
-                    errors:
-                    - status: 403
-                      title: Forbidden
-                      code: FORBIDDEN
-                      detail: initiator is blocked
-              schema:
-                $ref: "#/components/schemas/Errors"
-          description: |
-            Forbidden. Initiator is blocked. Check the `detail` field in the response for more information.
+            Unauthorized. Invalid credentials, initiator account not found, or session is invalid.
         "500":
           content:
             application/json:
@@ -956,7 +532,7 @@ paths:
   /auth-svc/v1/me/sessions/{session_id}:
     delete:
       description: |
-        Deletes all sessions of the authenticated account (logout from all devices).
+        Delete session by ID
       parameters:
       - description: Session ID
         explode: false
@@ -969,19 +545,14 @@ paths:
         style: simple
       responses:
         "204":
-          description: Sessions successfully deleted
+          description: Session successfully deleted
         "401":
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Errors"
-          description: Unauthorized
-        "403":
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Errors"
-          description: Forbidden
+          description: "Unauthorized, session not exist or session does not belong\
+            \ to the authenticated account"
         "500":
           content:
             application/json:
@@ -1037,12 +608,6 @@ paths:
               schema:
                 $ref: "#/components/schemas/Errors"
           description: Unauthorized
-        "403":
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Errors"
-          description: Forbidden
         "500":
           content:
             application/json:
@@ -1784,3 +1349,8 @@ components:
       required:
       - status
       - title
+  securitySchemes:
+    BearerAuth:
+      bearerFormat: JWT
+      scheme: bearer
+      type: http

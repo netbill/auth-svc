@@ -8,7 +8,7 @@ import (
 	"github.com/netbill/auth-svc/internal/core/auth"
 	"github.com/netbill/auth-svc/internal/core/organization"
 	"github.com/netbill/auth-svc/internal/messenger"
-	"github.com/netbill/auth-svc/internal/messenger/handler"
+	"github.com/netbill/auth-svc/internal/messenger/evcontroller"
 	"github.com/netbill/auth-svc/internal/messenger/publisher"
 	"github.com/netbill/auth-svc/internal/passmanager"
 	"github.com/netbill/auth-svc/internal/repository"
@@ -131,7 +131,7 @@ func (a *App) Run(ctx context.Context) error {
 		outboxWorker.Run(ctx)
 	})
 
-	inbound := handler.New(a.log, orgCore)
+	inbound := evcontroller.New(a.log, orgCore)
 
 	inboxWorker := messenger.NewInboxWorker(a.log, inbox, eventbox.InboxWorkerConfig{
 		Routines:       a.config.Kafka.Inbox.Routines,

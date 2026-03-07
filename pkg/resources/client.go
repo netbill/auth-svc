@@ -1,7 +1,7 @@
 /*
 netbill auth-svc API
 
-swagger documentation for auth-svc
+API documentation for auth-svc
 
 API version: 0.1.0
 */
@@ -426,6 +426,11 @@ func (c *APIClient) prepareRequest(
 		localVarRequest = localVarRequest.WithContext(ctx)
 
 		// Walk through any authentication.
+
+		// AccessToken Authentication
+		if auth, ok := ctx.Value(ContextAccessToken).(string); ok {
+			localVarRequest.Header.Add("Authorization", "Bearer "+auth)
+		}
 
 	}
 

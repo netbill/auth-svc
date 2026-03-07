@@ -1,4 +1,4 @@
-package handler
+package evcontroller
 
 import (
 	"context"
@@ -14,7 +14,7 @@ import (
 
 const operationOrgDeleted = "organization_deleted"
 
-func (h *Handler) OrgDeleted(
+func (c *OrgController) OrgDeleted(
 	ctx context.Context,
 	event eventbox.InboxEvent,
 ) error {
@@ -23,10 +23,10 @@ func (h *Handler) OrgDeleted(
 		return err
 	}
 
-	log := h.log.WithOperation(operationOrgDeleted).
+	log := c.log.WithOperation(operationOrgDeleted).
 		With(slog.String("organization_id", payload.OrganizationID.String()))
 
-	err := h.modules.org.Delete(ctx, payload.OrganizationID)
+	err := c.modules.org.Delete(ctx, payload.OrganizationID)
 	switch {
 	case errors.Is(err, errx.ErrorOrganizationDeleted):
 		log.Debug("received organization deleted event for already deleted organization")
@@ -42,7 +42,7 @@ func (h *Handler) OrgDeleted(
 
 const operationOrgCreated = "organization_created"
 
-func (h *Handler) OrgCreated(
+func (c *OrgController) OrgCreated(
 	ctx context.Context,
 	event eventbox.InboxEvent,
 ) error {
@@ -51,10 +51,10 @@ func (h *Handler) OrgCreated(
 		return err
 	}
 
-	log := h.log.WithOperation(operationOrgCreated).
+	log := c.log.WithOperation(operationOrgCreated).
 		With(slog.String("organization_id", payload.OrganizationID.String()))
 
-	err := h.modules.org.Create(ctx, models.Organization{
+	err := c.modules.org.Create(ctx, models.Organization{
 		ID:        payload.OrganizationID,
 		CreatedAt: payload.CreatedAt,
 	})

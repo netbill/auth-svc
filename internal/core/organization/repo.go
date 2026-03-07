@@ -13,12 +13,12 @@ type orgRepo interface {
 	Delete(ctx context.Context, accountID uuid.UUID) error
 }
 
-type orgMemberRepo interface {
+type memberRepo interface {
 	Create(ctx context.Context, member models.OrgMember) error
 	Delete(ctx context.Context, memberID uuid.UUID) error
 }
 
-type orgTombstoneRepo interface {
+type tombstoneRepo interface {
 	OrganizationIsBuried(ctx context.Context, organizationID uuid.UUID) (bool, error)
 	BuryOrganization(ctx context.Context, organizationID uuid.UUID) error
 

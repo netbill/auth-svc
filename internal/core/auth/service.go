@@ -37,11 +37,11 @@ type PasswordManager interface {
 
 type Service struct {
 	account   accountRepo
-	email     accountEmailRepo
-	password  accountPasswordRepo
-	session   accountSessionRepo
-	org       accountOrgRepo
-	tombstone accountTombstoneRepo
+	email     emailRepo
+	password  passwordRepo
+	session   sessionRepo
+	org       orgRepo
+	tombstone tombstoneRepo
 	tx        transaction
 
 	token       tokenManager
@@ -51,11 +51,11 @@ type Service struct {
 
 type ServiceDeps struct {
 	Account   accountRepo
-	Email     accountEmailRepo
-	Password  accountPasswordRepo
-	Session   accountSessionRepo
-	Org       accountOrgRepo
-	Tombstone accountTombstoneRepo
+	Email     emailRepo
+	Password  passwordRepo
+	Session   sessionRepo
+	Org       orgRepo
+	Tombstone tombstoneRepo
 	Tx        transaction
 
 	Token       tokenManager

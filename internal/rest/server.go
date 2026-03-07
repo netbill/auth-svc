@@ -12,7 +12,7 @@ import (
 	"github.com/netbill/restkit/tokens"
 )
 
-type Handlers interface {
+type Controller interface {
 	Registration(w http.ResponseWriter, r *http.Request)
 	RegistrationByAdmin(w http.ResponseWriter, r *http.Request)
 
@@ -46,20 +46,20 @@ type Middlewares interface {
 }
 
 type Server struct {
-	handlers    Handlers
+	controller  Controller
 	middlewares Middlewares
 	log         *log.Logger
 }
 
 type ServerDeps struct {
-	Controller  Handlers
+	Controller  Controller
 	Middlewares Middlewares
 	Log         *log.Logger
 }
 
 func New(deps ServerDeps) *Server {
 	return &Server{
-		handlers:    deps.Controller,
+		controller:  deps.Controller,
 		middlewares: deps.Middlewares,
 		log:         deps.Log,
 	}
@@ -86,37 +86,37 @@ func (s *Server) Run(ctx context.Context, cfg Config) {
 	r.Route("/auth-svc", func(r chi.Router) {
 		r.Route("/v1", func(r chi.Router) {
 			r.Route("/registration", func(r chi.Router) {
-				r.Post("/", s.handlers.Registration)
-				r.With(auth, sysadmin).Post("/admin", s.handlers.RegistrationByAdmin)
+				r.Post("/", s.controller.Registration)
+				r.With(auth, sysadmin).Post("/admin", s.controller.RegistrationByAdmin)
 			})
 
 			r.Route("/login", func(r chi.Router) {
-				r.Post("/email", s.handlers.LoginByEmail)
-				r.Post("/username", s.handlers.LoginByUsername)
+				r.Post("/email", s.controller.LoginByEmail)
+				r.Post("/username", s.controller.LoginByUsername)
 
 				r.Route("/google", func(r chi.Router) {
-					r.Post("/", s.handlers.LoginByGoogleOAuth)
-					r.Post("/callback", s.handlers.LoginByGoogleOAuthCallback)
+					r.Post("/", s.controller.LoginByGoogleOAuth)
+					r.Post("/callback", s.controller.LoginByGoogleOAuthCallback)
 				})
 			})
 
-			r.Post("/refresh", s.handlers.RefreshSession)
+			r.Post("/refresh", s.controller.RefreshSession)
 
 			r.With(auth).Route("/me", func(r chi.Router) {
-				r.Get("/", s.handlers.GetMyAccount)
-				r.Delete("/", s.handlers.DeleteMyAccount)
+				r.Get("/", s.controller.GetMyAccount)
+				r.Delete("/", s.controller.DeleteMyAccount)
 
-				r.Post("/logout", s.handlers.Logout)
-				r.Post("/password", s.handlers.UpdatePassword)
-				r.Post("/username", s.handlers.UpdateUsername)
+				r.Post("/logout", s.controller.Logout)
+				r.Post("/password", s.controller.UpdatePassword)
+				r.Post("/username", s.controller.UpdateUsername)
 
 				r.Route("/sessions", func(r chi.Router) {
-					r.Get("/", s.handlers.GetMySessions)
-					r.Delete("/", s.handlers.DeleteMySessions)
+					r.Get("/", s.controller.GetMySessions)
+					r.Delete("/", s.controller.DeleteMySessions)
 
 					r.Route("/{session_id}", func(r chi.Router) {
-						r.Get("/", s.handlers.GetMySession)
-						r.Delete("/", s.handlers.DeleteMySession)
+						r.Get("/", s.controller.GetMySession)
+						r.Delete("/", s.controller.DeleteMySession)
 					})
 				})
 			})

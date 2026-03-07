@@ -33,51 +33,14 @@ patch:
         application/json:
           schema:
             $ref: '../components/schemas/responses/Errors.yaml'
-          examples:
-            usernameNotAllowed:
-              summary: username is not allowed
-              value:
-                errors:
-                  - status: 400
-                    title: Bad Request
-                    code: VALIDATION_ERROR
-                    detail: username is not allowed
-                    source:
-                      pointer: /data/attributes/new_username
 
     '401':
       description: >
         Unauthorized. Invalid credentials, invalid session, user not found, or invalid password.
-        Check the `detail` field in the response for more information.
       content:
         application/json:
           schema:
             $ref: '../components/schemas/responses/Errors.yaml'
-          examples:
-            failedToGetUserFromContext:
-              summary: failed to get user from context
-              value:
-                errors:
-                  - status: 401
-                    title: Unauthorized
-                    code: UNAUTHORIZED
-                    detail: failed to get user from context
-            userNotFound:
-              summary: failed to update password user not found
-              value:
-                errors:
-                  - status: 401
-                    title: Unauthorized
-                    code: UNAUTHORIZED
-                    detail: failed to update password user not found
-            sessionInvalid:
-              summary: initiator session is invalid
-              value:
-                errors:
-                  - status: 401
-                    title: Unauthorized
-                    code: UNAUTHORIZED
-                    detail: initiator session is invalid
 
     '409':
       description: >
@@ -87,15 +50,6 @@ patch:
         application/json:
           schema:
             $ref: '../components/schemas/responses/Errors.yaml'
-          examples:
-            usernameAlreadyTaken:
-              summary: user with this username already exists
-              value:
-                errors:
-                  - status: 409
-                    title: Conflict
-                    code: CONFLICT
-                    detail: user with this username already exists
 
     '500':
       description: Internal Server Error

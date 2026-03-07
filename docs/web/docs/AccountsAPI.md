@@ -5,7 +5,6 @@ All URIs are relative to *http://localhost:8001*
 Method | HTTP request | Description
 ------------- | ------------- | -------------
 [**AuthSvcV1MeDelete**](AccountsAPI.md#AuthSvcV1MeDelete) | **Delete** /auth-svc/v1/me | Delete my account
-[**AuthSvcV1MeEmailGet**](AccountsAPI.md#AuthSvcV1MeEmailGet) | **Get** /auth-svc/v1/me/email | Get my email data
 [**AuthSvcV1MeGet**](AccountsAPI.md#AuthSvcV1MeGet) | **Get** /auth-svc/v1/me | Get my account
 [**AuthSvcV1MePasswordPatch**](AccountsAPI.md#AuthSvcV1MePasswordPatch) | **Patch** /auth-svc/v1/me/password | Update password
 [**AuthSvcV1MeUsernamePatch**](AccountsAPI.md#AuthSvcV1MeUsernamePatch) | **Patch** /auth-svc/v1/me/username | Update username
@@ -59,68 +58,7 @@ Other parameters are passed through a pointer to a apiAuthSvcV1MeDeleteRequest s
 
 ### Authorization
 
-No authorization required
-
-### HTTP request headers
-
-- **Content-Type**: Not defined
-- **Accept**: application/json
-
-[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints)
-[[Back to Model list]](../README.md#documentation-for-models)
-[[Back to README]](../README.md)
-
-
-## AuthSvcV1MeEmailGet
-
-> AccountEmail AuthSvcV1MeEmailGet(ctx).Execute()
-
-Get my email data
-
-
-
-### Example
-
-```go
-package main
-
-import (
-	"context"
-	"fmt"
-	"os"
-	openapiclient "github.com/GIT_USER_ID/GIT_REPO_ID"
-)
-
-func main() {
-
-	configuration := openapiclient.NewConfiguration()
-	apiClient := openapiclient.NewAPIClient(configuration)
-	resp, r, err := apiClient.AccountsAPI.AuthSvcV1MeEmailGet(context.Background()).Execute()
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error when calling `AccountsAPI.AuthSvcV1MeEmailGet``: %v\n", err)
-		fmt.Fprintf(os.Stderr, "Full HTTP response: %v\n", r)
-	}
-	// response from `AuthSvcV1MeEmailGet`: AccountEmail
-	fmt.Fprintf(os.Stdout, "Response from `AccountsAPI.AuthSvcV1MeEmailGet`: %v\n", resp)
-}
-```
-
-### Path Parameters
-
-This endpoint does not need any parameter.
-
-### Other Parameters
-
-Other parameters are passed through a pointer to a apiAuthSvcV1MeEmailGetRequest struct via the builder pattern
-
-
-### Return type
-
-[**AccountEmail**](AccountEmail.md)
-
-### Authorization
-
-No authorization required
+[BearerAuth](../README.md#BearerAuth)
 
 ### HTTP request headers
 
@@ -134,7 +72,7 @@ No authorization required
 
 ## AuthSvcV1MeGet
 
-> Account AuthSvcV1MeGet(ctx).Execute()
+> Account AuthSvcV1MeGet(ctx).Include(include).Execute()
 
 Get my account
 
@@ -153,10 +91,11 @@ import (
 )
 
 func main() {
+	include := []string{"Include_example"} // []string | Optional related resources to include. Supported values: `email`.  (optional)
 
 	configuration := openapiclient.NewConfiguration()
 	apiClient := openapiclient.NewAPIClient(configuration)
-	resp, r, err := apiClient.AccountsAPI.AuthSvcV1MeGet(context.Background()).Execute()
+	resp, r, err := apiClient.AccountsAPI.AuthSvcV1MeGet(context.Background()).Include(include).Execute()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error when calling `AccountsAPI.AuthSvcV1MeGet``: %v\n", err)
 		fmt.Fprintf(os.Stderr, "Full HTTP response: %v\n", r)
@@ -168,12 +107,16 @@ func main() {
 
 ### Path Parameters
 
-This endpoint does not need any parameter.
+
 
 ### Other Parameters
 
 Other parameters are passed through a pointer to a apiAuthSvcV1MeGetRequest struct via the builder pattern
 
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **include** | **[]string** | Optional related resources to include. Supported values: &#x60;email&#x60;.  | 
 
 ### Return type
 
@@ -181,7 +124,7 @@ Other parameters are passed through a pointer to a apiAuthSvcV1MeGetRequest stru
 
 ### Authorization
 
-No authorization required
+[BearerAuth](../README.md#BearerAuth)
 
 ### HTTP request headers
 
@@ -245,7 +188,7 @@ Name | Type | Description  | Notes
 
 ### Authorization
 
-No authorization required
+[BearerAuth](../README.md#BearerAuth)
 
 ### HTTP request headers
 
@@ -311,7 +254,7 @@ Name | Type | Description  | Notes
 
 ### Authorization
 
-No authorization required
+[BearerAuth](../README.md#BearerAuth)
 
 ### HTTP request headers
 

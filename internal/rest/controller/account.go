@@ -18,25 +18,6 @@ const operationGetMyAccount = "get_my_account"
 func (c *AuthController) GetMyAccount(w http.ResponseWriter, r *http.Request) {
 	log := scope.Log(r).WithOperation(operationGetMyAccount)
 
-	opts := make([]responses.AccountOption, 0, 1)
-	includes := restkit.ParseIncludes(r)
-
-	if slices.Contains(includes, "email") {
-		email, err := c.auth.GetMyAccountEmail(r.Context(), scope.AccountActor(r))
-		switch {
-		case errors.Is(err, errx.ErrorAccountInvalidSession):
-			log.WithError(err).Warn("invalid credentials")
-			render.ResponseError(w, problems.Unauthorized())
-			return
-		case err != nil:
-			log.WithError(err).Error("unexpected error")
-			render.ResponseError(w, problems.InternalError())
-			return
-		default:
-			opts = append(opts, responses.WithAccountEmail(email))
-		}
-	}
-
 	account, err := c.auth.GetMyAccountByID(r.Context(), scope.AccountActor(r))
 	switch {
 	case errors.Is(err, errx.ErrorAccountInvalidSession):
@@ -45,9 +26,21 @@ func (c *AuthController) GetMyAccount(w http.ResponseWriter, r *http.Request) {
 	case err != nil:
 		log.WithError(err).Error("unexpected error")
 		render.ResponseError(w, problems.InternalError())
-	default:
-		render.Response(w, http.StatusOK, responses.Account(account))
 	}
+
+	opts := make([]responses.AccountOption, 0, 1)
+	includes := restkit.ParseIncludes(r)
+
+	if slices.Contains(includes, "email") {
+		email, err := c.auth.GetMyAccountEmail(r.Context(), scope.AccountActor(r))
+		if err != nil {
+			log.WithError(err).Error("failed to get account email")
+		}
+
+		opts = append(opts, responses.WithAccountEmail(email))
+	}
+
+	render.Response(w, http.StatusOK, responses.Account(account))
 }
 
 const operationDeleteMyAccount = "delete_my_account"

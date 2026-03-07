@@ -9,6 +9,7 @@ post:
       application/json:
         schema:
           $ref: '../components/schemas/requests/LoginByUsername.yaml'
+
   responses:
     '200':
       description: Successful login
@@ -16,6 +17,7 @@ post:
         application/json:
           schema:
             $ref: '../components/schemas/responses/TokensPair.yaml'
+
     '401':
       description: >
         Unauthorized: Invalid username or password.
@@ -24,6 +26,7 @@ post:
         application/json:
           schema:
             $ref: '../components/schemas/responses/Errors.yaml'
+
     '500':
       description: Internal server error
       content:

@@ -2,8 +2,6 @@ services:
   auth-svc:
     build: .
     container_name: auth-svc
-    environment:
-      - KV_VIPER_FILE=./config.yaml
     ports:
       - "8001:8000"
     networks:
