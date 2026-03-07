@@ -106,9 +106,9 @@ func (s *Server) Run(ctx context.Context, cfg Config) {
 				r.Get("/", s.controller.GetMyAccount)
 				r.Delete("/", s.controller.DeleteMyAccount)
 
-				r.Post("/logout", s.controller.Logout)
-				r.Post("/password", s.controller.UpdatePassword)
-				r.Post("/username", s.controller.UpdateUsername)
+				r.Delete("/logout", s.controller.Logout)
+				r.Patch("/password", s.controller.UpdatePassword)
+				r.Patch("/username", s.controller.UpdateUsername)
 
 				r.Route("/sessions", func(r chi.Router) {
 					r.Get("/", s.controller.GetMySessions)

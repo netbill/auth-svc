@@ -504,20 +504,6 @@ type ApiAuthSvcV1MeSessionsSessionIdGetRequest struct {
 	ctx context.Context
 	ApiService *SessionsAPIService
 	sessionId uuid.UUID
-	pageLimit *int32
-	pageOffset *int32
-}
-
-// Max number of items to return
-func (r ApiAuthSvcV1MeSessionsSessionIdGetRequest) PageLimit(pageLimit int32) ApiAuthSvcV1MeSessionsSessionIdGetRequest {
-	r.pageLimit = &pageLimit
-	return r
-}
-
-// Number of items to skip
-func (r ApiAuthSvcV1MeSessionsSessionIdGetRequest) PageOffset(pageOffset int32) ApiAuthSvcV1MeSessionsSessionIdGetRequest {
-	r.pageOffset = &pageOffset
-	return r
 }
 
 func (r ApiAuthSvcV1MeSessionsSessionIdGetRequest) Execute() (*AccountSessionsCollection, *http.Response, error) {
@@ -564,12 +550,6 @@ func (a *SessionsAPIService) AuthSvcV1MeSessionsSessionIdGetExecute(r ApiAuthSvc
 	localVarQueryParams := url.Values{}
 	localVarFormParams := url.Values{}
 
-	if r.pageLimit != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "page[limit]", r.pageLimit, "form", "")
-	}
-	if r.pageOffset != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "page[offset]", r.pageOffset, "form", "")
-	}
 	// to determine the Content-Type header
 	localVarHTTPContentTypes := []string{}
 

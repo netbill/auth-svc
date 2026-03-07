@@ -9,7 +9,7 @@ import (
 )
 
 type OrgController struct {
-	log     *log.Logger
+	logger  *log.Logger
 	modules modules
 }
 
@@ -17,9 +17,9 @@ type modules struct {
 	org orgCore
 }
 
-func New(log *log.Logger, org orgCore) *OrgController {
+func New(logger *log.Logger, org orgCore) *OrgController {
 	return &OrgController{
-		log: log,
+		logger: logger,
 		modules: modules{
 			org: org,
 		},

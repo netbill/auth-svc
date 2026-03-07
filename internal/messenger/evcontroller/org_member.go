@@ -23,7 +23,7 @@ func (c *OrgController) OrgMemberCreated(
 		return err
 	}
 
-	log := c.log.WithOperation(operationOrgMemberCreated).
+	log := c.logger.WithOperation(operationOrgMemberCreated).
 		With(slog.String("member_id", payload.MemberID.String()))
 
 	err := c.modules.org.CreateMember(ctx, models.OrgMember{
@@ -65,25 +65,25 @@ func (c *OrgController) OrgMemberDeleted(
 		return err
 	}
 
-	log := c.log.WithOperation(operationOrgMemberDeleted).
+	logger := c.logger.WithOperation(operationOrgMemberDeleted).
 		With(slog.String("member_id", payload.MemberID.String()))
 
 	err := c.modules.org.DeleteMember(ctx, payload.MemberID)
 	switch {
 	case errors.Is(err, errx.ErrorOrgMemberDeleted):
-		log.Debug("received org member deleted event for already deleted org member")
+		logger.Debug("received org member deleted event for already deleted org member")
 		return nil
 	case errors.Is(err, errx.ErrorAccountDeleted):
-		log.Debug("received org member deleted event for already deleted account")
+		logger.Debug("received org member deleted event for already deleted account")
 		return nil
 	case errors.Is(err, errx.ErrorOrganizationDeleted):
-		log.Debug("received org member deleted event for already deleted organization")
+		logger.Debug("received org member deleted event for already deleted organization")
 		return nil
 	case err != nil:
-		log.WithError(err).Error("failed to delete org member")
+		logger.WithError(err).Error("failed to delete org member")
 		return err
 	default:
-		log.Debug("org member deleted successfully")
+		logger.Debug("org member deleted successfully")
 		return nil
 	}
 }

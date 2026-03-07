@@ -189,6 +189,10 @@ func (s *Service) UpdateUsername(
 		return models.Account{}, err
 	}
 
+	if account.Username == newUsername {
+		return account, nil
+	}
+
 	if err = s.checkUsernameRequirements(ctx, newUsername); err != nil {
 		return models.Account{}, err
 	}
@@ -226,7 +230,7 @@ func (s *Service) UpdatePassword(
 		return err
 	}
 
-	if err = s.passManager.CheckPasswordMatch(passData.Hash, passData.Hash); err != nil {
+	if err = s.passManager.CheckPasswordMatch(oldPassword, passData.Hash); err != nil {
 		return err
 	}
 

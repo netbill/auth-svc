@@ -31,7 +31,7 @@ type messenger interface {
 
 type PasswordManager interface {
 	CheckRequirements(password string) error
-	CheckPasswordMatch(hash, password string) error
+	CheckPasswordMatch(password, hash string) error
 	GenerateHash(password string) (string, error)
 }
 

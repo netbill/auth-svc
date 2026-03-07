@@ -23,19 +23,19 @@ func (c *OrgController) OrgDeleted(
 		return err
 	}
 
-	log := c.log.WithOperation(operationOrgDeleted).
+	logger := c.logger.WithOperation(operationOrgDeleted).
 		With(slog.String("organization_id", payload.OrganizationID.String()))
 
 	err := c.modules.org.Delete(ctx, payload.OrganizationID)
 	switch {
 	case errors.Is(err, errx.ErrorOrganizationDeleted):
-		log.Debug("received organization deleted event for already deleted organization")
+		logger.Debug("received organization deleted event for already deleted organization")
 		return nil
 	case err != nil:
-		log.WithError(err).Error("failed to delete organization")
+		logger.WithError(err).Error("failed to delete organization")
 		return err
 	default:
-		log.Debug("organization deleted successfully")
+		logger.Debug("organization deleted successfully")
 		return nil
 	}
 }
@@ -51,7 +51,7 @@ func (c *OrgController) OrgCreated(
 		return err
 	}
 
-	log := c.log.WithOperation(operationOrgCreated).
+	log := c.logger.WithOperation(operationOrgCreated).
 		With(slog.String("organization_id", payload.OrganizationID.String()))
 
 	err := c.modules.org.Create(ctx, models.Organization{

@@ -269,7 +269,7 @@ Name | Type | Description  | Notes
 
 ## AuthSvcV1MeSessionsSessionIdGet
 
-> AccountSessionsCollection AuthSvcV1MeSessionsSessionIdGet(ctx, sessionId).PageLimit(pageLimit).PageOffset(pageOffset).Execute()
+> AccountSessionsCollection AuthSvcV1MeSessionsSessionIdGet(ctx, sessionId).Execute()
 
 Get my sessions
 
@@ -289,12 +289,10 @@ import (
 
 func main() {
 	sessionId := "38400000-8cf0-11bd-b23e-10b96e4ef00d" // uuid.UUID | Session ID
-	pageLimit := int32(56) // int32 | Max number of items to return (optional)
-	pageOffset := int32(56) // int32 | Number of items to skip (optional)
 
 	configuration := openapiclient.NewConfiguration()
 	apiClient := openapiclient.NewAPIClient(configuration)
-	resp, r, err := apiClient.SessionsAPI.AuthSvcV1MeSessionsSessionIdGet(context.Background(), sessionId).PageLimit(pageLimit).PageOffset(pageOffset).Execute()
+	resp, r, err := apiClient.SessionsAPI.AuthSvcV1MeSessionsSessionIdGet(context.Background(), sessionId).Execute()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error when calling `SessionsAPI.AuthSvcV1MeSessionsSessionIdGet``: %v\n", err)
 		fmt.Fprintf(os.Stderr, "Full HTTP response: %v\n", r)
@@ -320,8 +318,6 @@ Other parameters are passed through a pointer to a apiAuthSvcV1MeSessionsSession
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
 
- **pageLimit** | **int32** | Max number of items to return | 
- **pageOffset** | **int32** | Number of items to skip | 
 
 ### Return type
 

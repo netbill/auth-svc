@@ -18,7 +18,7 @@ func (s *Service) LoginByEmail(ctx context.Context, email, password string) (mod
 		return models.TokensPair{}, err
 	}
 
-	if err = s.passManager.CheckPasswordMatch(passData.Hash, password); err != nil {
+	if err = s.passManager.CheckPasswordMatch(password, passData.Hash); err != nil {
 		return models.TokensPair{}, err
 	}
 
@@ -36,7 +36,7 @@ func (s *Service) LoginByUsername(ctx context.Context, username, password string
 		return models.TokensPair{}, err
 	}
 
-	if err = s.passManager.CheckPasswordMatch(passData.Hash, password); err != nil {
+	if err = s.passManager.CheckPasswordMatch(password, passData.Hash); err != nil {
 		return models.TokensPair{}, err
 	}
 

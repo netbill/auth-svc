@@ -568,24 +568,6 @@ paths:
       description: |
         Returns sessions of the authenticated account.
       parameters:
-      - description: Max number of items to return
-        explode: true
-        in: query
-        name: "page[limit]"
-        required: false
-        schema:
-          minimum: 1
-          type: integer
-        style: form
-      - description: Number of items to skip
-        explode: true
-        in: query
-        name: "page[offset]"
-        required: false
-        schema:
-          minimum: 0
-          type: integer
-        style: form
       - description: Session ID
         explode: false
         in: path

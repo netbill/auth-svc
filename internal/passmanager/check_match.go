@@ -8,7 +8,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-func (p *Passer) CheckPasswordMatch(hash, password string) error {
+func (p *Passer) CheckPasswordMatch(password, hash string) error {
 	if err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password)); err != nil {
 		if errors.Is(err, bcrypt.ErrMismatchedHashAndPassword) {
 			return errx.ErrorPasswordInvalid.Raise(

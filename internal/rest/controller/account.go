@@ -23,9 +23,11 @@ func (c *AuthController) GetMyAccount(w http.ResponseWriter, r *http.Request) {
 	case errors.Is(err, errx.ErrorAccountInvalidSession):
 		log.WithError(err).Warn("invalid credentials")
 		render.ResponseError(w, problems.Unauthorized())
+		return
 	case err != nil:
 		log.WithError(err).Error("unexpected error")
 		render.ResponseError(w, problems.InternalError())
+		return
 	}
 
 	opts := make([]responses.AccountOption, 0, 1)
@@ -40,7 +42,7 @@ func (c *AuthController) GetMyAccount(w http.ResponseWriter, r *http.Request) {
 		opts = append(opts, responses.WithAccountEmail(email))
 	}
 
-	render.Response(w, http.StatusOK, responses.Account(account))
+	render.Response(w, http.StatusOK, responses.Account(account, opts...))
 }
 
 const operationDeleteMyAccount = "delete_my_account"
