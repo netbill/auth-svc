@@ -10,6 +10,7 @@ services:
   auth-svc-postgres:
     image: postgres:15
     container_name: auth-svc-postgres
+    command: postgres -c wal_level=logical
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
