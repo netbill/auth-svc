@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"log/slog"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/netbill/auth-svc/internal/errx"
@@ -11,20 +12,23 @@ import (
 	"github.com/netbill/restkit/tokens"
 )
 
+type auth interface {
+	ValidateSession(ctx context.Context, actor models.AccountActor) (models.Account, models.Session, error)
+}
+
 type Service struct {
+	auth auth
+
 	accountRepo  accountRepo
 	emailRepo    emailRepo
 	passwordRepo passwordRepo
-	sessionRepo  sessionRepo
 	tx           transaction
 
 	accountCache  accountCache
 	emailCache    emailCache
 	passwordCache passwordCache
-	sessionsCache sessionsCache
 
-	passManager  passwordManager
-	tokenManager tokenManager
+	passManager passwordManager
 
 	messenger messenger
 
@@ -34,25 +38,13 @@ type Service struct {
 type passwordManager interface {
 	CheckRequirements(password string) error
 	CheckMatch(password, hash string) error
-
 	GenerateHash(password string) (string, error)
-}
-
-type tokenManager interface {
-	ParseAccountAuthAccess(token string) (tokens.AccountAuthClaims, error)
-	ParseAccountAuthRefresh(token string) (tokens.AccountAuthClaims, error)
-
-	HashRefresh(token string) (string, error)
-
-	GenerateAccess(account models.Account, sessionID uuid.UUID) (string, error)
-	GenerateRefresh(account models.Account, sessionID uuid.UUID) (string, error)
 }
 
 type messenger interface {
 	WriteAccountCreated(ctx context.Context, account models.Account) error
 
 	WriteAccountUsernameUpdated(ctx context.Context, account models.Account) error
-	WriteAccountEmailVerified(ctx context.Context, account models.Account) error
 
 	WriteAccountDeleted(ctx context.Context, accountID uuid.UUID) error
 }
@@ -67,12 +59,12 @@ type RegistrationParams struct {
 func (s *Service) Registration(
 	ctx context.Context,
 	params RegistrationParams,
-) (account models.Account, err error) {
-	if err = tokens.ValidateUserSystemRole(params.Role); err != nil {
+) (models.Account, error) {
+	if err := tokens.ValidateUserSystemRole(params.Role); err != nil {
 		return models.Account{}, errx.ErrorRoleNotSupported.Raise(err)
 	}
 
-	if err = s.passManager.CheckRequirements(params.Password); err != nil {
+	if err := s.passManager.CheckRequirements(params.Password); err != nil {
 		return models.Account{}, err
 	}
 
@@ -81,13 +73,17 @@ func (s *Service) Registration(
 		return models.Account{}, err
 	}
 
+	var account models.Account
+	var email models.AccountEmail
+	var password models.AccountPassword
+
 	if err = s.tx.Transaction(ctx, func(ctx context.Context) error {
 		account, err = s.accountRepo.Create(ctx, params)
 		if err != nil {
 			return err
 		}
 
-		err = s.emailRepo.Create(ctx, models.AccountEmail{
+		email, err = s.emailRepo.Create(ctx, models.AccountEmail{
 			AccountID: account.ID,
 			Email:     params.Email,
 		})
@@ -95,18 +91,35 @@ func (s *Service) Registration(
 			return err
 		}
 
-		return s.passwordRepo.Create(ctx, models.AccountPassword{
+		password, err = s.passwordRepo.Create(ctx, models.AccountPassword{
 			AccountID: account.ID,
 			Hash:      hash,
 		})
+		if err != nil {
+			return err
+		}
+
+		return s.messenger.WriteAccountCreated(ctx, account)
 	}); err != nil {
 		return models.Account{}, err
 	}
 
-	err = s.accountCache.SetByID(ctx, account)
-	if err != nil {
-		s.log.Error("failed to set account", "error", err)
-	}
+	go func() {
+		ctx, cancel := context.WithTimeout(context.WithoutCancel(ctx), 5*time.Second)
+		defer cancel()
+
+		if err := s.accountCache.Set(ctx, account); err != nil {
+			s.log.Error("failed to set account", "error", err)
+		}
+
+		if err := s.emailCache.Set(ctx, email); err != nil {
+			s.log.Error("failed to set account email", "error", err)
+		}
+
+		if err := s.passwordCache.SetByID(ctx, password); err != nil {
+			s.log.Error("failed to set account password", "error", err)
+		}
+	}()
 
 	return account, nil
 }
@@ -115,7 +128,7 @@ func (s *Service) GetMyAccountByID(
 	ctx context.Context,
 	actor models.AccountActor,
 ) (models.Account, error) {
-	account, err := s.accountCache.GetByID(ctx, actor.ID)
+	account, err := s.accountCache.GetByID(ctx,actor.ID)
 	switch {
 	case errors.Is(err, errx.ErrCacheMiss):
 		s.log.Debug("account cache miss", "account_id", actor.ID)
@@ -130,10 +143,14 @@ func (s *Service) GetMyAccountByID(
 		return models.Account{}, err
 	}
 
-	err = s.accountCache.SetByID(ctx, account)
-	if err != nil {
-		s.log.Error("failed to set account", "error", err)
-	}
+	go func() {
+		ctx, cancel := context.WithTimeout(context.WithoutCancel(ctx), 5*time.Second)
+		defer cancel()
+
+		if err := s.accountCache.Set(ctx, account); err != nil {
+			s.log.Error("failed to set account", "error", err)
+		}
+	}()
 
 	return account, nil
 }
@@ -157,10 +174,14 @@ func (s *Service) GetMyEmailByID(
 		return models.AccountEmail{}, err
 	}
 
-	err = s.emailCache.SetByID(ctx, email)
-	if err != nil {
-		s.log.Error("failed to set account", "error", err)
-	}
+	go func() {
+		ctx, cancel := context.WithTimeout(context.WithoutCancel(ctx), 5*time.Second)
+		defer cancel()
+
+		if err := s.emailCache.Set(ctx, email); err != nil {
+			s.log.Error("failed to set account", "error", err)
+		}
+	}()
 
 	return email, nil
 }
@@ -170,7 +191,7 @@ func (s *Service) UpdateUsername(
 	actor models.AccountActor,
 	newUsername string,
 ) (models.Account, error) {
-	current, err := s.accountCache.GetByID(ctx, actor.ID)
+	current, err := s.accountCache.GetByID(ctx,actor.ID)
 	switch {
 	case errors.Is(err, errx.ErrCacheMiss):
 		s.log.Debug("account cache miss", "account_id", actor.ID)
@@ -185,13 +206,6 @@ func (s *Service) UpdateUsername(
 		}
 	}
 
-	if err = s.accountCache.DeleteByUsername(ctx, current.Username); err != nil {
-		s.log.Error("failed to delete account cache by username", "error", err)
-	}
-	if err = s.accountCache.Delete(ctx, actor.ID); err != nil {
-		s.log.Error("failed to delete account cache by id", "error", err)
-	}
-
 	var updated models.Account
 	if err = s.tx.Transaction(ctx, func(ctx context.Context) error {
 		updated, err = s.accountRepo.UpdateUsername(ctx, actor.ID, newUsername, current.Version)
@@ -204,27 +218,116 @@ func (s *Service) UpdateUsername(
 		return models.Account{}, err
 	}
 
-	if err = s.accountCache.SetByID(ctx, updated); err != nil {
-		s.log.Error("failed to set account cache by id", "error", err)
-	}
-	if err = s.accountCache.SetByUsername(ctx, updated); err != nil {
-		s.log.Error("failed to set account cache by username", "error", err)
-	}
+	go func() {
+		ctx, cancel := context.WithTimeout(context.WithoutCancel(ctx), 5*time.Second)
+		defer cancel()
+
+		if err := s.accountCache.Delete(ctx, actor.ID); err != nil {
+			s.log.Error("failed to delete account cache by id", "error", err)
+		}
+
+		if err := s.accountCache.Set(ctx, updated); err != nil {
+			s.log.Error("failed to set account cache by id", "error", err)
+		}
+	}()
 
 	return updated, nil
+}
+
+func (s *Service) UpdatePassword(
+	ctx context.Context,
+	actor models.AccountActor,
+	oldPassword, newPassword string,
+) error {
+	if _, _, err := s.auth.ValidateSession(ctx, actor); err != nil {
+		return err
+	}
+
+	pwd, err := s.passwordCache.GetByID(ctx, actor.ID)
+	switch {
+	case errors.Is(err, errx.ErrCacheMiss):
+		s.log.Debug("password cache miss", "account_id", actor.ID)
+	case err != nil:
+		s.log.Error("failed to get password from cache", "error", err)
+	}
+
+	if err != nil {
+		pwd, err = s.passwordRepo.GetByID(ctx, actor.ID)
+		if err != nil {
+			return err
+		}
+	}
+
+	if err = s.passManager.CheckMatch(oldPassword, pwd.Hash); err != nil {
+		return err
+	}
+
+	if err = s.passManager.CheckRequirements(newPassword); err != nil {
+		return err
+	}
+
+	hash, err := s.passManager.GenerateHash(newPassword)
+	if err != nil {
+		return err
+	}
+
+	var updated models.AccountPassword
+	if err = s.tx.Transaction(ctx, func(ctx context.Context) error {
+		updated, err = s.passwordRepo.UpdatePassword(ctx, actor.ID, hash)
+		return err
+	}); err != nil {
+		return err
+	}
+
+	go func() {
+		ctx, cancel := context.WithTimeout(context.WithoutCancel(ctx), 5*time.Second)
+		defer cancel()
+
+		if err := s.passwordCache.DeleteByID(ctx, actor.ID); err != nil {
+			s.log.Error("failed to delete password cache", "error", err)
+		}
+		if err := s.passwordCache.SetByID(ctx, updated); err != nil {
+			s.log.Error("failed to set password cache", "error", err)
+		}
+	}()
+
+	return nil
 }
 
 func (s *Service) DeleteMyAccount(
 	ctx context.Context,
 	actor models.AccountActor,
 ) error {
-	if err := s.accountRepo.Delete(ctx, actor.ID); err != nil {
+	if _, _, err := s.auth.ValidateSession(ctx, actor); err != nil {
 		return err
 	}
 
-	if err := s.accountCache.Delete(ctx, actor.ID); err != nil {
-		s.log.Error("failed to delete account cache by id", "error", err)
+	if err := s.tx.Transaction(ctx, func(ctx context.Context) error {
+		if err := s.accountRepo.Delete(ctx, actor.ID); err != nil {
+			return err
+		}
+
+		return s.messenger.WriteAccountDeleted(ctx, actor.ID)
+	}); err != nil {
+		return err
 	}
+
+	go func() {
+		ctx, cancel := context.WithTimeout(context.WithoutCancel(ctx), 5*time.Second)
+		defer cancel()
+
+		if err := s.accountCache.Delete(ctx, actor.ID); err != nil {
+			s.log.Error("failed to delete account cache by id", "error", err)
+		}
+
+		if err := s.emailCache.DeleteByID(ctx, actor.ID); err != nil {
+			s.log.Error("failed to delete email cache by id", "error", err)
+		}
+
+		if err := s.passwordCache.DeleteByID(ctx, actor.ID); err != nil {
+			s.log.Error("failed to delete password cache by id", "error", err)
+		}
+	}()
 
 	return nil
 }

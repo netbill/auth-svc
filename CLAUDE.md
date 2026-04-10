@@ -18,19 +18,18 @@ Go микросервис аутентификации (`github.com/netbill/auth
 cmd/auth-svc/          — entrypoint
 internal/
   app/                 — запуск приложения (run.go, migrations.go, events.go)
-  core/
-    auth/              — бизнес-логика аутентификации
-    organization/      — бизнес-логика организаций
+  modules/
+    auth/              — ValidateSession (переиспользуется в account и session)
+    account/           — регистрация, управление аккаунтом
+    session/           — логин, сессии, токены
   messenger/
     consumer.go        — Kafka consumer (читает OrganizationsV1, OrgMembersV1)
     producer.go        — Kafka producer (пишет AccountsTopicV1)
-    inbox_worker.go    — InboxWorker (УДАЛЯЕТСЯ, см. ниже)
-    outbox_worker.go   — OutboxWorker (УДАЛЯЕТСЯ, см. ниже)
     publisher/         — пишет события в outbox таблицу
     evcontroller/      — хендлеры входящих событий (org, org_member)
   repository/          — интерфейсы репозиториев
   repository/pg/       — PostgreSQL реализации
-  rest/                — HTTP сервер, контроллеры, middleware
+  errx/                — доменные ошибки (ape)
   models/              — доменные модели
 pkg/
   log/                 — логгер
@@ -99,6 +98,55 @@ main-topic → handler OK  → commit offset
 - **Координация между инстансами** — через Kafka consumer group + partition assignment, не через distributed locks
 - **Geo-distribution** — концептуально несколько регионов, MirrorMaker 2 для репликации между Kafka кластерами
 - **CAP trade-off** — для auth выбран CP (strong consistency важнее availability при сетевых сбоях)
+
+## Кеш (Redis) — архитектурные решения
+
+- **Библиотека:** TBD (go-redis или rueidis)
+- **Паттерн:** cache-aside, горутина прогрева **после** коммита транзакции
+- **Инвалидация:** в горутине после успешной мутации
+
+### Что кешируется
+- `account` — по ID (основной ключ)
+- `accountEmail` — по ID, по email
+- `session` — по ID
+
+### Что НЕ кешируется / почему
+- **Login lookup (email/username → account)** — CP при логине, кеш не используется
+- **Списки сессий** (`GetListForAccount`) — не кешируются
+
+### TTL стратегия — обсуждается, решение не принято
+
+**Зафиксированные наблюдения (не финальные решения):**
+
+- **Lazy TTL опасен для популярных сущностей** — горячий аккаунт/сессия читается постоянно → TTL бесконечно продлевается → данные могут быть неактуальны часами. Чем популярнее сущность, тем хуже работает lazy TTL.
+- **Фиксированный TTL** даёт предсказуемое окно неактуальности независимо от нагрузки — по сути SLA на staleness.
+- **Текущий код** уже не продлевает TTL при cache hit (Set вызывается только после DB read или DB write). Это соответствует фиксированному TTL если реализация Redis не делает KEEPTTL.
+
+**Проблема инвалидации сессий (TOCTOU race):**
+- `DeleteMySessions` удаляет из DB, но горутина параллельного запроса может записать сессию обратно в кеш уже после удаления
+- Версионирование через `account.Version` не решает проблему — для проверки версии всё равно нужен DB/cache hit, возвращаемся к исходной проблеме
+- Распределённые транзакции PG↔Redis невозможны в принципе, при шардировании (10 PG + 10 Redis) тем более
+- **Вывод:** идеальной консистентности между Redis и Postgres не будет. Вопрос в приемлемом размере окна.
+
+**Открытые вопросы по TTL:**
+- Какой TTL для сессий? Для аккаунта?
+- Принимаем ли eventual consistency для сессионного кеша или меняем стратегию?
+
+### Модули и кеш
+- `auth.Service` — читает accountCache + sessionsCache для ValidateSession
+- `account.Service` — читает/пишет accountCache, emailCache; не знает про sessionsCache
+- `session.Service` — пишет accountCache + sessionsCache после логина; читает для Refresh
+
+### Почему не вынесли кеш в отдельный слой
+Обсуждали CachingRepo абстракцию — отказались:
+- Service превратился бы в тонкую обёртку
+- Горутины внутри транзакции небезопасны (race: транзакция откатилась, кеш уже записан)
+- Кеш остаётся в Service, горутины только после `tx.Transaction()` вернул `nil`
+
+### Почему не используем Debezium для инвалидации кеша
+- WAL не содержит SELECT — cache warming через события невозможен без костылей
+- Для инвалидации добавляет latency (WAL → Debezium → Kafka → Consumer → Redis)
+- Горутина после транзакции — проще и достаточно
 
 ## Зависимости eventbox
 
