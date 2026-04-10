@@ -2,89 +2,73 @@ service:
   name: "auth-svc"
 
 log:
-  level: "debug"
-  format: "text"
+  level: "debug"   # debug | info | warn | error
+  format: "text"   # text | json
 
 database:
   sql:
-    url: "postgresql://postgres:postgres@localhost:7001/postgres?sslmode=disable"
+    url: "${DATABASE_SQL_URL}"  # env:
 
 rest:
-  port: ":8001"
+  port: 8001
   timeouts:
-    read: 15s #seconds
-    read_header: 15s #seconds
-    write: 15s #seconds
-    idle: 60s #seconds
-
+    read: 15s
+    read_header: 15s
+    write: 15s
+    idle: 60s
 
 auth:
   tokens:
+    issuer: "auth-svc"
     account_access:
-      secret_key: "UnG06MAU2i1Mvqf8" #example
-      ttl: 12h #12 hours
+      secret_key: "${AUTH_TOKENS_ACCOUNT_ACCESS_SECRET_KEY}"
+      ttl: 720h
     account_refresh:
-      secret_key: "6DSjhhT9KIezubpR" #example
-      hash_key: "Zlyh20N8uojZHFdO" #Key for decrypting Refresh Token in the database
-      ttl: 720h #30 days
+      secret_key: "${AUTH_TOKENS_ACCOUNT_REFRESH_SECRET_KEY}"
+      hash_key: "${AUTH_TOKENS_ACCOUNT_REFRESH_HASH_KEY}"
+      ttl: 720h
 
   oauth:
     google:
-      client_id: "client_id"
-      client_secret: "megasupersecret"
-      redirect_url: "http://localhost:8001/v1/sso/google/login/callback"
+      client_id: "${AUTH_OAUTH_GOOGLE_CLIENT_ID}"
+      client_secret: "${AUTH_OAUTH_GOOGLE_CLIENT_SECRET}"
+      redirect_url: "${AUTH_OAUTH_GOOGLE_REDIRECT_URL}"
 
 kafka:
   brokers:
-    - "localhost:9092"
+    - "${KAFKA_BROKERS}"
 
-  identity: "auth-svc" # used for consumer group and client id
+  identity: "auth-svc"  # consumer group id и client id
 
   produce:
     topics:
-      accounts_v1: #topic name for accounts events
-        required_acks: "all"     # "all" | "one" | "none"
-        compression: "snappy"    # "snappy" | "gzip" | "lz4" | "zstd" | "none"
-        balancer: "hash"         # "least_bytes" | "round_robin" | "hash"
-        batch_size: 100          # sender batching (0 = default)
-        batch_timeout: 10ms      # sender batching timeout (0 = default)
-        write_timeout: 5s        # timeout for a write call (0 = default)
-        read_timeout: 5s         # broker read timeout (0 = default)
-        dial_timeout: 5s         # dial timeout (0 = default)
-        idle_timeout: 30s        # close idle connections (0 = default)
+      accounts_v1:
+        required_acks: "all"     # all | one | none
+        compression: "snappy"    # snappy | gzip | lz4 | zstd | none
+        balancer: "hash"         # least_bytes | round_robin | hash
+        batch_size: 100
+        batch_timeout: 10ms
+        write_timeout: 5s
+        read_timeout: 5s
+        dial_timeout: 5s
+        idle_timeout: 30s
 
   consume:
+    backoff:
+      min: 100ms
+      max: 1s
+
     topics:
-      organization_members_v1:
-        instances: 4           # number of readers for this topic which will be started in each process
-        min_bytes: 1           # minimum bytes to fetch in each request
-        max_bytes: 10e6        # maximum bytes to fetch in each request
-        max_wait: 1s           # maximum time to wait for messages in each request
-        queue_capacity: 10     # capacity of the internal queue for messages fetched from Kafka
-
       organizations_v1:
-        instances: 4           # number of readers for this topic which will be started in each process
-        min_bytes: 1           # minimum bytes to fetch in each request
-        max_bytes: 10e6        # maximum bytes to fetch in each request
-        max_wait: 1s           # maximum time to wait for messages in each request
-        queue_capacity: 10     # capacity of the internal queue for messages fetched from Kafka
+        instances: 4
+        min_bytes: 1
+        max_bytes: 10e6
+        max_wait: 1s
+        queue_capacity: 10
 
-  inbox:
-    routines: 10          #number of goroutines which can process messages in each process
-    slots: 40             #number of slots for processing messages in each process (should be >= routines)
-    sleep: 100ms          #sleep time between processing messages
-    batch_size: 100       #number of messages to process in a batch in each process
-    min_next_attempt: 1m  #minimum time to wait before retrying a failed message
-    max_next_attempt: 10m #maximum time to wait before retrying a failed message
-    max_attempts: 0       #maximum number of attempts to process a message before giving up (0 = infinite retries)
-
-  outbox:
-    routines: 10          #number of goroutines which can process messages in each process
-    slots: 40             #number of slots for processing messages in each process (should be >= routines)
-    sleep: 100ms          #sleep time between processing messages
-    batch_size: 100       #number of messages to process in a batch in each process
-    min_next_attempt: 1m  #minimum time to wait before retrying a failed message
-    max_next_attempt: 10m #maximum time to wait before retrying a failed message
-    max_attempts: 0       #maximum number of attempts to process a message before giving up (0 = infinite retries)
-
-
+      organization_members_v1:
+        instances: 4
+        min_bytes: 1
+        max_bytes: 10e6
+        max_wait: 1s
+        queue_capacity: 10

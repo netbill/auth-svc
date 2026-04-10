@@ -7,11 +7,12 @@ import (
 )
 
 type Session struct {
-	ID        uuid.UUID `json:"id"`
-	AccountID uuid.UUID `json:"account_id"`
-	Version   int32     `json:"version"`
-	LastUsed  time.Time `json:"last_used"`
-	CreatedAt time.Time `json:"created_at"`
+	ID        uuid.UUID  `json:"id"`
+	AccountID uuid.UUID  `json:"account_id"`
+	Version   int32      `json:"version"`
+	CreatedAt time.Time  `json:"created_at"`
+	LastUsed  time.Time  `json:"last_used"`
+	DeletedAt *time.Time `json:"deleted_at,omitempty"`
 }
 
 type TokensPair struct {
