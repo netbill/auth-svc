@@ -9,7 +9,6 @@ import (
 	"time"
 	"unicode"
 
-	"github.com/google/uuid"
 	"github.com/netbill/auth-svc/internal/errx"
 	"github.com/netbill/auth-svc/internal/models"
 	"github.com/netbill/restkit/tokens"
@@ -44,11 +43,11 @@ type passwordManager interface {
 }
 
 type messenger interface {
-	WriteAccountCreated(ctx context.Context, account models.Account) error
+	WriteAccountCreated(ctx context.Context, account models.Account, email models.AccountEmail) error
 
 	WriteAccountUsernameUpdated(ctx context.Context, account models.Account) error
 
-	WriteAccountDeleted(ctx context.Context, accountID uuid.UUID) error
+	WriteAccountDeleted(ctx context.Context, account models.Account, email models.AccountEmail) error
 }
 
 type RegistrationParams struct {
@@ -66,7 +65,7 @@ func (s *Service) Registration(
 		return models.Account{}, errx.ErrorRoleNotSupported.Raise(err)
 	}
 
-	if err := s.checkUsernameRequirements(params.Email); err != nil {
+	if err := s.checkUsernameRequirements(params.Username); err != nil {
 		return models.Account{}, err
 	}
 
@@ -105,7 +104,7 @@ func (s *Service) Registration(
 			return err
 		}
 
-		return s.messenger.WriteAccountCreated(ctx, account)
+		return s.messenger.WriteAccountCreated(ctx, account, email)
 	}); err != nil {
 		return models.Account{}, err
 	}
@@ -308,12 +307,28 @@ func (s *Service) DeleteMyAccount(
 		return err
 	}
 
-	if err := s.tx.Transaction(ctx, func(ctx context.Context) error {
-		if err := s.accountRepo.Delete(ctx, actor.ID); err != nil {
+	var (
+		account models.Account
+		email   models.AccountEmail
+		err     error
+	)
+
+	if err = s.tx.Transaction(ctx, func(ctx context.Context) error {
+		account, err = s.accountRepo.GetByID(ctx, actor.ID)
+		if err != nil {
 			return err
 		}
 
-		return s.messenger.WriteAccountDeleted(ctx, actor.ID)
+		email, err = s.emailRepo.GetByID(ctx, actor.ID)
+		if err != nil {
+			return err
+		}
+
+		if err = s.accountRepo.Delete(ctx, actor.ID); err != nil {
+			return err
+		}
+
+		return s.messenger.WriteAccountDeleted(ctx, account, email)
 	}); err != nil {
 		return err
 	}
