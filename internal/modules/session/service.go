@@ -10,7 +10,6 @@ import (
 	"github.com/google/uuid"
 	"github.com/netbill/auth-svc/internal/errx"
 	"github.com/netbill/auth-svc/internal/models"
-	"github.com/netbill/restkit/pagi"
 	"github.com/netbill/restkit/tokens"
 )
 
@@ -82,14 +81,6 @@ func (s *Service) GetMySession(
 	}()
 
 	return session, nil
-}
-
-func (s *Service) GetMySessions(
-	ctx context.Context,
-	actor models.AccountActor,
-	limit, offset uint,
-) (pagi.Page[[]models.Session], error) {
-	return s.sessionRepo.GetListForAccount(ctx, actor.ID, limit, offset)
 }
 
 func (s *Service) Refresh(

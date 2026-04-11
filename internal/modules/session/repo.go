@@ -37,7 +37,7 @@ type sessionRepo interface {
 	GetListForAccount(
 		ctx context.Context,
 		accountID uuid.UUID,
-		limit, offset uint,
+		opts ...ListSessionsOption,
 	) (pagi.Page[[]models.Session], error)
 
 	GetToken(ctx context.Context, sessionID uuid.UUID) (string, error)

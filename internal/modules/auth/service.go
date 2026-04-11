@@ -56,7 +56,12 @@ func (s *Service) ValidateSession(
 
 	if err != nil {
 		account, err = s.accountRepo.GetByID(ctx, actor.ID)
-		if err != nil {
+		switch {
+		case errors.Is(err, errx.ErrorAccountNotFound):
+			return models.Account{}, models.Session{}, errx.ErrorAccountInvalidSession.Raise(
+				fmt.Errorf("account %s not found", actor.ID),
+			)
+		case err != nil:
 			return models.Account{}, models.Session{}, err
 		}
 	}
@@ -71,7 +76,12 @@ func (s *Service) ValidateSession(
 
 	if err != nil {
 		session, err = s.sessionRepo.GetByID(ctx, actor.SessionID)
-		if err != nil {
+		switch {
+		case errors.Is(err, errx.ErrorSessionNotFound):
+			return models.Account{}, models.Session{}, errx.ErrorAccountInvalidSession.Raise(
+				fmt.Errorf("session %s not found", actor.SessionID),
+			)
+		case err != nil:
 			return models.Account{}, models.Session{}, err
 		}
 	}

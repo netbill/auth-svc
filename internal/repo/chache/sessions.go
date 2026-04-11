@@ -18,8 +18,14 @@ type SessionCache struct {
 	ttl    time.Duration
 }
 
-func NewSessionCache(client *redis.Client, ttl time.Duration) *SessionCache {
-	return &SessionCache{client: client, ttl: ttl}
+func NewSessionCache(
+	client *redis.Client,
+	ttl time.Duration,
+) *SessionCache {
+	return &SessionCache{
+		client: client,
+		ttl:    ttl,
+	}
 }
 
 func sessionKey(id uuid.UUID) string {
@@ -37,10 +43,10 @@ func (c *SessionCache) Set(ctx context.Context, session models.Session) error {
 
 func (c *SessionCache) GetByID(ctx context.Context, sessionID uuid.UUID) (models.Session, error) {
 	data, err := c.client.Get(ctx, sessionKey(sessionID)).Bytes()
-	if err != nil {
-		if errors.Is(err, redis.Nil) {
-			return models.Session{}, errx.ErrCacheMiss
-		}
+	switch {
+	case errors.Is(err, redis.Nil):
+		return models.Session{}, errx.ErrCacheMiss
+	case err != nil:
 		return models.Session{}, err
 	}
 

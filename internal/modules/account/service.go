@@ -3,8 +3,11 @@ package account
 import (
 	"context"
 	"errors"
+	"fmt"
 	"log/slog"
+	"strings"
 	"time"
+	"unicode"
 
 	"github.com/google/uuid"
 	"github.com/netbill/auth-svc/internal/errx"
@@ -36,7 +39,6 @@ type Service struct {
 }
 
 type passwordManager interface {
-	CheckRequirements(password string) error
 	CheckMatch(password, hash string) error
 	GenerateHash(password string) (string, error)
 }
@@ -64,7 +66,11 @@ func (s *Service) Registration(
 		return models.Account{}, errx.ErrorRoleNotSupported.Raise(err)
 	}
 
-	if err := s.passManager.CheckRequirements(params.Password); err != nil {
+	if err := s.checkUsernameRequirements(params.Email); err != nil {
+		return models.Account{}, err
+	}
+
+	if err := s.checkPasswordRequirements(params.Password); err != nil {
 		return models.Account{}, err
 	}
 
@@ -128,7 +134,7 @@ func (s *Service) GetMyAccountByID(
 	ctx context.Context,
 	actor models.AccountActor,
 ) (models.Account, error) {
-	account, err := s.accountCache.GetByID(ctx,actor.ID)
+	account, err := s.accountCache.GetByID(ctx, actor.ID)
 	switch {
 	case errors.Is(err, errx.ErrCacheMiss):
 		s.log.Debug("account cache miss", "account_id", actor.ID)
@@ -191,7 +197,7 @@ func (s *Service) UpdateUsername(
 	actor models.AccountActor,
 	newUsername string,
 ) (models.Account, error) {
-	current, err := s.accountCache.GetByID(ctx,actor.ID)
+	current, err := s.accountCache.GetByID(ctx, actor.ID)
 	switch {
 	case errors.Is(err, errx.ErrCacheMiss):
 		s.log.Debug("account cache miss", "account_id", actor.ID)
@@ -262,7 +268,7 @@ func (s *Service) UpdatePassword(
 		return err
 	}
 
-	if err = s.passManager.CheckRequirements(newPassword); err != nil {
+	if err = s.checkPasswordRequirements(newPassword); err != nil {
 		return err
 	}
 
@@ -328,6 +334,78 @@ func (s *Service) DeleteMyAccount(
 			s.log.Error("failed to delete password cache by id", "error", err)
 		}
 	}()
+
+	return nil
+}
+
+func (s *Service) checkUsernameRequirements(username string) error {
+	if len(username) < 3 || len(username) > 32 {
+		return errx.ErrorUsernameIsNotAllowed.Raise(
+			fmt.Errorf("username must be between 3 and 32 characters"),
+		)
+	}
+
+	for _, r := range username {
+		if !(unicode.IsLetter(r) || unicode.IsDigit(r) || r == '_' || r == '-') {
+			return errx.ErrorUsernameIsNotAllowed.Raise(
+				fmt.Errorf("username contains invalid characters %s", string(r)),
+			)
+		}
+	}
+
+	return nil
+}
+
+func (s *Service) checkPasswordRequirements(password string) error {
+	if len(password) < 8 || len(password) > 32 {
+		return errx.ErrorPasswordIsNotAllowed.Raise(
+			fmt.Errorf("password must be between 8 and 32 characters"),
+		)
+	}
+
+	var (
+		hasUpper, hasLower, hasDigit, hasSpecial bool
+	)
+
+	allowedSpecials := "-.!#$%&?,@"
+
+	for _, r := range password {
+		switch {
+		case unicode.IsUpper(r):
+			hasUpper = true
+		case unicode.IsLower(r):
+			hasLower = true
+		case unicode.IsDigit(r):
+			hasDigit = true
+		case strings.ContainsRune(allowedSpecials, r):
+			hasSpecial = true
+		default:
+			return errx.ErrorPasswordIsNotAllowed.Raise(
+				fmt.Errorf("password contains invalid characters %s", string(r)),
+			)
+		}
+	}
+
+	if !hasUpper {
+		return errx.ErrorPasswordIsNotAllowed.Raise(
+			fmt.Errorf("need at least one uppercase letter"),
+		)
+	}
+	if !hasLower {
+		return errx.ErrorPasswordIsNotAllowed.Raise(
+			fmt.Errorf("need at least one lower case letter"),
+		)
+	}
+	if !hasDigit {
+		return errx.ErrorPasswordIsNotAllowed.Raise(
+			fmt.Errorf("need at least one digit"),
+		)
+	}
+	if !hasSpecial {
+		return errx.ErrorPasswordIsNotAllowed.Raise(
+			fmt.Errorf("need at least one special character from %s", allowedSpecials),
+		)
+	}
 
 	return nil
 }

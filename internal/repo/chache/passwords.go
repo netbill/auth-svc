@@ -18,8 +18,14 @@ type PasswordCache struct {
 	ttl    time.Duration
 }
 
-func NewPasswordCache(client *redis.Client, ttl time.Duration) *PasswordCache {
-	return &PasswordCache{client: client, ttl: ttl}
+func NewPasswordCache(
+	client *redis.Client,
+	ttl time.Duration,
+) *PasswordCache {
+	return &PasswordCache{
+		client: client,
+		ttl:    ttl,
+	}
 }
 
 func passwordKey(accountID uuid.UUID) string {
@@ -37,10 +43,10 @@ func (c *PasswordCache) SetByID(ctx context.Context, password models.AccountPass
 
 func (c *PasswordCache) GetByID(ctx context.Context, accountID uuid.UUID) (models.AccountPassword, error) {
 	data, err := c.client.Get(ctx, passwordKey(accountID)).Bytes()
-	if err != nil {
-		if errors.Is(err, redis.Nil) {
-			return models.AccountPassword{}, errx.ErrCacheMiss
-		}
+	switch {
+	case errors.Is(err, redis.Nil):
+		return models.AccountPassword{}, errx.ErrCacheMiss
+	case err != nil:
 		return models.AccountPassword{}, err
 	}
 

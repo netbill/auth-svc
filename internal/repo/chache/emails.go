@@ -18,8 +18,14 @@ type EmailCache struct {
 	ttl    time.Duration
 }
 
-func NewEmailCache(client *redis.Client, ttl time.Duration) *EmailCache {
-	return &EmailCache{client: client, ttl: ttl}
+func NewEmailCache(
+	client *redis.Client,
+	ttl time.Duration,
+) *EmailCache {
+	return &EmailCache{
+		client: client,
+		ttl:    ttl,
+	}
 }
 
 func emailByIDKey(accountID uuid.UUID) string {
@@ -45,10 +51,10 @@ func (c *EmailCache) Set(ctx context.Context, email models.AccountEmail) error {
 
 func (c *EmailCache) GetByID(ctx context.Context, accountID uuid.UUID) (models.AccountEmail, error) {
 	data, err := c.client.Get(ctx, emailByIDKey(accountID)).Bytes()
-	if err != nil {
-		if errors.Is(err, redis.Nil) {
-			return models.AccountEmail{}, errx.ErrCacheMiss
-		}
+	switch {
+	case errors.Is(err, redis.Nil):
+		return models.AccountEmail{}, errx.ErrCacheMiss
+	case err != nil:
 		return models.AccountEmail{}, err
 	}
 
@@ -62,10 +68,10 @@ func (c *EmailCache) GetByID(ctx context.Context, accountID uuid.UUID) (models.A
 
 func (c *EmailCache) GetByEmail(ctx context.Context, email string) (models.AccountEmail, error) {
 	data, err := c.client.Get(ctx, emailByEmailKey(email)).Bytes()
-	if err != nil {
-		if errors.Is(err, redis.Nil) {
-			return models.AccountEmail{}, errx.ErrCacheMiss
-		}
+	switch {
+	case errors.Is(err, redis.Nil):
+		return models.AccountEmail{}, errx.ErrCacheMiss
+	case err != nil:
 		return models.AccountEmail{}, err
 	}
 

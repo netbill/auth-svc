@@ -18,8 +18,14 @@ type AccountCache struct {
 	ttl    time.Duration
 }
 
-func NewAccountCache(client *redis.Client, ttl time.Duration) *AccountCache {
-	return &AccountCache{client: client, ttl: ttl}
+func NewAccountCache(
+	client *redis.Client,
+	ttl time.Duration,
+) *AccountCache {
+	return &AccountCache{
+		client: client,
+		ttl:    ttl,
+	}
 }
 
 func accountKey(id uuid.UUID) string {
@@ -37,10 +43,10 @@ func (c *AccountCache) Set(ctx context.Context, account models.Account) error {
 
 func (c *AccountCache) GetByID(ctx context.Context, accountID uuid.UUID) (models.Account, error) {
 	data, err := c.client.Get(ctx, accountKey(accountID)).Bytes()
-	if err != nil {
-		if errors.Is(err, redis.Nil) {
-			return models.Account{}, errx.ErrCacheMiss
-		}
+	switch {
+	case errors.Is(err, redis.Nil):
+		return models.Account{}, errx.ErrCacheMiss
+	case err != nil:
 		return models.Account{}, err
 	}
 

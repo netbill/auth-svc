@@ -7,8 +7,9 @@ Go микросервис аутентификации (`github.com/netbill/auth
 
 ## Стек
 
-- **Go 1.25**, chi router, pgx v5, squirrel
+- **Go 1.25**, chi router, pgx v5
 - **PostgreSQL** — основная БД, миграции через `sql-migrate`
+- **Redis** — кеш через `github.com/redis/go-redis/v9` (требует `go mod vendor`)
 - **Kafka** — события через `github.com/netbill/eventbox` (outbox/inbox pattern)
 - **Debezium** — подключён (ветка `feat/debezium`), читает WAL → Kafka через Outbox Event Router SMT
 
@@ -21,14 +22,15 @@ internal/
   modules/
     auth/              — ValidateSession (переиспользуется в account и session)
     account/           — регистрация, управление аккаунтом
-    session/           — логин, сессии, токены
+    session/           — логин, сессии, токены; options.go — ListSessionsOption types
   messenger/
     consumer.go        — Kafka consumer (читает OrganizationsV1, OrgMembersV1)
     producer.go        — Kafka producer (пишет AccountsTopicV1)
     publisher/         — пишет события в outbox таблицу
     evcontroller/      — хендлеры входящих событий (org, org_member)
-  repository/          — интерфейсы репозиториев
-  repository/pg/       — PostgreSQL реализации
+  repo/
+    pg/                — PostgreSQL реализации (accounts, emails, passwords, sessions)
+    chache/            — Redis реализации (accounts, emails, passwords, sessions)
   errx/                — доменные ошибки (ape)
   models/              — доменные модели
 pkg/
@@ -148,11 +150,29 @@ main-topic → handler OK  → commit offset
 - Для инвалидации добавляет latency (WAL → Debezium → Kafka → Consumer → Redis)
 - Горутина после транзакции — проще и достаточно
 
+## Coding patterns
+
+### pg репозитории
+- **Константы таблиц/колонок** — на уровне пакета: `const (accountsTable = "accounts"; accountsCols = "id, ...")`
+- **SQL запросы** — `const query = ...` внутри каждого метода, используют конкатенацию с пакетными константами
+- **scan хелперы** — централизованная обработка ошибок через `switch { case deleted_at != nil → domain error; case ErrNoRows → not found; case err != nil → wrap }`
+- **Unique constraint** — `pgconn.PgError` с кодом `23505` → доменная ошибка (`ErrorUsernameAlreadyTaken`, `ErrorEmailAlreadyExist`)
+- **Без query builders** — только чистый SQL с плейсхолдерами `$1, $2, ...`
+
+### cache репозитории
+- **Ошибка Redis** — `switch { case errors.Is(err, redis.Nil): → ErrCacheMiss; case err != nil: → err }`
+- **JSON сериализация** — `json.Marshal/Unmarshal` для всех сущностей
+
+### Option types для list запросов
+- Типы `ListSessionsOption`, `ListSessionsOptions`, `WithDeleted`, `WithLimit` и т.д. — **в domain пакете** (`internal/modules/session/options.go`), не в pg
+- pg пакет импортирует domain пакет для типов и строит SQL условия инлайн
+
 ## Зависимости eventbox
 
 - `github.com/netbill/eventbox v0.1.14` — outbox/inbox interfaces + workers
 - `github.com/netbill/evtypes v0.1.3` — топики и типы событий
 - `github.com/netbill/pgdbx v0.3.1` — PostgreSQL helpers
+- `github.com/redis/go-redis/v9` — Redis клиент (требует `go mod vendor`)
 
 ## Конфигурация
 

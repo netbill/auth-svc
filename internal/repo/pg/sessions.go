@@ -3,13 +3,20 @@ package pg
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/netbill/auth-svc/internal/errx"
 	"github.com/netbill/auth-svc/internal/models"
+	"github.com/netbill/auth-svc/internal/modules/session"
 	"github.com/netbill/pgdbx"
 	"github.com/netbill/restkit/pagi"
+)
+
+const (
+	sessionsTable = "sessions"
+	sessionsCols  = "id, account_id, version, created_at, last_used, deleted_at"
 )
 
 type SessionRepo struct {
@@ -20,105 +27,116 @@ func NewSessionRepo(db *pgdbx.DB) *SessionRepo {
 	return &SessionRepo{db: db}
 }
 
+func scanSession(row pgx.Row) (s models.Session, err error) {
+	err = row.Scan(
+		&s.ID,
+		&s.AccountID,
+		&s.Version,
+		&s.CreatedAt,
+		&s.LastUsed,
+		&s.DeletedAt,
+	)
+	switch {
+	case errors.Is(err, pgx.ErrNoRows):
+		return models.Session{}, errx.ErrorSessionNotFound
+	case err != nil:
+		return models.Session{}, fmt.Errorf("scan session: %w", err)
+	}
+
+	return s, nil
+}
+
 func (r *SessionRepo) Create(
 	ctx context.Context,
 	sessionID, accountID uuid.UUID,
 	hashToken string,
 ) (models.Session, error) {
 	const query = `
-		INSERT INTO sessions (id, account_id, hash_token)
+		INSERT INTO ` + sessionsTable + ` (id, account_id, hash_token)
 		VALUES ($1, $2, $3)
-		RETURNING id, account_id, version, created_at, last_used, deleted_at`
+		RETURNING ` + sessionsCols
 
-	var s models.Session
-	row := r.db.QueryRow(ctx, query, sessionID, accountID, hashToken)
-	if err := row.Scan(&s.ID, &s.AccountID, &s.Version, &s.CreatedAt, &s.LastUsed, &s.DeletedAt); err != nil {
-		return models.Session{}, err
-	}
-
-	return s, nil
+	return scanSession(r.db.QueryRow(ctx, query, sessionID, accountID, hashToken))
 }
 
 func (r *SessionRepo) GetByID(ctx context.Context, sessionID uuid.UUID) (models.Session, error) {
 	const query = `
-		SELECT id, account_id, version, created_at, last_used, deleted_at
-		FROM sessions
-		WHERE id = $1 AND deleted_at IS NULL`
+		SELECT ` + sessionsCols + `
+		FROM ` + sessionsTable + `
+		WHERE id = $1`
 
-	var s models.Session
-	row := r.db.QueryRow(ctx, query, sessionID)
-	if err := row.Scan(&s.ID, &s.AccountID, &s.Version, &s.CreatedAt, &s.LastUsed, &s.DeletedAt); err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
-			return models.Session{}, errx.ErrorSessionNotFound.Raise(err)
-		}
-		return models.Session{}, err
-	}
-
-	return s, nil
+	return scanSession(r.db.QueryRow(ctx, query, sessionID))
 }
 
 func (r *SessionRepo) GetForAccount(ctx context.Context, accountID, sessionID uuid.UUID) (models.Session, error) {
 	const query = `
-		SELECT id, account_id, version, created_at, last_used, deleted_at
-		FROM sessions
-		WHERE id = $1 AND account_id = $2 AND deleted_at IS NULL`
+		SELECT ` + sessionsCols + `
+		FROM ` + sessionsTable + `
+		WHERE id = $1 AND account_id = $2`
 
-	var s models.Session
-	row := r.db.QueryRow(ctx, query, sessionID, accountID)
-	if err := row.Scan(&s.ID, &s.AccountID, &s.Version, &s.CreatedAt, &s.LastUsed, &s.DeletedAt); err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
-			return models.Session{}, errx.ErrorSessionNotFound.Raise(err)
-		}
-		return models.Session{}, err
-	}
-
-	return s, nil
+	return scanSession(r.db.QueryRow(ctx, query, sessionID, accountID))
 }
 
 func (r *SessionRepo) GetListForAccount(
 	ctx context.Context,
 	accountID uuid.UUID,
-	limit, offset uint,
+	optFns ...session.ListSessionsOption,
 ) (pagi.Page[[]models.Session], error) {
-	const countQuery = `
-		SELECT COUNT(*)
-		FROM sessions
-		WHERE account_id = $1 AND deleted_at IS NULL`
+	opts := session.ApplyListOptions(optFns)
 
-	var total uint
-	if err := r.db.QueryRow(ctx, countQuery, accountID).Scan(&total); err != nil {
-		return pagi.Page[[]models.Session]{}, err
+	var deletedCond string
+	switch opts.Deleted {
+	case session.DeletedFilterActive:
+		deletedCond = " AND deleted_at IS NULL"
+	case session.DeletedFilterDeleted:
+		deletedCond = " AND deleted_at IS NOT NULL"
 	}
 
-	const query = `
-		SELECT id, account_id, version, created_at, last_used, deleted_at
-		FROM sessions
-		WHERE account_id = $1 AND deleted_at IS NULL
-		ORDER BY created_at DESC
-		LIMIT $2 OFFSET $3`
+	orderDir := "DESC"
+	if opts.LastUsed == session.LastUsedAsc {
+		orderDir = "ASC"
+	}
 
-	rows, err := r.db.Query(ctx, query, accountID, limit, offset)
+	const countQuery = `SELECT COUNT(*) FROM ` + sessionsTable + ` WHERE account_id = $1`
+	const listQuery = `SELECT ` + sessionsCols + ` FROM ` + sessionsTable + ` WHERE account_id = $1`
+
+	var total uint
+	if err := r.db.QueryRow(ctx,
+		countQuery+deletedCond,
+		accountID,
+	).Scan(&total); err != nil {
+		return pagi.Page[[]models.Session]{}, fmt.Errorf("count sessions: %w", err)
+	}
+
+	rows, err := r.db.Query(ctx,
+		listQuery+deletedCond+
+			" ORDER BY last_used "+orderDir+
+			" LIMIT $2 OFFSET $3",
+		accountID, opts.Limit, opts.Offset,
+	)
 	if err != nil {
-		return pagi.Page[[]models.Session]{}, err
+		return pagi.Page[[]models.Session]{}, fmt.Errorf("list sessions: %w", err)
 	}
 	defer rows.Close()
 
-	sessions := make([]models.Session, 0, limit)
+	sessions := make([]models.Session, 0, opts.Limit)
+
 	for rows.Next() {
 		var s models.Session
-		if err = rows.Scan(&s.ID, &s.AccountID, &s.Version, &s.CreatedAt, &s.LastUsed, &s.DeletedAt); err != nil {
-			return pagi.Page[[]models.Session]{}, err
+		s, err = scanSession(rows)
+		if err != nil {
+			return pagi.Page[[]models.Session]{}, fmt.Errorf("list sessions: %w", err)
 		}
 		sessions = append(sessions, s)
 	}
 
 	if err = rows.Err(); err != nil {
-		return pagi.Page[[]models.Session]{}, err
+		return pagi.Page[[]models.Session]{}, fmt.Errorf("iterate sessions: %w", err)
 	}
 
 	page := uint(1)
-	if limit > 0 {
-		page = offset/limit + 1
+	if opts.Limit > 0 {
+		page = opts.Offset/opts.Limit + 1
 	}
 
 	return pagi.Page[[]models.Session]{
@@ -132,15 +150,15 @@ func (r *SessionRepo) GetListForAccount(
 func (r *SessionRepo) GetToken(ctx context.Context, sessionID uuid.UUID) (string, error) {
 	const query = `
 		SELECT hash_token
-		FROM sessions
+		FROM ` + sessionsTable + `
 		WHERE id = $1 AND deleted_at IS NULL`
 
 	var hash string
 	if err := r.db.QueryRow(ctx, query, sessionID).Scan(&hash); err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			return "", errx.ErrorSessionNotFound.Raise(err)
+			return "", errx.ErrorSessionNotFound
 		}
-		return "", err
+		return "", fmt.Errorf("get session token: %w", err)
 	}
 
 	return hash, nil
@@ -148,36 +166,33 @@ func (r *SessionRepo) GetToken(ctx context.Context, sessionID uuid.UUID) (string
 
 func (r *SessionRepo) UpdateToken(ctx context.Context, sessionID uuid.UUID, token string) (models.Session, error) {
 	const query = `
-		UPDATE sessions
-		SET hash_token = $1, version = version + 1, last_used = now()
+		UPDATE ` + sessionsTable + `
+		SET
+		    hash_token = $1,
+		    version    = version + 1,
+		    last_used  = now()
 		WHERE id = $2 AND deleted_at IS NULL
-		RETURNING id, account_id, version, created_at, last_used, deleted_at`
+		RETURNING ` + sessionsCols
 
-	var s models.Session
-	row := r.db.QueryRow(ctx, query, token, sessionID)
-	if err := row.Scan(&s.ID, &s.AccountID, &s.Version, &s.CreatedAt, &s.LastUsed, &s.DeletedAt); err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
-			return models.Session{}, errx.ErrorSessionNotFound.Raise(err)
-		}
-		return models.Session{}, err
-	}
-
-	return s, nil
+	return scanSession(r.db.QueryRow(ctx, query, token, sessionID))
 }
 
 func (r *SessionRepo) Delete(ctx context.Context, sessionID uuid.UUID) error {
 	const query = `
-		UPDATE sessions
-		SET deleted_at = now()
+		UPDATE ` + sessionsTable + `
+		SET
+		    deleted_at = now(),
+		    updated_at = now(),
+		    version    = version + 1
 		WHERE id = $1 AND deleted_at IS NULL`
 
 	tag, err := r.db.Exec(ctx, query, sessionID)
 	if err != nil {
-		return err
+		return fmt.Errorf("delete session: %w", err)
 	}
 
 	if tag.RowsAffected() == 0 {
-		return errx.ErrorSessionNotFound.Raise(nil)
+		return errx.ErrorSessionNotFound
 	}
 
 	return nil
@@ -185,32 +200,41 @@ func (r *SessionRepo) Delete(ctx context.Context, sessionID uuid.UUID) error {
 
 func (r *SessionRepo) DeleteOneForAccount(ctx context.Context, accountID, sessionID uuid.UUID) error {
 	const query = `
-		UPDATE sessions
-		SET deleted_at = now()
+		UPDATE ` + sessionsTable + `
+		SET
+		    deleted_at = now(),
+		    updated_at = now(),
+		    version    = version + 1
 		WHERE id = $1 AND account_id = $2 AND deleted_at IS NULL`
 
 	tag, err := r.db.Exec(ctx, query, sessionID, accountID)
 	if err != nil {
-		return err
+		return fmt.Errorf("delete session for account: %w", err)
 	}
 
 	if tag.RowsAffected() == 0 {
-		return errx.ErrorSessionNotFound.Raise(nil)
+		return errx.ErrorSessionNotFound
 	}
 
 	return nil
 }
 
-func (r *SessionRepo) DeleteManyForAccount(ctx context.Context, accountID uuid.UUID) ([]uuid.UUID, error) {
+func (r *SessionRepo) DeleteManyForAccount(
+	ctx context.Context,
+	accountID uuid.UUID,
+) ([]uuid.UUID, error) {
 	const query = `
-		UPDATE sessions
-		SET deleted_at = now()
+		UPDATE ` + sessionsTable + `
+		SET
+		    deleted_at = now(),
+		    updated_at = now(),
+		    version    = version + 1
 		WHERE account_id = $1 AND deleted_at IS NULL
 		RETURNING id`
 
 	rows, err := r.db.Query(ctx, query, accountID)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("delete sessions for account: %w", err)
 	}
 	defer rows.Close()
 
@@ -218,7 +242,7 @@ func (r *SessionRepo) DeleteManyForAccount(ctx context.Context, accountID uuid.U
 	for rows.Next() {
 		var id uuid.UUID
 		if err = rows.Scan(&id); err != nil {
-			return nil, err
+			return nil, fmt.Errorf("scan deleted session id: %w", err)
 		}
 		ids = append(ids, id)
 	}
