@@ -5,10 +5,6 @@ log:
   level: "debug"   # debug | info | warn | error
   format: "text"   # text | json
 
-database:
-  sql:
-    url: "${DATABASE_SQL_URL}"  # env:
-
 rest:
   port: 8001
   timeouts:
@@ -34,16 +30,21 @@ auth:
       client_secret: "${AUTH_OAUTH_GOOGLE_CLIENT_SECRET}"
       redirect_url: "${AUTH_OAUTH_GOOGLE_REDIRECT_URL}"
 
-redis:
-  addr: "${REDIS_ADDR}"
-  password: "${REDIS_PASSWORD}"
-  db: 0
 
-  ttl:
-    account: 5m
-    email: 5m
-    password: 5m
-    session: 5m
+database:
+  sql:
+    url: "${DATABASE_SQL_URL}"  # env:
+
+  redis:
+    addr: "${REDIS_ADDR}"
+    password: "${REDIS_PASSWORD}"
+    db: 0
+
+    ttl:
+      account: 5m
+      email: 5m
+      password: 5m
+      session: 5m
 
 kafka:
   brokers:

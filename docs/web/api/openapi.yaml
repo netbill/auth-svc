@@ -808,7 +808,6 @@ components:
       required:
       - account_id
       - created_at
-      - deleted_at
       - last_used
       - version
     AccountSessionsCollection:

@@ -14,9 +14,7 @@ func AccountSession(m models.Session) resources.AccountSession {
 		Version:   m.Version,
 		CreatedAt: m.CreatedAt,
 		LastUsed:  m.LastUsed,
-	}
-	if m.DeletedAt != nil {
-		attrs.DeletedAt = *m.DeletedAt
+		DeletedAt: m.DeletedAt,
 	}
 
 	return resources.AccountSession{

@@ -910,7 +910,6 @@ components:
         - created_at
         - version
         - last_used
-        - deleted_at
       properties:
         account_id:
           type: string

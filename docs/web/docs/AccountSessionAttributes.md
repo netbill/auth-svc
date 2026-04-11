@@ -8,13 +8,13 @@ Name | Type | Description | Notes
 **CreatedAt** | **time.Time** | session creation date | 
 **Version** | **int32** | The version number of the account record | 
 **LastUsed** | **time.Time** | last used date | 
-**DeletedAt** | **time.Time** | session deletion date | 
+**DeletedAt** | Pointer to **time.Time** | session deletion date | [optional] 
 
 ## Methods
 
 ### NewAccountSessionAttributes
 
-`func NewAccountSessionAttributes(accountId uuid.UUID, createdAt time.Time, version int32, lastUsed time.Time, deletedAt time.Time, ) *AccountSessionAttributes`
+`func NewAccountSessionAttributes(accountId uuid.UUID, createdAt time.Time, version int32, lastUsed time.Time, ) *AccountSessionAttributes`
 
 NewAccountSessionAttributes instantiates a new AccountSessionAttributes object
 This constructor will assign default values to properties that have it defined,
@@ -128,6 +128,11 @@ and a boolean to check if the value has been set.
 
 SetDeletedAt sets DeletedAt field to given value.
 
+### HasDeletedAt
+
+`func (o *AccountSessionAttributes) HasDeletedAt() bool`
+
+HasDeletedAt returns a boolean if a field has been set.
 
 
 [[Back to Model list]](../README.md#documentation-for-models) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to README]](../README.md)

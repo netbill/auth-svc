@@ -27,6 +27,19 @@ type DatabaseConfig struct {
 	SQL struct {
 		URL string `mapstructure:"url"`
 	} `mapstructure:"sql"`
+
+	Redis struct {
+		Addr     string `mapstructure:"addr"`
+		Password string `mapstructure:"password"`
+		DB       int    `mapstructure:"db"`
+
+		TTL struct {
+			Account  time.Duration `mapstructure:"account"`
+			Email    time.Duration `mapstructure:"email"`
+			Password time.Duration `mapstructure:"password"`
+			Session  time.Duration `mapstructure:"session"`
+		} `mapstructure:"ttl"`
+	} `mapstructure:"redis"`
 }
 
 type RestConfig struct {
@@ -62,19 +75,6 @@ type AuthConfig struct {
 	} `mapstructure:"oauth"`
 }
 
-type RedisConfig struct {
-	Addr     string `mapstructure:"addr"`
-	Password string `mapstructure:"password"`
-	DB       int    `mapstructure:"db"`
-
-	TTL struct {
-		Account  time.Duration `mapstructure:"account"`
-		Email    time.Duration `mapstructure:"email"`
-		Password time.Duration `mapstructure:"password"`
-		Session  time.Duration `mapstructure:"session"`
-	} `mapstructure:"ttl"`
-}
-
 type KafkaConfig struct {
 	Brokers  []string `mapstructure:"brokers"`
 	Identity string   `mapstructure:"identity"`
@@ -86,7 +86,6 @@ type Config struct {
 	Database DatabaseConfig `mapstructure:"database"`
 	Rest     RestConfig     `mapstructure:"rest"`
 	Auth     AuthConfig     `mapstructure:"auth"`
-	Redis    RedisConfig    `mapstructure:"redis"`
 	Kafka    KafkaConfig    `mapstructure:"kafka"`
 }
 
@@ -99,6 +98,12 @@ func LoadConfig() *Config {
 
 	if err := viper.ReadInConfig(); err != nil {
 		panic(fmt.Errorf("error reading config file: %s", err))
+	}
+
+	for _, key := range viper.AllKeys() {
+		if val, ok := viper.Get(key).(string); ok {
+			viper.Set(key, os.ExpandEnv(val))
+		}
 	}
 
 	var config Config
@@ -124,9 +129,9 @@ func (cfg *Config) PoolDB(ctx context.Context) (*pgxpool.Pool, error) {
 
 func (cfg *Config) RedisClient() *redis.Client {
 	return redis.NewClient(&redis.Options{
-		Addr:     cfg.Redis.Addr,
-		Password: cfg.Redis.Password,
-		DB:       cfg.Redis.DB,
+		Addr:     cfg.Database.Redis.Addr,
+		Password: cfg.Database.Redis.Password,
+		DB:       cfg.Database.Redis.DB,
 	})
 }
 

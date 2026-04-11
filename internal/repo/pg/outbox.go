@@ -46,7 +46,7 @@ func (r *OutboxRepo) write(ctx context.Context, topic, key, eventType string, pa
 func (r *OutboxRepo) WriteAccountCreated(
 	ctx context.Context,
 	account models.Account,
-	_ models.AccountEmail,
+	email models.AccountEmail,
 ) error {
 	return r.write(
 		ctx,
@@ -54,10 +54,8 @@ func (r *OutboxRepo) WriteAccountCreated(
 		account.ID.String(),
 		evtypes.AccountCreatedEvent,
 		evtypes.AccountCreatedPayload{
-			AccountID: account.ID,
-			Username:  account.Username,
-			Role:      account.Role,
-			CreatedAt: account.CreatedAt,
+			Account:      toEvAccount(account),
+			AccountEmail: toEvAccountEmail(email),
 		},
 	)
 }
@@ -72,10 +70,7 @@ func (r *OutboxRepo) WriteAccountUsernameUpdated(
 		account.ID.String(),
 		evtypes.AccountUsernameUpdatedEvent,
 		evtypes.AccountUsernameUpdatedPayload{
-			AccountID: account.ID,
-			Username:  account.Username,
-			Version:   account.Version,
-			UpdatedAt: account.UpdatedAt,
+			Account: toEvAccount(account),
 		},
 	)
 }
@@ -83,21 +78,40 @@ func (r *OutboxRepo) WriteAccountUsernameUpdated(
 func (r *OutboxRepo) WriteAccountDeleted(
 	ctx context.Context,
 	account models.Account,
-	_ models.AccountEmail,
+	email models.AccountEmail,
 ) error {
-	var deletedAt = account.UpdatedAt
-	if account.DeletedAt != nil {
-		deletedAt = *account.DeletedAt
-	}
-
 	return r.write(
 		ctx,
 		evtypes.AccountsTopicV1,
 		account.ID.String(),
 		evtypes.AccountDeletedEvent,
 		evtypes.AccountDeletedPayload{
-			AccountID: account.ID,
-			DeletedAt: deletedAt,
+			Account:      toEvAccount(account),
+			AccountEmail: toEvAccountEmail(email),
 		},
 	)
+}
+
+func toEvAccount(a models.Account) evtypes.Account {
+	return evtypes.Account{
+		ID:        a.ID,
+		Username:  a.Username,
+		Role:      a.Role,
+		Version:   a.Version,
+		CreatedAt: a.CreatedAt,
+		UpdatedAt: a.UpdatedAt,
+		DeletedAt: a.DeletedAt,
+	}
+}
+
+func toEvAccountEmail(e models.AccountEmail) evtypes.AccountEmail {
+	return evtypes.AccountEmail{
+		AccountID: e.AccountID,
+		Email:     e.Email,
+		Verified:  e.Verified,
+		Version:   e.Version,
+		CreatedAt: e.CreatedAt,
+		UpdatedAt: e.UpdatedAt,
+		DeletedAt: e.DeletedAt,
+	}
 }

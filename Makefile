@@ -31,15 +31,15 @@ build:
 
 migrate-up:
 	KV_VIPER_FILE=$(CONFIG_FILE) go build -o ./cmd/auth-svc/main ./cmd/auth-svc/main.go
-	KV_VIPER_FILE=$(CONFIG_FILE) ./cmd/auth-svc/main migrate up
+	set -a && . ./.env && set +a && KV_VIPER_FILE=$(CONFIG_FILE) ./cmd/auth-svc/main migrate up
 
 migrate-down:
 	KV_VIPER_FILE=$(CONFIG_FILE) go build -o ./cmd/auth-svc/main ./cmd/auth-svc/main.go
-	KV_VIPER_FILE=$(CONFIG_FILE) ./cmd/auth-svc/main migrate down
+	set -a && . ./.env && set +a && KV_VIPER_FILE=$(CONFIG_FILE) ./cmd/auth-svc/main migrate down
 
 run-server:
 	KV_VIPER_FILE=$(CONFIG_FILE) go build -o ./cmd/auth-svc/main ./cmd/auth-svc/main.go
-	KV_VIPER_FILE=$(CONFIG_FILE) ./cmd/auth-svc/main run service
+	set -a && . ./.env && set +a && KV_VIPER_FILE=$(CONFIG_FILE) ./cmd/auth-svc/main run service
 
 docker-up:
 	docker compose up -d --build

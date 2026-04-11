@@ -32,7 +32,7 @@ type AccountSessionAttributes struct {
 	// last used date
 	LastUsed time.Time `json:"last_used"`
 	// session deletion date
-	DeletedAt time.Time `json:"deleted_at"`
+	DeletedAt *time.Time `json:"deleted_at,omitempty"`
 }
 
 type _AccountSessionAttributes AccountSessionAttributes
@@ -41,13 +41,12 @@ type _AccountSessionAttributes AccountSessionAttributes
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewAccountSessionAttributes(accountId uuid.UUID, createdAt time.Time, version int32, lastUsed time.Time, deletedAt time.Time) *AccountSessionAttributes {
+func NewAccountSessionAttributes(accountId uuid.UUID, createdAt time.Time, version int32, lastUsed time.Time) *AccountSessionAttributes {
 	this := AccountSessionAttributes{}
 	this.AccountId = accountId
 	this.CreatedAt = createdAt
 	this.Version = version
 	this.LastUsed = lastUsed
-	this.DeletedAt = deletedAt
 	return &this
 }
 
@@ -155,28 +154,36 @@ func (o *AccountSessionAttributes) SetLastUsed(v time.Time) {
 	o.LastUsed = v
 }
 
-// GetDeletedAt returns the DeletedAt field value
+// GetDeletedAt returns the DeletedAt field value if set, zero value otherwise.
 func (o *AccountSessionAttributes) GetDeletedAt() time.Time {
-	if o == nil {
+	if o == nil || IsNil(o.DeletedAt) {
 		var ret time.Time
 		return ret
 	}
-
-	return o.DeletedAt
+	return *o.DeletedAt
 }
 
-// GetDeletedAtOk returns a tuple with the DeletedAt field value
+// GetDeletedAtOk returns a tuple with the DeletedAt field value if set, nil otherwise
 // and a boolean to check if the value has been set.
 func (o *AccountSessionAttributes) GetDeletedAtOk() (*time.Time, bool) {
-	if o == nil {
+	if o == nil || IsNil(o.DeletedAt) {
 		return nil, false
 	}
-	return &o.DeletedAt, true
+	return o.DeletedAt, true
 }
 
-// SetDeletedAt sets field value
+// HasDeletedAt returns a boolean if a field has been set.
+func (o *AccountSessionAttributes) HasDeletedAt() bool {
+	if o != nil && !IsNil(o.DeletedAt) {
+		return true
+	}
+
+	return false
+}
+
+// SetDeletedAt gets a reference to the given time.Time and assigns it to the DeletedAt field.
 func (o *AccountSessionAttributes) SetDeletedAt(v time.Time) {
-	o.DeletedAt = v
+	o.DeletedAt = &v
 }
 
 func (o AccountSessionAttributes) MarshalJSON() ([]byte, error) {
@@ -193,7 +200,9 @@ func (o AccountSessionAttributes) ToMap() (map[string]interface{}, error) {
 	toSerialize["created_at"] = o.CreatedAt
 	toSerialize["version"] = o.Version
 	toSerialize["last_used"] = o.LastUsed
-	toSerialize["deleted_at"] = o.DeletedAt
+	if !IsNil(o.DeletedAt) {
+		toSerialize["deleted_at"] = o.DeletedAt
+	}
 	return toSerialize, nil
 }
 
@@ -206,7 +215,6 @@ func (o *AccountSessionAttributes) UnmarshalJSON(data []byte) (err error) {
 		"created_at",
 		"version",
 		"last_used",
-		"deleted_at",
 	}
 
 	allProperties := make(map[string]interface{})

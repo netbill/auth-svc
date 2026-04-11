@@ -55,7 +55,7 @@ func (a *App) Run(ctx context.Context) error {
 
 	// — caches —
 
-	redisTTL := a.config.Redis.TTL
+	redisTTL := a.config.Database.Redis.TTL
 
 	accountCache := chache.NewAccountCache(redisClient, redisTTL.Account)
 	emailCache := chache.NewEmailCache(redisClient, redisTTL.Email)
