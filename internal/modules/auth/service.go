@@ -42,6 +42,24 @@ type Service struct {
 	log *slog.Logger
 }
 
+type ServiceDeps struct {
+	AccountRepo   accountRepo
+	SessionRepo   sessionRepo
+	AccountCache  accountCache
+	SessionsCache sessionsCache
+	Log           *slog.Logger
+}
+
+func New(deps ServiceDeps) *Service {
+	return &Service{
+		accountRepo:   deps.AccountRepo,
+		sessionRepo:   deps.SessionRepo,
+		accountCache:  deps.AccountCache,
+		sessionsCache: deps.SessionsCache,
+		log:           deps.Log,
+	}
+}
+
 func (s *Service) ValidateSession(
 	ctx context.Context,
 	actor models.AccountActor,

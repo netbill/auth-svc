@@ -91,8 +91,8 @@ Class | Method | HTTP request | Description
 *SessionsAPI* | [**AuthSvcV1MeLogoutPost**](docs/SessionsAPI.md#authsvcv1melogoutpost) | **Post** /auth-svc/v1/me/logout | Logout
 *SessionsAPI* | [**AuthSvcV1MeSessionsDelete**](docs/SessionsAPI.md#authsvcv1mesessionsdelete) | **Delete** /auth-svc/v1/me/sessions | Delete my sessions
 *SessionsAPI* | [**AuthSvcV1MeSessionsGet**](docs/SessionsAPI.md#authsvcv1mesessionsget) | **Get** /auth-svc/v1/me/sessions | Get my sessions
-*SessionsAPI* | [**AuthSvcV1MeSessionsSessionIdDelete**](docs/SessionsAPI.md#authsvcv1mesessionssessioniddelete) | **Delete** /auth-svc/v1/me/sessions/{session_id} | Delete my sessions
-*SessionsAPI* | [**AuthSvcV1MeSessionsSessionIdGet**](docs/SessionsAPI.md#authsvcv1mesessionssessionidget) | **Get** /auth-svc/v1/me/sessions/{session_id} | Get my sessions
+*SessionsAPI* | [**AuthSvcV1MeSessionsSessionIdDelete**](docs/SessionsAPI.md#authsvcv1mesessionssessioniddelete) | **Delete** /auth-svc/v1/me/sessions/{session_id} | Delete my session
+*SessionsAPI* | [**AuthSvcV1MeSessionsSessionIdGet**](docs/SessionsAPI.md#authsvcv1mesessionssessionidget) | **Get** /auth-svc/v1/me/sessions/{session_id} | Get my session
 *SessionsAPI* | [**AuthSvcV1RefreshPost**](docs/SessionsAPI.md#authsvcv1refreshpost) | **Post** /auth-svc/v1/refresh | Refresh session
 
 

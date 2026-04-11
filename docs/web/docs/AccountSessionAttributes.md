@@ -8,12 +8,13 @@ Name | Type | Description | Notes
 **CreatedAt** | **time.Time** | session creation date | 
 **Version** | **int32** | The version number of the account record | 
 **LastUsed** | **time.Time** | last used date | 
+**DeletedAt** | **time.Time** | session deletion date | 
 
 ## Methods
 
 ### NewAccountSessionAttributes
 
-`func NewAccountSessionAttributes(accountId uuid.UUID, createdAt time.Time, version int32, lastUsed time.Time, ) *AccountSessionAttributes`
+`func NewAccountSessionAttributes(accountId uuid.UUID, createdAt time.Time, version int32, lastUsed time.Time, deletedAt time.Time, ) *AccountSessionAttributes`
 
 NewAccountSessionAttributes instantiates a new AccountSessionAttributes object
 This constructor will assign default values to properties that have it defined,
@@ -106,6 +107,26 @@ and a boolean to check if the value has been set.
 `func (o *AccountSessionAttributes) SetLastUsed(v time.Time)`
 
 SetLastUsed sets LastUsed field to given value.
+
+
+### GetDeletedAt
+
+`func (o *AccountSessionAttributes) GetDeletedAt() time.Time`
+
+GetDeletedAt returns the DeletedAt field if non-nil, zero value otherwise.
+
+### GetDeletedAtOk
+
+`func (o *AccountSessionAttributes) GetDeletedAtOk() (*time.Time, bool)`
+
+GetDeletedAtOk returns a tuple with the DeletedAt field if it's non-nil, zero value otherwise
+and a boolean to check if the value has been set.
+
+### SetDeletedAt
+
+`func (o *AccountSessionAttributes) SetDeletedAt(v time.Time)`
+
+SetDeletedAt sets DeletedAt field to given value.
 
 
 

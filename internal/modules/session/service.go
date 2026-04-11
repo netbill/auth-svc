@@ -32,6 +32,38 @@ type Service struct {
 	log *slog.Logger
 }
 
+type ServiceDeps struct {
+	Auth          auth
+	AccountRepo   accountRepo
+	EmailRepo     emailRepo
+	PasswordRepo  passwordRepo
+	SessionRepo   sessionRepo
+	Tx            transaction
+	PasswordCache passwordCache
+	AccountCache  accountCache
+	SessionsCache sessionsCache
+	PassManager   passwordManager
+	TokenManager  tokenManager
+	Log           *slog.Logger
+}
+
+func New(deps ServiceDeps) *Service {
+	return &Service{
+		auth:          deps.Auth,
+		accountRepo:   deps.AccountRepo,
+		emailRepo:     deps.EmailRepo,
+		passwordRepo:  deps.PasswordRepo,
+		sessionRepo:   deps.SessionRepo,
+		tx:            deps.Tx,
+		passwordCache: deps.PasswordCache,
+		accountCache:  deps.AccountCache,
+		sessionsCache: deps.SessionsCache,
+		passManager:   deps.PassManager,
+		tokenManager:  deps.TokenManager,
+		log:           deps.Log,
+	}
+}
+
 type passwordManager interface {
 	CheckMatch(password, hash string) error
 }

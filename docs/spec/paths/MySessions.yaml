@@ -5,7 +5,7 @@ get:
   description: >
     Returns sessions of the authenticated account.
 
-    Supports pagination via query parameters.
+    Supports pagination, filtering by deletion status, and sorting by last used date.
   security:
     - BearerAuth: [ ]
   parameters:
@@ -23,6 +23,29 @@ get:
         type: integer
         minimum: 0
       description: Number of items to skip
+    - in: query
+      name: filter[deleted]
+      required: false
+      schema:
+        type: string
+        enum: [all, active, deleted]
+        default: all
+      description: >
+        Filter sessions by deletion status.
+        - `all` — active and deleted sessions (default)
+        - `active` — only active (non-deleted) sessions
+        - `deleted` — only deleted sessions
+    - in: query
+      name: sort[last_used]
+      required: false
+      schema:
+        type: string
+        enum: [desc, asc]
+        default: desc
+      description: >
+        Sort sessions by last used date.
+        - `desc` — most recently used first (default)
+        - `asc` — least recently used first
   responses:
     '200':
       description: Sessions successfully retrieved
@@ -30,15 +53,6 @@ get:
         application/json:
           schema:
             $ref: '../components/schemas/responses/AccountSessionsCollection.yaml'
-
-    '401':
-      description: >
-        Unauthorized. Invalid credentials, initiator account not found, or session is invalid.
-      content:
-        application/json:
-          schema:
-            $ref: '../components/schemas/responses/Errors.yaml'
-
 
     '500':
       description: Internal Server Error
@@ -61,7 +75,7 @@ delete:
 
     '401':
       description: >
-        Unauthorized. Invalid credentials, initiator account not found, or session is invalid.
+        Unauthorized. The session is invalid or does not belong to the authenticated account.
       content:
         application/json:
           schema:

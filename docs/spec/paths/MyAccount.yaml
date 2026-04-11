@@ -32,8 +32,15 @@ get:
 
     '401':
       description: >
-        Unauthorized. Invalid credentials or account cannot be resolved from context.
-        Check the `detail` field in the response for more information.
+        Unauthorized. The account is deleted and can no longer be used.
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/responses/Errors.yaml'
+
+    '404':
+      description: >
+        Account not found.
       content:
         application/json:
           schema:
@@ -61,17 +68,15 @@ delete:
 
     '401':
       description: >
-        Unauthorized. Invalid credentials, initiator account not found, or session is invalid.
-        Check the `detail` field in the response for more information.
+        Unauthorized. The session is invalid or does not belong to the authenticated account.
       content:
         application/json:
           schema:
             $ref: '../components/schemas/responses/Errors.yaml'
 
-    '403':
+    '404':
       description: >
-        Account is have membership in an organization, 
-        must leave all organizations before deleting the account.
+        Account not found.
       content:
         application/json:
           schema:

@@ -5,9 +5,8 @@ patch:
   description: >
     Updates the username of the authenticated account.
 
-    **401 Unauthorized** is returned when credentials are invalid, the session is invalid,
-    or the password is incorrect.
-    **403 Forbidden** is returned when the initiator is blocked or username change is temporarily restricted.
+    **401 Unauthorized** is returned when the account is deleted.
+    **404 Not Found** is returned when the account does not exist.
     **409 Conflict** is returned when the requested username is already taken.
   security:
     - BearerAuth: [ ]
@@ -27,7 +26,7 @@ patch:
 
     '400':
       description: >
-        Bad Request. Request body is invalid or the new username does not meet requirements.
+        Bad Request. Request body is invalid.
         Check the `errors` array for details.
       content:
         application/json:
@@ -36,7 +35,15 @@ patch:
 
     '401':
       description: >
-        Unauthorized. Invalid credentials, invalid session, user not found, or invalid password.
+        Unauthorized. The account is deleted and can no longer be used.
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/responses/Errors.yaml'
+
+    '404':
+      description: >
+        Account not found.
       content:
         application/json:
           schema:

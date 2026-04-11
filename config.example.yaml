@@ -34,41 +34,19 @@ auth:
       client_secret: "${AUTH_OAUTH_GOOGLE_CLIENT_SECRET}"
       redirect_url: "${AUTH_OAUTH_GOOGLE_REDIRECT_URL}"
 
+redis:
+  addr: "${REDIS_ADDR}"
+  password: "${REDIS_PASSWORD}"
+  db: 0
+
+  ttl:
+    account: 5m
+    email: 5m
+    password: 5m
+    session: 5m
+
 kafka:
   brokers:
     - "${KAFKA_BROKERS}"
 
   identity: "auth-svc"  # consumer group id и client id
-
-  produce:
-    topics:
-      accounts_v1:
-        required_acks: "all"     # all | one | none
-        compression: "snappy"    # snappy | gzip | lz4 | zstd | none
-        balancer: "hash"         # least_bytes | round_robin | hash
-        batch_size: 100
-        batch_timeout: 10ms
-        write_timeout: 5s
-        read_timeout: 5s
-        dial_timeout: 5s
-        idle_timeout: 30s
-
-  consume:
-    backoff:
-      min: 100ms
-      max: 1s
-
-    topics:
-      organizations_v1:
-        instances: 4
-        min_bytes: 1
-        max_bytes: 10e6
-        max_wait: 1s
-        queue_capacity: 10
-
-      organization_members_v1:
-        instances: 4
-        min_bytes: 1
-        max_bytes: 10e6
-        max_wait: 1s
-        queue_capacity: 10

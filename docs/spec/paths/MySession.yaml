@@ -10,21 +10,21 @@ parameters:
 get:
   tags:
     - sessions
-  summary: Get my sessions
+  summary: Get my session
   description: >
-    Returns sessions of the authenticated account.
+    Returns a single session of the authenticated account by ID.
   security:
     - BearerAuth: [ ]
   responses:
     '200':
-      description: Sessions successfully retrieved
+      description: Session successfully retrieved
       content:
         application/json:
           schema:
-            $ref: '../components/schemas/responses/AccountSessionsCollection.yaml'
+            $ref: '../components/schemas/responses/AccountSession.yaml'
 
-    '401':
-      description: Unauthorized
+    '404':
+      description: Session not found
       content:
         application/json:
           schema:
@@ -40,9 +40,9 @@ get:
 delete:
   tags:
     - sessions
-  summary: Delete my sessions
+  summary: Delete my session
   description: >
-    Delete session by ID
+    Deletes a session by ID. The session must belong to the authenticated account.
   security:
     - BearerAuth: [ ]
   responses:
@@ -50,7 +50,16 @@ delete:
       description: Session successfully deleted
 
     '401':
-      description: Unauthorized, session not exist or session does not belong to the authenticated account
+      description: >
+        Unauthorized. The session does not belong to the authenticated account.
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/responses/Errors.yaml'
+
+    '404':
+      description: >
+        Session not found.
       content:
         application/json:
           schema:

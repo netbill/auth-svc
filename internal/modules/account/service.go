@@ -37,6 +37,36 @@ type Service struct {
 	log *slog.Logger
 }
 
+type ServiceDeps struct {
+	Auth          auth
+	AccountRepo   accountRepo
+	EmailRepo     emailRepo
+	PasswordRepo  passwordRepo
+	Tx            transaction
+	AccountCache  accountCache
+	EmailCache    emailCache
+	PasswordCache passwordCache
+	PassManager   passwordManager
+	Messenger     messenger
+	Log           *slog.Logger
+}
+
+func New(deps ServiceDeps) *Service {
+	return &Service{
+		auth:          deps.Auth,
+		accountRepo:   deps.AccountRepo,
+		emailRepo:     deps.EmailRepo,
+		passwordRepo:  deps.PasswordRepo,
+		tx:            deps.Tx,
+		accountCache:  deps.AccountCache,
+		emailCache:    deps.EmailCache,
+		passwordCache: deps.PasswordCache,
+		passManager:   deps.PassManager,
+		messenger:     deps.Messenger,
+		log:           deps.Log,
+	}
+}
+
 type passwordManager interface {
 	CheckMatch(password, hash string) error
 	GenerateHash(password string) (string, error)

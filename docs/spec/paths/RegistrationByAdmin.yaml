@@ -32,16 +32,7 @@ post:
 
     '401':
       description: >
-        Unauthorized. Account cannot be resolved from context or initiator account not found.
-        Check the `detail` field in the response for more information.
-      content:
-        application/json:
-          schema:
-            $ref: '../components/schemas/responses/Errors.yaml'
-
-    '403':
-      description: >
-        Forbidden. Initiator account is not active or does not have enough rights.
+        Unauthorized. Account cannot be resolved from context.
         Check the `detail` field in the response for more information.
       content:
         application/json:
@@ -50,7 +41,7 @@ post:
 
     '409':
       description: >
-        Conflict. Email is already taken.
+        Conflict. Email or username is already taken.
         Check the `detail` field in the response for more information.
       content:
         application/json:

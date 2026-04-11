@@ -64,21 +64,14 @@ paths:
               schema:
                 $ref: "#/components/schemas/Errors"
           description: |
-            Unauthorized. Account cannot be resolved from context or initiator account not found. Check the `detail` field in the response for more information.
-        "403":
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Errors"
-          description: |
-            Forbidden. Initiator account is not active or does not have enough rights. Check the `detail` field in the response for more information.
+            Unauthorized. Account cannot be resolved from context. Check the `detail` field in the response for more information.
         "409":
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Errors"
           description: |
-            Conflict. Email is already taken. Check the `detail` field in the response for more information.
+            Conflict. Email or username is already taken. Check the `detail` field in the response for more information.
         "500":
           content:
             application/json:
@@ -210,7 +203,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Errors"
-          description: Account not found for this email
+          description: Account not found or deleted for this email
         "500":
           content:
             application/json:
@@ -274,14 +267,14 @@ paths:
               schema:
                 $ref: "#/components/schemas/Errors"
           description: |
-            Unauthorized. Invalid credentials, initiator account not found, or session is invalid. Check the `detail` field in the response for more information.
-        "403":
+            Unauthorized. The session is invalid or does not belong to the authenticated account.
+        "404":
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Errors"
           description: |
-            Account is have membership in an organization,  must leave all organizations before deleting the account.
+            Account not found.
         "500":
           content:
             application/json:
@@ -323,7 +316,14 @@ paths:
               schema:
                 $ref: "#/components/schemas/Errors"
           description: |
-            Unauthorized. Invalid credentials or account cannot be resolved from context. Check the `detail` field in the response for more information.
+            Unauthorized. The account is deleted and can no longer be used.
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Errors"
+          description: |
+            Account not found.
         "500":
           content:
             application/json:
@@ -338,17 +338,10 @@ paths:
   /auth-svc/v1/me/logout:
     post:
       description: |
-        Invalidates the current session of the authenticated account.
+        Invalidates the current session of the authenticated account. This operation is idempotent — if the session is already deleted, 204 is returned.
       responses:
         "204":
-          description: Successfully logged out
-        "401":
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Errors"
-          description: |
-            Unauthorized. Account cannot be resolved from context. Check the `detail` field in the response for more information.
+          description: Successfully logged out (or session was already deleted)
         "500":
           content:
             application/json:
@@ -364,7 +357,7 @@ paths:
     patch:
       description: |
         Updates the password of the authenticated account.
-        **401 Unauthorized** is returned when credentials are invalid, the session is invalid, or the old password is incorrect. **403 Forbidden** is returned when the initiator is blocked or password change is temporarily restricted.
+        **401 Unauthorized** is returned when the session is invalid or the old password is incorrect.
       requestBody:
         content:
           application/json:
@@ -387,14 +380,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/Errors"
           description: |
-            Unauthorized. Invalid credentials, invalid session, user not found, or invalid password.
-        "403":
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Errors"
-          description: |
-            Forbidden. Cannot change password yet due, password change timeout.
+            Unauthorized. The session is invalid, does not belong to the authenticated account, or the old password is incorrect.
         "500":
           content:
             application/json:
@@ -410,7 +396,7 @@ paths:
     patch:
       description: |
         Updates the username of the authenticated account.
-        **401 Unauthorized** is returned when credentials are invalid, the session is invalid, or the password is incorrect. **403 Forbidden** is returned when the initiator is blocked or username change is temporarily restricted. **409 Conflict** is returned when the requested username is already taken.
+        **401 Unauthorized** is returned when the account is deleted. **404 Not Found** is returned when the account does not exist. **409 Conflict** is returned when the requested username is already taken.
       requestBody:
         content:
           application/json:
@@ -430,14 +416,21 @@ paths:
               schema:
                 $ref: "#/components/schemas/Errors"
           description: |
-            Bad Request. Request body is invalid or the new username does not meet requirements. Check the `errors` array for details.
+            Bad Request. Request body is invalid. Check the `errors` array for details.
         "401":
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Errors"
           description: |
-            Unauthorized. Invalid credentials, invalid session, user not found, or invalid password.
+            Unauthorized. The account is deleted and can no longer be used.
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Errors"
+          description: |
+            Account not found.
         "409":
           content:
             application/json:
@@ -469,7 +462,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/Errors"
           description: |
-            Unauthorized. Invalid credentials, initiator account not found, or session is invalid.
+            Unauthorized. The session is invalid or does not belong to the authenticated account.
         "500":
           content:
             application/json:
@@ -484,7 +477,7 @@ paths:
     get:
       description: |
         Returns sessions of the authenticated account.
-        Supports pagination via query parameters.
+        Supports pagination, filtering by deletion status, and sorting by last used date.
       parameters:
       - description: Max number of items to return
         explode: true
@@ -504,6 +497,33 @@ paths:
           minimum: 0
           type: integer
         style: form
+      - description: |
+          Filter sessions by deletion status. - `all` — active and deleted sessions (default) - `active` — only active (non-deleted) sessions - `deleted` — only deleted sessions
+        explode: true
+        in: query
+        name: "filter[deleted]"
+        required: false
+        schema:
+          default: all
+          enum:
+          - all
+          - active
+          - deleted
+          type: string
+        style: form
+      - description: |
+          Sort sessions by last used date. - `desc` — most recently used first (default) - `asc` — least recently used first
+        explode: true
+        in: query
+        name: "sort[last_used]"
+        required: false
+        schema:
+          default: desc
+          enum:
+          - desc
+          - asc
+          type: string
+        style: form
       responses:
         "200":
           content:
@@ -511,13 +531,6 @@ paths:
               schema:
                 $ref: "#/components/schemas/AccountSessionsCollection"
           description: Sessions successfully retrieved
-        "401":
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Errors"
-          description: |
-            Unauthorized. Invalid credentials, initiator account not found, or session is invalid.
         "500":
           content:
             application/json:
@@ -532,7 +545,7 @@ paths:
   /auth-svc/v1/me/sessions/{session_id}:
     delete:
       description: |
-        Delete session by ID
+        Deletes a session by ID. The session must belong to the authenticated account.
       parameters:
       - description: Session ID
         explode: false
@@ -551,8 +564,15 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Errors"
-          description: "Unauthorized, session not exist or session does not belong\
-            \ to the authenticated account"
+          description: |
+            Unauthorized. The session does not belong to the authenticated account.
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Errors"
+          description: |
+            Session not found.
         "500":
           content:
             application/json:
@@ -561,12 +581,12 @@ paths:
           description: Internal Server Error
       security:
       - BearerAuth: []
-      summary: Delete my sessions
+      summary: Delete my session
       tags:
       - sessions
     get:
       description: |
-        Returns sessions of the authenticated account.
+        Returns a single session of the authenticated account by ID.
       parameters:
       - description: Session ID
         explode: false
@@ -582,14 +602,14 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/AccountSessionsCollection"
-          description: Sessions successfully retrieved
-        "401":
+                $ref: "#/components/schemas/AccountSession"
+          description: Session successfully retrieved
+        "404":
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Errors"
-          description: Unauthorized
+          description: Session not found
         "500":
           content:
             application/json:
@@ -598,7 +618,7 @@ paths:
           description: Internal Server Error
       security:
       - BearerAuth: []
-      summary: Get my sessions
+      summary: Get my session
       tags:
       - sessions
     parameters:
@@ -718,6 +738,16 @@ components:
       required:
       - data
     AccountSession:
+      example:
+        data:
+          attributes:
+            account_id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+            last_used: 2000-01-23T04:56:07.000+00:00
+            created_at: 2000-01-23T04:56:07.000+00:00
+            version: 0
+            deleted_at: 2000-01-23T04:56:07.000+00:00
+          id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+          type: account_session
       properties:
         data:
           $ref: "#/components/schemas/AccountSessionData"
@@ -730,6 +760,7 @@ components:
           last_used: 2000-01-23T04:56:07.000+00:00
           created_at: 2000-01-23T04:56:07.000+00:00
           version: 0
+          deleted_at: 2000-01-23T04:56:07.000+00:00
         id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
         type: account_session
       properties:
@@ -753,6 +784,7 @@ components:
         last_used: 2000-01-23T04:56:07.000+00:00
         created_at: 2000-01-23T04:56:07.000+00:00
         version: 0
+        deleted_at: 2000-01-23T04:56:07.000+00:00
       properties:
         account_id:
           description: account id
@@ -769,9 +801,14 @@ components:
           description: last used date
           format: date-time
           type: string
+        deleted_at:
+          description: session deletion date
+          format: date-time
+          type: string
       required:
       - account_id
       - created_at
+      - deleted_at
       - last_used
       - version
     AccountSessionsCollection:
@@ -782,6 +819,7 @@ components:
             last_used: 2000-01-23T04:56:07.000+00:00
             created_at: 2000-01-23T04:56:07.000+00:00
             version: 0
+            deleted_at: 2000-01-23T04:56:07.000+00:00
           id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
           type: account_session
         - attributes:
@@ -789,6 +827,7 @@ components:
             last_used: 2000-01-23T04:56:07.000+00:00
             created_at: 2000-01-23T04:56:07.000+00:00
             version: 0
+            deleted_at: 2000-01-23T04:56:07.000+00:00
           id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
           type: account_session
         links:

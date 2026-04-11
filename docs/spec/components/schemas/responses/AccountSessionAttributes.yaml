@@ -4,6 +4,7 @@ required:
   - created_at
   - version
   - last_used
+  - deleted_at
 properties:
   account_id:
     type: string
@@ -20,4 +21,8 @@ properties:
     type: string
     format: date-time
     description: "last used date"
+  deleted_at:
+    type: string
+    format: date-time
+    description: "session deletion date"
 

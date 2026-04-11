@@ -7,8 +7,8 @@ Method | HTTP request | Description
 [**AuthSvcV1MeLogoutPost**](SessionsAPI.md#AuthSvcV1MeLogoutPost) | **Post** /auth-svc/v1/me/logout | Logout
 [**AuthSvcV1MeSessionsDelete**](SessionsAPI.md#AuthSvcV1MeSessionsDelete) | **Delete** /auth-svc/v1/me/sessions | Delete my sessions
 [**AuthSvcV1MeSessionsGet**](SessionsAPI.md#AuthSvcV1MeSessionsGet) | **Get** /auth-svc/v1/me/sessions | Get my sessions
-[**AuthSvcV1MeSessionsSessionIdDelete**](SessionsAPI.md#AuthSvcV1MeSessionsSessionIdDelete) | **Delete** /auth-svc/v1/me/sessions/{session_id} | Delete my sessions
-[**AuthSvcV1MeSessionsSessionIdGet**](SessionsAPI.md#AuthSvcV1MeSessionsSessionIdGet) | **Get** /auth-svc/v1/me/sessions/{session_id} | Get my sessions
+[**AuthSvcV1MeSessionsSessionIdDelete**](SessionsAPI.md#AuthSvcV1MeSessionsSessionIdDelete) | **Delete** /auth-svc/v1/me/sessions/{session_id} | Delete my session
+[**AuthSvcV1MeSessionsSessionIdGet**](SessionsAPI.md#AuthSvcV1MeSessionsSessionIdGet) | **Get** /auth-svc/v1/me/sessions/{session_id} | Get my session
 [**AuthSvcV1RefreshPost**](SessionsAPI.md#AuthSvcV1RefreshPost) | **Post** /auth-svc/v1/refresh | Refresh session
 
 
@@ -133,7 +133,7 @@ Other parameters are passed through a pointer to a apiAuthSvcV1MeSessionsDeleteR
 
 ## AuthSvcV1MeSessionsGet
 
-> AccountSessionsCollection AuthSvcV1MeSessionsGet(ctx).PageLimit(pageLimit).PageOffset(pageOffset).Execute()
+> AccountSessionsCollection AuthSvcV1MeSessionsGet(ctx).PageLimit(pageLimit).PageOffset(pageOffset).FilterDeleted(filterDeleted).SortLastUsed(sortLastUsed).Execute()
 
 Get my sessions
 
@@ -154,10 +154,12 @@ import (
 func main() {
 	pageLimit := int32(56) // int32 | Max number of items to return (optional)
 	pageOffset := int32(56) // int32 | Number of items to skip (optional)
+	filterDeleted := "filterDeleted_example" // string | Filter sessions by deletion status. - `all` — active and deleted sessions (default) - `active` — only active (non-deleted) sessions - `deleted` — only deleted sessions  (optional) (default to "all")
+	sortLastUsed := "sortLastUsed_example" // string | Sort sessions by last used date. - `desc` — most recently used first (default) - `asc` — least recently used first  (optional) (default to "desc")
 
 	configuration := openapiclient.NewConfiguration()
 	apiClient := openapiclient.NewAPIClient(configuration)
-	resp, r, err := apiClient.SessionsAPI.AuthSvcV1MeSessionsGet(context.Background()).PageLimit(pageLimit).PageOffset(pageOffset).Execute()
+	resp, r, err := apiClient.SessionsAPI.AuthSvcV1MeSessionsGet(context.Background()).PageLimit(pageLimit).PageOffset(pageOffset).FilterDeleted(filterDeleted).SortLastUsed(sortLastUsed).Execute()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error when calling `SessionsAPI.AuthSvcV1MeSessionsGet``: %v\n", err)
 		fmt.Fprintf(os.Stderr, "Full HTTP response: %v\n", r)
@@ -180,6 +182,8 @@ Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
  **pageLimit** | **int32** | Max number of items to return | 
  **pageOffset** | **int32** | Number of items to skip | 
+ **filterDeleted** | **string** | Filter sessions by deletion status. - &#x60;all&#x60; — active and deleted sessions (default) - &#x60;active&#x60; — only active (non-deleted) sessions - &#x60;deleted&#x60; — only deleted sessions  | [default to &quot;all&quot;]
+ **sortLastUsed** | **string** | Sort sessions by last used date. - &#x60;desc&#x60; — most recently used first (default) - &#x60;asc&#x60; — least recently used first  | [default to &quot;desc&quot;]
 
 ### Return type
 
@@ -203,7 +207,7 @@ Name | Type | Description  | Notes
 
 > AuthSvcV1MeSessionsSessionIdDelete(ctx, sessionId).Execute()
 
-Delete my sessions
+Delete my session
 
 
 
@@ -269,9 +273,9 @@ Name | Type | Description  | Notes
 
 ## AuthSvcV1MeSessionsSessionIdGet
 
-> AccountSessionsCollection AuthSvcV1MeSessionsSessionIdGet(ctx, sessionId).Execute()
+> AccountSession AuthSvcV1MeSessionsSessionIdGet(ctx, sessionId).Execute()
 
-Get my sessions
+Get my session
 
 
 
@@ -297,7 +301,7 @@ func main() {
 		fmt.Fprintf(os.Stderr, "Error when calling `SessionsAPI.AuthSvcV1MeSessionsSessionIdGet``: %v\n", err)
 		fmt.Fprintf(os.Stderr, "Full HTTP response: %v\n", r)
 	}
-	// response from `AuthSvcV1MeSessionsSessionIdGet`: AccountSessionsCollection
+	// response from `AuthSvcV1MeSessionsSessionIdGet`: AccountSession
 	fmt.Fprintf(os.Stdout, "Response from `SessionsAPI.AuthSvcV1MeSessionsSessionIdGet`: %v\n", resp)
 }
 ```
@@ -321,7 +325,7 @@ Name | Type | Description  | Notes
 
 ### Return type
 
-[**AccountSessionsCollection**](AccountSessionsCollection.md)
+[**AccountSession**](AccountSession.md)
 
 ### Authorization
 
