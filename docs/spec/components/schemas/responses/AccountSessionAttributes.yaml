@@ -3,6 +3,7 @@ required:
   - account_id
   - created_at
   - version
+  - updated_at
   - last_used
 properties:
   account_id:
@@ -20,6 +21,10 @@ properties:
     type: string
     format: date-time
     description: "last used date"
+  updated_at:
+    type: string
+    format: date-time
+    description: "updated at date"
   deleted_at:
     type: string
     format: date-time

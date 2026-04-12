@@ -38,12 +38,12 @@ func scanAccount(row pgx.Row) (r models.Account, err error) {
 		&r.DeletedAt,
 	)
 	switch {
-	case r.DeletedAt != nil:
-		return models.Account{}, errx.ErrorAccountDeleted
 	case errors.Is(err, pgx.ErrNoRows):
-		return models.Account{}, errx.ErrorAccountNotFound
+		return models.Account{}, errx.ErrorAccountNotFound.Raise(err)
 	case err != nil:
 		return models.Account{}, fmt.Errorf("scan account: %w", err)
+		//case r.DeletedAt != nil:
+		//	return models.Account{}, errx.ErrorAccountDeleted.Raise(fmt.Errorf("account %v is deleted", r.ID))
 	}
 	return r, nil
 }
@@ -58,7 +58,7 @@ func (r *AccountRepo) Create(ctx context.Context, params account.RegistrationPar
 	if err != nil {
 		var pgErr *pgconn.PgError
 		if errors.As(err, &pgErr) && pgErr.Code == "23505" {
-			return models.Account{}, errx.ErrorUsernameAlreadyTaken
+			return models.Account{}, errx.ErrorUsernameAlreadyTaken.Raise(err)
 		}
 		return models.Account{}, err
 	}
@@ -99,14 +99,14 @@ func (r *AccountRepo) UpdateUsername(
 	if err != nil {
 		var pgErr *pgconn.PgError
 		if errors.As(err, &pgErr) && pgErr.Code == "23505" {
-			return models.Account{}, errx.ErrorUsernameAlreadyTaken
+			return models.Account{}, errx.ErrorUsernameAlreadyTaken.Raise(err)
 		}
 		return models.Account{}, err
 	}
 	return result, nil
 }
 
-func (r *AccountRepo) Delete(ctx context.Context, accountID uuid.UUID) error {
+func (r *AccountRepo) Delete(ctx context.Context, accountID uuid.UUID) (models.Account, error) {
 	const query = `
 		UPDATE ` + accountsTable + `
 		SET
@@ -114,16 +114,18 @@ func (r *AccountRepo) Delete(ctx context.Context, accountID uuid.UUID) error {
 			deleted_at = now(),
 			updated_at = now(),
 			version    = version + 1
-		WHERE id = $1 AND deleted_at IS NULL`
+		WHERE id = $1 AND deleted_at IS NULL
+		RETURNING ` + accountsCols
 
-	tag, err := r.db.Exec(ctx, query, accountID)
-	if err != nil {
-		return err
+	var a models.Account
+	err := r.db.QueryRow(ctx, query, accountID).Scan(
+		&a.ID, &a.Username, &a.Role, &a.Version, &a.CreatedAt, &a.UpdatedAt, &a.DeletedAt,
+	)
+	switch {
+	case errors.Is(err, pgx.ErrNoRows):
+		return models.Account{}, errx.ErrorAccountNotFound.Raise(err)
+	case err != nil:
+		return models.Account{}, fmt.Errorf("delete account: %w", err)
 	}
-
-	if tag.RowsAffected() == 0 {
-		return errx.ErrorAccountNotFound
-	}
-
-	return nil
+	return a, nil
 }

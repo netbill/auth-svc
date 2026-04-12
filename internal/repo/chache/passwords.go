@@ -33,16 +33,14 @@ func passwordKey(accountID uuid.UUID) string {
 }
 
 func (c *PasswordCache) SetByID(ctx context.Context, password models.AccountPassword) error {
-	data, err := json.Marshal(password)
-	if err != nil {
+	if err := c.client.JSONSet(ctx, passwordKey(password.AccountID), "$", password).Err(); err != nil {
 		return err
 	}
-
-	return c.client.Set(ctx, passwordKey(password.AccountID), data, c.ttl).Err()
+	return c.client.Expire(ctx, passwordKey(password.AccountID), c.ttl).Err()
 }
 
 func (c *PasswordCache) GetByID(ctx context.Context, accountID uuid.UUID) (models.AccountPassword, error) {
-	data, err := c.client.Get(ctx, passwordKey(accountID)).Bytes()
+	val, err := c.client.JSONGet(ctx, passwordKey(accountID), ".").Result()
 	switch {
 	case errors.Is(err, redis.Nil):
 		return models.AccountPassword{}, errx.ErrCacheMiss
@@ -51,10 +49,9 @@ func (c *PasswordCache) GetByID(ctx context.Context, accountID uuid.UUID) (model
 	}
 
 	var password models.AccountPassword
-	if err = json.Unmarshal(data, &password); err != nil {
+	if err = json.Unmarshal([]byte(val), &password); err != nil {
 		return models.AccountPassword{}, err
 	}
-
 	return password, nil
 }
 

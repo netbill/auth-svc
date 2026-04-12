@@ -16,7 +16,7 @@ import (
 
 const (
 	sessionsTable = "sessions"
-	sessionsCols  = "id, account_id, version, created_at, last_used, deleted_at"
+	sessionsCols  = "id, account_id, version, created_at, updated_at, last_used, deleted_at"
 )
 
 type SessionRepo struct {
@@ -33,12 +33,13 @@ func scanSession(row pgx.Row) (s models.Session, err error) {
 		&s.AccountID,
 		&s.Version,
 		&s.CreatedAt,
+		&s.UpdatedAt,
 		&s.LastUsed,
 		&s.DeletedAt,
 	)
 	switch {
 	case errors.Is(err, pgx.ErrNoRows):
-		return models.Session{}, errx.ErrorSessionNotFound
+		return models.Session{}, errx.ErrorSessionNotFound.Raise(err)
 	case err != nil:
 		return models.Session{}, fmt.Errorf("scan session: %w", err)
 	}
@@ -156,7 +157,7 @@ func (r *SessionRepo) GetToken(ctx context.Context, sessionID uuid.UUID) (string
 	var hash string
 	if err := r.db.QueryRow(ctx, query, sessionID).Scan(&hash); err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			return "", errx.ErrorSessionNotFound
+			return "", errx.ErrorSessionNotFound.Raise(err)
 		}
 		return "", fmt.Errorf("get session token: %w", err)
 	}
@@ -170,6 +171,7 @@ func (r *SessionRepo) UpdateToken(ctx context.Context, sessionID uuid.UUID, toke
 		SET
 		    hash_token = $1,
 		    version    = version + 1,
+		    updated_at = now(),
 		    last_used  = now()
 		WHERE id = $2 AND deleted_at IS NULL
 		RETURNING ` + sessionsCols
@@ -192,7 +194,7 @@ func (r *SessionRepo) Delete(ctx context.Context, sessionID uuid.UUID) error {
 	}
 
 	if tag.RowsAffected() == 0 {
-		return errx.ErrorSessionNotFound
+		return errx.ErrorSessionNotFound.Raise(fmt.Errorf("session %v not found on delete", sessionID))
 	}
 
 	return nil
@@ -213,7 +215,7 @@ func (r *SessionRepo) DeleteOneForAccount(ctx context.Context, accountID, sessio
 	}
 
 	if tag.RowsAffected() == 0 {
-		return errx.ErrorSessionNotFound
+		return errx.ErrorSessionNotFound.Raise(fmt.Errorf("session %v not found for account %v on delete", sessionID, accountID))
 	}
 
 	return nil

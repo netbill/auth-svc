@@ -33,16 +33,14 @@ func sessionKey(id uuid.UUID) string {
 }
 
 func (c *SessionCache) Set(ctx context.Context, session models.Session) error {
-	data, err := json.Marshal(session)
-	if err != nil {
+	if err := c.client.JSONSet(ctx, sessionKey(session.ID), "$", session).Err(); err != nil {
 		return err
 	}
-
-	return c.client.Set(ctx, sessionKey(session.ID), data, c.ttl).Err()
+	return c.client.Expire(ctx, sessionKey(session.ID), c.ttl).Err()
 }
 
 func (c *SessionCache) GetByID(ctx context.Context, sessionID uuid.UUID) (models.Session, error) {
-	data, err := c.client.Get(ctx, sessionKey(sessionID)).Bytes()
+	val, err := c.client.JSONGet(ctx, sessionKey(sessionID), ".").Result()
 	switch {
 	case errors.Is(err, redis.Nil):
 		return models.Session{}, errx.ErrCacheMiss
@@ -51,10 +49,9 @@ func (c *SessionCache) GetByID(ctx context.Context, sessionID uuid.UUID) (models
 	}
 
 	var session models.Session
-	if err = json.Unmarshal(data, &session); err != nil {
+	if err = json.Unmarshal([]byte(val), &session); err != nil {
 		return models.Session{}, err
 	}
-
 	return session, nil
 }
 

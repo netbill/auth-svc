@@ -37,20 +37,20 @@ func emailByEmailKey(email string) string {
 }
 
 func (c *EmailCache) Set(ctx context.Context, email models.AccountEmail) error {
-	data, err := json.Marshal(email)
-	if err != nil {
+	if err := c.client.JSONSet(ctx, emailByIDKey(email.AccountID), "$", email).Err(); err != nil {
 		return err
 	}
-
-	if err = c.client.Set(ctx, emailByIDKey(email.AccountID), data, c.ttl).Err(); err != nil {
+	if err := c.client.Expire(ctx, emailByIDKey(email.AccountID), c.ttl).Err(); err != nil {
 		return err
 	}
-
-	return c.client.Set(ctx, emailByEmailKey(email.Email), data, c.ttl).Err()
+	if err := c.client.JSONSet(ctx, emailByEmailKey(email.Email), "$", email).Err(); err != nil {
+		return err
+	}
+	return c.client.Expire(ctx, emailByEmailKey(email.Email), c.ttl).Err()
 }
 
 func (c *EmailCache) GetByID(ctx context.Context, accountID uuid.UUID) (models.AccountEmail, error) {
-	data, err := c.client.Get(ctx, emailByIDKey(accountID)).Bytes()
+	val, err := c.client.JSONGet(ctx, emailByIDKey(accountID), ".").Result()
 	switch {
 	case errors.Is(err, redis.Nil):
 		return models.AccountEmail{}, errx.ErrCacheMiss
@@ -59,15 +59,14 @@ func (c *EmailCache) GetByID(ctx context.Context, accountID uuid.UUID) (models.A
 	}
 
 	var email models.AccountEmail
-	if err = json.Unmarshal(data, &email); err != nil {
+	if err = json.Unmarshal([]byte(val), &email); err != nil {
 		return models.AccountEmail{}, err
 	}
-
 	return email, nil
 }
 
 func (c *EmailCache) GetByEmail(ctx context.Context, email string) (models.AccountEmail, error) {
-	data, err := c.client.Get(ctx, emailByEmailKey(email)).Bytes()
+	val, err := c.client.JSONGet(ctx, emailByEmailKey(email), ".").Result()
 	switch {
 	case errors.Is(err, redis.Nil):
 		return models.AccountEmail{}, errx.ErrCacheMiss
@@ -76,10 +75,9 @@ func (c *EmailCache) GetByEmail(ctx context.Context, email string) (models.Accou
 	}
 
 	var e models.AccountEmail
-	if err = json.Unmarshal(data, &e); err != nil {
+	if err = json.Unmarshal([]byte(val), &e); err != nil {
 		return models.AccountEmail{}, err
 	}
-
 	return e, nil
 }
 

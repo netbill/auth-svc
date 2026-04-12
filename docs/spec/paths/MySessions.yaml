@@ -24,17 +24,15 @@ get:
         minimum: 0
       description: Number of items to skip
     - in: query
-      name: filter[deleted]
+      name: filter[active]
       required: false
       schema:
-        type: string
-        enum: [all, active, deleted]
-        default: all
+        type: boolean
       description: >
-        Filter sessions by deletion status.
-        - `all` — active and deleted sessions (default)
-        - `active` — only active (non-deleted) sessions
-        - `deleted` — only deleted sessions
+        Filter sessions by active status.
+        - `true` — only active (non-deleted) sessions
+        - `false` — only deleted sessions
+        - omit — all sessions (default)
     - in: query
       name: sort[last_used]
       required: false

@@ -10,6 +10,7 @@ import (
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/netbill/auth-svc/internal/errx"
 	"github.com/netbill/auth-svc/internal/models"
+	"github.com/netbill/auth-svc/internal/modules/account"
 	"github.com/netbill/pgdbx"
 )
 
@@ -37,10 +38,8 @@ func scanEmail(row pgx.Row) (e models.AccountEmail, err error) {
 		&e.DeletedAt,
 	)
 	switch {
-	case e.DeletedAt != nil:
-		return models.AccountEmail{}, errx.ErrorAccountDeleted
 	case errors.Is(err, pgx.ErrNoRows):
-		return models.AccountEmail{}, errx.ErrorAccountNotFound
+		return models.AccountEmail{}, errx.ErrorAccountNotFound.Raise(err)
 	case err != nil:
 		return models.AccountEmail{}, fmt.Errorf("scan email: %w", err)
 	}
@@ -57,18 +56,25 @@ func (r *EmailRepo) Create(ctx context.Context, params models.AccountEmail) (mod
 	if err != nil {
 		var pgErr *pgconn.PgError
 		if errors.As(err, &pgErr) && pgErr.Code == "23505" {
-			return models.AccountEmail{}, errx.ErrorEmailAlreadyExist
+			return models.AccountEmail{}, errx.ErrorEmailAlreadyExist.Raise(err)
 		}
 		return models.AccountEmail{}, err
 	}
 	return result, nil
 }
 
-func (r *EmailRepo) GetByID(ctx context.Context, accountID uuid.UUID) (models.AccountEmail, error) {
-	const query = `
-		SELECT ` + emailsCols + `
-		FROM ` + emailsTable + `
-		WHERE account_id = $1 AND deleted_at IS NULL`
+func (r *EmailRepo) GetByID(ctx context.Context, accountID uuid.UUID, optFns ...account.GetAccountOption) (models.AccountEmail, error) {
+	opts := account.ApplyGetAccountOptions(optFns)
+
+	query := `SELECT ` + emailsCols + ` FROM ` + emailsTable + ` WHERE account_id = $1`
+	switch opts.Deleted {
+	case account.DeletedFilterAll:
+		// no additional filter
+	case account.DeletedFilterDeleted:
+		query += ` AND deleted_at IS NOT NULL`
+	default: // DeletedFilterActive (0)
+		query += ` AND deleted_at IS NULL`
+	}
 
 	return scanEmail(r.db.QueryRow(ctx, query, accountID))
 }
@@ -82,37 +88,3 @@ func (r *EmailRepo) GetByEmail(ctx context.Context, email string) (models.Accoun
 	return scanEmail(r.db.QueryRow(ctx, query, email))
 }
 
-func (r *EmailRepo) ExistsByEmail(ctx context.Context, email string) (bool, error) {
-	const query = `
-		SELECT EXISTS(
-			SELECT 1 FROM ` + emailsTable + `
-			WHERE email = $1 AND deleted_at IS NULL
-		)`
-
-	var exists bool
-	if err := r.db.QueryRow(ctx, query, email).Scan(&exists); err != nil {
-		return false, fmt.Errorf("check email exists: %w", err)
-	}
-	return exists, nil
-}
-
-func (r *EmailRepo) Delete(ctx context.Context, accountID uuid.UUID) error {
-	const query = `
-		UPDATE ` + emailsTable + `
-		SET
-			deleted_at = now(),
-			updated_at = now(),
-			version    = version + 1
-		WHERE account_id = $1 AND deleted_at IS NULL`
-
-	tag, err := r.db.Exec(ctx, query, accountID)
-	if err != nil {
-		return err
-	}
-
-	if tag.RowsAffected() == 0 {
-		return errx.ErrorAccountNotFound
-	}
-
-	return nil
-}

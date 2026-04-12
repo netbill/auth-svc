@@ -135,10 +135,10 @@ func (s *Service) Refresh(
 	}
 
 	if storedHash != tokenHash {
-		return models.TokensPair{}, errx.ErrorSessionTokenMismatch.Raise(nil)
+		return models.TokensPair{}, errx.ErrorSessionTokenMismatch.Raise(fmt.Errorf("refresh token hash mismatch for session %v", claims.SessionID))
 	}
 
-	accountID, err := uuid.Parse(claims.ID)
+	accountID, err := uuid.Parse(claims.Subject)
 	if err != nil {
 		return models.TokensPair{}, err
 	}

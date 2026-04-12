@@ -31,6 +31,8 @@ type AccountSessionAttributes struct {
 	Version int32 `json:"version"`
 	// last used date
 	LastUsed time.Time `json:"last_used"`
+	// updated at date
+	UpdatedAt time.Time `json:"updated_at"`
 	// session deletion date
 	DeletedAt *time.Time `json:"deleted_at,omitempty"`
 }
@@ -41,12 +43,13 @@ type _AccountSessionAttributes AccountSessionAttributes
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewAccountSessionAttributes(accountId uuid.UUID, createdAt time.Time, version int32, lastUsed time.Time) *AccountSessionAttributes {
+func NewAccountSessionAttributes(accountId uuid.UUID, createdAt time.Time, version int32, lastUsed time.Time, updatedAt time.Time) *AccountSessionAttributes {
 	this := AccountSessionAttributes{}
 	this.AccountId = accountId
 	this.CreatedAt = createdAt
 	this.Version = version
 	this.LastUsed = lastUsed
+	this.UpdatedAt = updatedAt
 	return &this
 }
 
@@ -154,6 +157,30 @@ func (o *AccountSessionAttributes) SetLastUsed(v time.Time) {
 	o.LastUsed = v
 }
 
+// GetUpdatedAt returns the UpdatedAt field value
+func (o *AccountSessionAttributes) GetUpdatedAt() time.Time {
+	if o == nil {
+		var ret time.Time
+		return ret
+	}
+
+	return o.UpdatedAt
+}
+
+// GetUpdatedAtOk returns a tuple with the UpdatedAt field value
+// and a boolean to check if the value has been set.
+func (o *AccountSessionAttributes) GetUpdatedAtOk() (*time.Time, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return &o.UpdatedAt, true
+}
+
+// SetUpdatedAt sets field value
+func (o *AccountSessionAttributes) SetUpdatedAt(v time.Time) {
+	o.UpdatedAt = v
+}
+
 // GetDeletedAt returns the DeletedAt field value if set, zero value otherwise.
 func (o *AccountSessionAttributes) GetDeletedAt() time.Time {
 	if o == nil || IsNil(o.DeletedAt) {
@@ -200,6 +227,7 @@ func (o AccountSessionAttributes) ToMap() (map[string]interface{}, error) {
 	toSerialize["created_at"] = o.CreatedAt
 	toSerialize["version"] = o.Version
 	toSerialize["last_used"] = o.LastUsed
+	toSerialize["updated_at"] = o.UpdatedAt
 	if !IsNil(o.DeletedAt) {
 		toSerialize["deleted_at"] = o.DeletedAt
 	}
@@ -215,6 +243,7 @@ func (o *AccountSessionAttributes) UnmarshalJSON(data []byte) (err error) {
 		"created_at",
 		"version",
 		"last_used",
+		"updated_at",
 	}
 
 	allProperties := make(map[string]interface{})

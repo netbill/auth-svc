@@ -498,18 +498,13 @@ paths:
           type: integer
         style: form
       - description: |
-          Filter sessions by deletion status. - `all` — active and deleted sessions (default) - `active` — only active (non-deleted) sessions - `deleted` — only deleted sessions
+          Filter sessions by active status. - `true` — only active (non-deleted) sessions - `false` — only deleted sessions - omit — all sessions (default)
         explode: true
         in: query
-        name: "filter[deleted]"
+        name: "filter[active]"
         required: false
         schema:
-          default: all
-          enum:
-          - all
-          - active
-          - deleted
-          type: string
+          type: boolean
         style: form
       - description: |
           Sort sessions by last used date. - `desc` — most recently used first (default) - `asc` — least recently used first
@@ -742,6 +737,7 @@ components:
         data:
           attributes:
             account_id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+            updated_at: 2000-01-23T04:56:07.000+00:00
             last_used: 2000-01-23T04:56:07.000+00:00
             created_at: 2000-01-23T04:56:07.000+00:00
             version: 0
@@ -757,6 +753,7 @@ components:
       example:
         attributes:
           account_id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+          updated_at: 2000-01-23T04:56:07.000+00:00
           last_used: 2000-01-23T04:56:07.000+00:00
           created_at: 2000-01-23T04:56:07.000+00:00
           version: 0
@@ -781,6 +778,7 @@ components:
     AccountSessionAttributes:
       example:
         account_id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+        updated_at: 2000-01-23T04:56:07.000+00:00
         last_used: 2000-01-23T04:56:07.000+00:00
         created_at: 2000-01-23T04:56:07.000+00:00
         version: 0
@@ -801,6 +799,10 @@ components:
           description: last used date
           format: date-time
           type: string
+        updated_at:
+          description: updated at date
+          format: date-time
+          type: string
         deleted_at:
           description: session deletion date
           format: date-time
@@ -809,12 +811,14 @@ components:
       - account_id
       - created_at
       - last_used
+      - updated_at
       - version
     AccountSessionsCollection:
       example:
         data:
         - attributes:
             account_id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+            updated_at: 2000-01-23T04:56:07.000+00:00
             last_used: 2000-01-23T04:56:07.000+00:00
             created_at: 2000-01-23T04:56:07.000+00:00
             version: 0
@@ -823,6 +827,7 @@ components:
           type: account_session
         - attributes:
             account_id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+            updated_at: 2000-01-23T04:56:07.000+00:00
             last_used: 2000-01-23T04:56:07.000+00:00
             created_at: 2000-01-23T04:56:07.000+00:00
             version: 0

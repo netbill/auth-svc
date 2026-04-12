@@ -11,6 +11,7 @@ type Session struct {
 	AccountID uuid.UUID  `json:"account_id"`
 	Version   int32      `json:"version"`
 	CreatedAt time.Time  `json:"created_at"`
+	UpdatedAt time.Time  `json:"updated_at"`
 	LastUsed  time.Time  `json:"last_used"`
 	DeletedAt *time.Time `json:"deleted_at,omitempty"`
 }

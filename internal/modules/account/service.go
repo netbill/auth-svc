@@ -9,6 +9,7 @@ import (
 	"time"
 	"unicode"
 
+	"github.com/google/uuid"
 	"github.com/netbill/auth-svc/internal/errx"
 	"github.com/netbill/auth-svc/internal/models"
 	"github.com/netbill/restkit/tokens"
@@ -24,11 +25,13 @@ type Service struct {
 	accountRepo  accountRepo
 	emailRepo    emailRepo
 	passwordRepo passwordRepo
+	sessionRepo  sessionRepo
 	tx           transaction
 
 	accountCache  accountCache
 	emailCache    emailCache
 	passwordCache passwordCache
+	sessionsCache sessionsCache
 
 	passManager passwordManager
 
@@ -42,10 +45,12 @@ type ServiceDeps struct {
 	AccountRepo   accountRepo
 	EmailRepo     emailRepo
 	PasswordRepo  passwordRepo
+	SessionRepo   sessionRepo
 	Tx            transaction
 	AccountCache  accountCache
 	EmailCache    emailCache
 	PasswordCache passwordCache
+	SessionsCache sessionsCache
 	PassManager   passwordManager
 	Messenger     messenger
 	Log           *slog.Logger
@@ -57,10 +62,12 @@ func New(deps ServiceDeps) *Service {
 		accountRepo:   deps.AccountRepo,
 		emailRepo:     deps.EmailRepo,
 		passwordRepo:  deps.PasswordRepo,
+		sessionRepo:   deps.SessionRepo,
 		tx:            deps.Tx,
 		accountCache:  deps.AccountCache,
 		emailCache:    deps.EmailCache,
 		passwordCache: deps.PasswordCache,
+		sessionsCache: deps.SessionsCache,
 		passManager:   deps.PassManager,
 		messenger:     deps.Messenger,
 		log:           deps.Log,
@@ -338,23 +345,25 @@ func (s *Service) DeleteMyAccount(
 	}
 
 	var (
-		account models.Account
-		email   models.AccountEmail
-		err     error
+		account    models.Account
+		email      models.AccountEmail
+		sessionIDs []uuid.UUID
+		err        error
 	)
 
 	if err = s.tx.Transaction(ctx, func(ctx context.Context) error {
-		account, err = s.accountRepo.GetByID(ctx, actor.ID)
+		account, err = s.accountRepo.Delete(ctx, actor.ID)
 		if err != nil {
 			return err
 		}
 
-		email, err = s.emailRepo.GetByID(ctx, actor.ID)
+		email, err = s.emailRepo.GetByID(ctx, actor.ID, WithDeleted(DeletedFilterAll))
 		if err != nil {
 			return err
 		}
 
-		if err = s.accountRepo.Delete(ctx, actor.ID); err != nil {
+		sessionIDs, err = s.sessionRepo.DeleteManyForAccount(ctx, actor.ID)
+		if err != nil {
 			return err
 		}
 
@@ -377,6 +386,12 @@ func (s *Service) DeleteMyAccount(
 
 		if err := s.passwordCache.DeleteByID(ctx, actor.ID); err != nil {
 			s.log.Error("failed to delete password cache by id", "error", err)
+		}
+
+		for _, id := range sessionIDs {
+			if err := s.sessionsCache.DeleteByID(ctx, id); err != nil {
+				s.log.Error("failed to delete session cache", "session_id", id, "error", err)
+			}
 		}
 	}()
 

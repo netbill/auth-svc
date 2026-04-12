@@ -33,16 +33,14 @@ func accountKey(id uuid.UUID) string {
 }
 
 func (c *AccountCache) Set(ctx context.Context, account models.Account) error {
-	data, err := json.Marshal(account)
-	if err != nil {
+	if err := c.client.JSONSet(ctx, accountKey(account.ID), "$", account).Err(); err != nil {
 		return err
 	}
-
-	return c.client.Set(ctx, accountKey(account.ID), data, c.ttl).Err()
+	return c.client.Expire(ctx, accountKey(account.ID), c.ttl).Err()
 }
 
 func (c *AccountCache) GetByID(ctx context.Context, accountID uuid.UUID) (models.Account, error) {
-	data, err := c.client.Get(ctx, accountKey(accountID)).Bytes()
+	val, err := c.client.JSONGet(ctx, accountKey(accountID), ".").Result()
 	switch {
 	case errors.Is(err, redis.Nil):
 		return models.Account{}, errx.ErrCacheMiss
@@ -51,10 +49,9 @@ func (c *AccountCache) GetByID(ctx context.Context, accountID uuid.UUID) (models
 	}
 
 	var account models.Account
-	if err = json.Unmarshal(data, &account); err != nil {
+	if err = json.Unmarshal([]byte(val), &account); err != nil {
 		return models.Account{}, err
 	}
-
 	return account, nil
 }
 

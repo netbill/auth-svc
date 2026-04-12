@@ -80,11 +80,9 @@ func (a *App) Run(ctx context.Context) error {
 	log := slog.Default()
 
 	authSvc := authmodule.New(authmodule.ServiceDeps{
-		AccountRepo:   accountRepo,
-		SessionRepo:   sessionRepo,
-		AccountCache:  accountCache,
-		SessionsCache: sessionCache,
-		Log:           log,
+		AccountRepo: accountRepo,
+		SessionRepo: sessionRepo,
+		Log:         log,
 	})
 
 	accountSvc := account.New(account.ServiceDeps{
@@ -92,10 +90,12 @@ func (a *App) Run(ctx context.Context) error {
 		AccountRepo:   accountRepo,
 		EmailRepo:     emailRepo,
 		PasswordRepo:  passwordRepo,
+		SessionRepo:   sessionRepo,
 		Tx:            db,
 		AccountCache:  accountCache,
 		EmailCache:    emailCache,
 		PasswordCache: passwordCache,
+		SessionsCache: sessionCache,
 		PassManager:   passMgr,
 		Messenger:     outboxRepo,
 		Log:           log,

@@ -36,9 +36,9 @@ func scanPassword(row pgx.Row) (p models.AccountPassword, err error) {
 	)
 	switch {
 	case p.DeletedAt != nil:
-		return models.AccountPassword{}, errx.ErrorAccountDeleted
+		return models.AccountPassword{}, errx.ErrorAccountDeleted.Raise(fmt.Errorf("account %v is deleted", p.AccountID))
 	case errors.Is(err, pgx.ErrNoRows):
-		return models.AccountPassword{}, errx.ErrorAccountNotFound
+		return models.AccountPassword{}, errx.ErrorAccountNotFound.Raise(err)
 	case err != nil:
 		return models.AccountPassword{}, fmt.Errorf("scan password: %w", err)
 	}
@@ -88,7 +88,7 @@ func (r *PasswordRepo) Delete(ctx context.Context, accountID uuid.UUID) error {
 	}
 
 	if tag.RowsAffected() == 0 {
-		return errx.ErrorAccountNotFound
+		return errx.ErrorAccountNotFound.Raise(fmt.Errorf("account not found on password soft-delete"))
 	}
 
 	return nil

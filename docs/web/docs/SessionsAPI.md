@@ -133,7 +133,7 @@ Other parameters are passed through a pointer to a apiAuthSvcV1MeSessionsDeleteR
 
 ## AuthSvcV1MeSessionsGet
 
-> AccountSessionsCollection AuthSvcV1MeSessionsGet(ctx).PageLimit(pageLimit).PageOffset(pageOffset).FilterDeleted(filterDeleted).SortLastUsed(sortLastUsed).Execute()
+> AccountSessionsCollection AuthSvcV1MeSessionsGet(ctx).PageLimit(pageLimit).PageOffset(pageOffset).FilterActive(filterActive).SortLastUsed(sortLastUsed).Execute()
 
 Get my sessions
 
@@ -154,12 +154,12 @@ import (
 func main() {
 	pageLimit := int32(56) // int32 | Max number of items to return (optional)
 	pageOffset := int32(56) // int32 | Number of items to skip (optional)
-	filterDeleted := "filterDeleted_example" // string | Filter sessions by deletion status. - `all` — active and deleted sessions (default) - `active` — only active (non-deleted) sessions - `deleted` — only deleted sessions  (optional) (default to "all")
+	filterActive := true // bool | Filter sessions by active status. - `true` — only active (non-deleted) sessions - `false` — only deleted sessions - omit — all sessions (default)  (optional)
 	sortLastUsed := "sortLastUsed_example" // string | Sort sessions by last used date. - `desc` — most recently used first (default) - `asc` — least recently used first  (optional) (default to "desc")
 
 	configuration := openapiclient.NewConfiguration()
 	apiClient := openapiclient.NewAPIClient(configuration)
-	resp, r, err := apiClient.SessionsAPI.AuthSvcV1MeSessionsGet(context.Background()).PageLimit(pageLimit).PageOffset(pageOffset).FilterDeleted(filterDeleted).SortLastUsed(sortLastUsed).Execute()
+	resp, r, err := apiClient.SessionsAPI.AuthSvcV1MeSessionsGet(context.Background()).PageLimit(pageLimit).PageOffset(pageOffset).FilterActive(filterActive).SortLastUsed(sortLastUsed).Execute()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error when calling `SessionsAPI.AuthSvcV1MeSessionsGet``: %v\n", err)
 		fmt.Fprintf(os.Stderr, "Full HTTP response: %v\n", r)
@@ -182,7 +182,7 @@ Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
  **pageLimit** | **int32** | Max number of items to return | 
  **pageOffset** | **int32** | Number of items to skip | 
- **filterDeleted** | **string** | Filter sessions by deletion status. - &#x60;all&#x60; — active and deleted sessions (default) - &#x60;active&#x60; — only active (non-deleted) sessions - &#x60;deleted&#x60; — only deleted sessions  | [default to &quot;all&quot;]
+ **filterActive** | **bool** | Filter sessions by active status. - &#x60;true&#x60; — only active (non-deleted) sessions - &#x60;false&#x60; — only deleted sessions - omit — all sessions (default)  | 
  **sortLastUsed** | **string** | Sort sessions by last used date. - &#x60;desc&#x60; — most recently used first (default) - &#x60;asc&#x60; — least recently used first  | [default to &quot;desc&quot;]
 
 ### Return type

@@ -238,7 +238,7 @@ type ApiAuthSvcV1MeSessionsGetRequest struct {
 	ApiService *SessionsAPIService
 	pageLimit *int32
 	pageOffset *int32
-	filterDeleted *string
+	filterActive *bool
 	sortLastUsed *string
 }
 
@@ -254,9 +254,9 @@ func (r ApiAuthSvcV1MeSessionsGetRequest) PageOffset(pageOffset int32) ApiAuthSv
 	return r
 }
 
-// Filter sessions by deletion status. - &#x60;all&#x60; — active and deleted sessions (default) - &#x60;active&#x60; — only active (non-deleted) sessions - &#x60;deleted&#x60; — only deleted sessions 
-func (r ApiAuthSvcV1MeSessionsGetRequest) FilterDeleted(filterDeleted string) ApiAuthSvcV1MeSessionsGetRequest {
-	r.filterDeleted = &filterDeleted
+// Filter sessions by active status. - &#x60;true&#x60; — only active (non-deleted) sessions - &#x60;false&#x60; — only deleted sessions - omit — all sessions (default) 
+func (r ApiAuthSvcV1MeSessionsGetRequest) FilterActive(filterActive bool) ApiAuthSvcV1MeSessionsGetRequest {
+	r.filterActive = &filterActive
 	return r
 }
 
@@ -314,11 +314,8 @@ func (a *SessionsAPIService) AuthSvcV1MeSessionsGetExecute(r ApiAuthSvcV1MeSessi
 	if r.pageOffset != nil {
 		parameterAddToHeaderOrQuery(localVarQueryParams, "page[offset]", r.pageOffset, "form", "")
 	}
-	if r.filterDeleted != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "filter[deleted]", r.filterDeleted, "form", "")
-	} else {
-		var defaultValue string = "all"
-		r.filterDeleted = &defaultValue
+	if r.filterActive != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "filter[active]", r.filterActive, "form", "")
 	}
 	if r.sortLastUsed != nil {
 		parameterAddToHeaderOrQuery(localVarQueryParams, "sort[last_used]", r.sortLastUsed, "form", "")

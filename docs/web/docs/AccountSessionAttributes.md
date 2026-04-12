@@ -8,13 +8,14 @@ Name | Type | Description | Notes
 **CreatedAt** | **time.Time** | session creation date | 
 **Version** | **int32** | The version number of the account record | 
 **LastUsed** | **time.Time** | last used date | 
+**UpdatedAt** | **time.Time** | updated at date | 
 **DeletedAt** | Pointer to **time.Time** | session deletion date | [optional] 
 
 ## Methods
 
 ### NewAccountSessionAttributes
 
-`func NewAccountSessionAttributes(accountId uuid.UUID, createdAt time.Time, version int32, lastUsed time.Time, ) *AccountSessionAttributes`
+`func NewAccountSessionAttributes(accountId uuid.UUID, createdAt time.Time, version int32, lastUsed time.Time, updatedAt time.Time, ) *AccountSessionAttributes`
 
 NewAccountSessionAttributes instantiates a new AccountSessionAttributes object
 This constructor will assign default values to properties that have it defined,
@@ -107,6 +108,26 @@ and a boolean to check if the value has been set.
 `func (o *AccountSessionAttributes) SetLastUsed(v time.Time)`
 
 SetLastUsed sets LastUsed field to given value.
+
+
+### GetUpdatedAt
+
+`func (o *AccountSessionAttributes) GetUpdatedAt() time.Time`
+
+GetUpdatedAt returns the UpdatedAt field if non-nil, zero value otherwise.
+
+### GetUpdatedAtOk
+
+`func (o *AccountSessionAttributes) GetUpdatedAtOk() (*time.Time, bool)`
+
+GetUpdatedAtOk returns a tuple with the UpdatedAt field if it's non-nil, zero value otherwise
+and a boolean to check if the value has been set.
+
+### SetUpdatedAt
+
+`func (o *AccountSessionAttributes) SetUpdatedAt(v time.Time)`
+
+SetUpdatedAt sets UpdatedAt field to given value.
 
 
 ### GetDeletedAt

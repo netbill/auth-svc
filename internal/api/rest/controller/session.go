@@ -62,10 +62,10 @@ func (c *SessionController) GetMySessions(w http.ResponseWriter, r *http.Request
 		session.WithOffset(offset),
 	}
 
-	switch r.URL.Query().Get("filter[deleted]") {
-	case "active":
+	switch r.URL.Query().Get("filter[active]") {
+	case "true":
 		opts = append(opts, session.WithDeleted(session.DeletedFilterActive))
-	case "deleted":
+	case "false":
 		opts = append(opts, session.WithDeleted(session.DeletedFilterDeleted))
 	default:
 		opts = append(opts, session.WithDeleted(session.DeletedFilterAll))

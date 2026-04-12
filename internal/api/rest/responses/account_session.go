@@ -13,6 +13,7 @@ func AccountSession(m models.Session) resources.AccountSession {
 		AccountId: m.AccountID,
 		Version:   m.Version,
 		CreatedAt: m.CreatedAt,
+		UpdatedAt: m.UpdatedAt,
 		LastUsed:  m.LastUsed,
 		DeletedAt: m.DeletedAt,
 	}
