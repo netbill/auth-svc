@@ -17,7 +17,7 @@ const (
 )
 
 func CtxLog(ctx context.Context, log *log.Logger) context.Context {
-	return context.WithValue(ctx, LogCtxKey, log)
+	return context.WithValue(ctx, LogCtxKey, log.With("api", "rest"))
 }
 
 func Log(r *http.Request) *log.Logger {

@@ -5,11 +5,11 @@ import (
 	"net/http"
 
 	validation "github.com/go-ozzo/ozzo-validation/v4"
-	"github.com/netbill/auth-svc/pkg/resources"
+	"github.com/netbill/auth-svc/pkg/oapi"
 	"github.com/netbill/restkit"
 )
 
-func RefreshSession(r *http.Request) (req resources.RefreshSession, err error) {
+func RefreshSession(r *http.Request) (req oapi.RefreshSession, err error) {
 	if err = json.NewDecoder(r.Body).Decode(&req); err != nil {
 		err = restkit.NewDecodeError("body", err)
 		return

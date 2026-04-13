@@ -4,12 +4,12 @@ import (
 	"net/http"
 
 	"github.com/netbill/auth-svc/internal/models"
-	"github.com/netbill/auth-svc/pkg/resources"
+	"github.com/netbill/auth-svc/pkg/oapi"
 	"github.com/netbill/restkit/pagi"
 )
 
-func AccountSession(m models.Session) resources.AccountSession {
-	attrs := resources.AccountSessionAttributes{
+func AccountSession(m models.Session) oapi.AccountSession {
+	attrs := oapi.AccountSessionAttributes{
 		AccountId: m.AccountID,
 		Version:   m.Version,
 		CreatedAt: m.CreatedAt,
@@ -18,8 +18,8 @@ func AccountSession(m models.Session) resources.AccountSession {
 		DeletedAt: m.DeletedAt,
 	}
 
-	return resources.AccountSession{
-		Data: resources.AccountSessionData{
+	return oapi.AccountSession{
+		Data: oapi.AccountSessionData{
 			Id:         m.ID,
 			Type:       "account_session",
 			Attributes: attrs,
@@ -27,8 +27,8 @@ func AccountSession(m models.Session) resources.AccountSession {
 	}
 }
 
-func AccountSessionsCollection(r *http.Request, page pagi.Page[[]models.Session]) resources.AccountSessionsCollection {
-	data := make([]resources.AccountSessionData, 0, len(page.Data))
+func AccountSessionsCollection(r *http.Request, page pagi.Page[[]models.Session]) oapi.AccountSessionsCollection {
+	data := make([]oapi.AccountSessionData, 0, len(page.Data))
 
 	for _, s := range page.Data {
 		data = append(data, AccountSession(s).Data)
@@ -36,9 +36,9 @@ func AccountSessionsCollection(r *http.Request, page pagi.Page[[]models.Session]
 
 	links := pagi.BuildPageLinks(r, page.Page, page.Size, page.Total)
 
-	return resources.AccountSessionsCollection{
+	return oapi.AccountSessionsCollection{
 		Data: data,
-		Links: resources.PaginationData{
+		Links: oapi.PaginationData{
 			First: links.First,
 			Last:  links.Last,
 			Prev:  links.Prev,

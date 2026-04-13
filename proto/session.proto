@@ -1,0 +1,158 @@
+syntax = "proto3";
+
+package auth.v1;
+
+option go_package = "github.com/netbill/auth-svc/proto/pb;pb";
+
+import "common.proto";
+import "google/protobuf/empty.proto";
+
+// SessionService handles authentication: login, token refresh, session management.
+//
+// Login and Refresh methods are public (no token required).
+// All other methods require authentication via metadata:
+//   authorization: Bearer <access_token>
+service SessionService {
+  // LoginByEmail authenticates a user by email and password.
+  // Returns a token pair on success.
+  //
+  // Errors:
+  //   UNAUTHENTICATED     — email not found, account deleted, or password is incorrect
+  rpc LoginByEmail(LoginByEmailRequest) returns (LoginResponse);
+
+  // LoginByUsername authenticates a user by username and password.
+  // Returns a token pair on success.
+  //
+  // Errors:
+  //   UNAUTHENTICATED     — username not found, account deleted, or password is incorrect
+  rpc LoginByUsername(LoginByUsernameRequest) returns (LoginResponse);
+
+  // LoginByGoogle authenticates a user via a Google ID token.
+  // The account must already exist with the email from the Google token.
+  //
+  // Errors:
+  //   UNAUTHENTICATED     — account with this email not found or deleted
+  rpc LoginByGoogle(LoginByGoogleRequest) returns (LoginResponse);
+
+  // Refresh exchanges a valid refresh token for a new token pair.
+  // The old refresh token is invalidated after a successful call.
+  //
+  // Errors:
+  //   UNAUTHENTICATED     — refresh token is expired, invalid, mismatched, or session not found
+  rpc Refresh(RefreshRequest) returns (LoginResponse);
+
+  // GetMySession returns a specific session belonging to the authenticated account.
+  //
+  // Errors:
+  //   INVALID_ARGUMENT    — session_id is not a valid UUID
+  //   NOT_FOUND           — session not found or does not belong to this account
+  rpc GetMySession(GetMySessionRequest) returns (GetMySessionResponse);
+
+  // GetMySessions returns a paginated list of sessions for the authenticated account.
+  // Supports filtering by active/deleted status and sorting by last_used timestamp.
+  //
+  // Errors:
+  //   INTERNAL            — unexpected server error
+  rpc GetMySessions(GetMySessionsRequest) returns (GetMySessionsResponse);
+
+  // Logout terminates the current session.
+  // If the session is already terminated, the call succeeds without error.
+  //
+  // Errors:
+  //   INTERNAL            — unexpected server error
+  rpc Logout(LogoutRequest) returns (google.protobuf.Empty);
+
+  // DeleteMySession terminates a specific session belonging to the authenticated account.
+  //
+  // Errors:
+  //   INVALID_ARGUMENT    — session_id is not a valid UUID
+  //   NOT_FOUND           — session not found
+  //   UNAUTHENTICATED     — session does not belong to this account
+  rpc DeleteMySession(DeleteMySessionRequest) returns (google.protobuf.Empty);
+
+  // DeleteMySessions terminates all sessions of the authenticated account.
+  //
+  // Errors:
+  //   UNAUTHENTICATED     — session is invalid or expired
+  rpc DeleteMySessions(DeleteMySessionsRequest) returns (google.protobuf.Empty);
+}
+
+message LoginByEmailRequest {
+  string email    = 1;
+  string password = 2;
+}
+
+message LoginByUsernameRequest {
+  string username = 1;
+  string password = 2;
+}
+
+message LoginByGoogleRequest {
+  // Google ID token obtained from the Google OAuth2 flow.
+  string id_token = 1;
+}
+
+// LoginResponse is returned by all login and refresh methods.
+message LoginResponse {
+  TokensPair tokens = 1;
+}
+
+message RefreshRequest {
+  // Refresh token from a previous LoginResponse or RefreshResponse.
+  string refresh_token = 1;
+}
+
+message GetMySessionRequest {
+  // UUID of the target session.
+  string session_id = 1;
+}
+
+message GetMySessionResponse {
+  Session session = 1;
+}
+
+// SessionDeletedFilter filters sessions by their deletion status.
+enum SessionDeletedFilter {
+  // Return both active and deleted sessions. Default.
+  SESSION_DELETED_FILTER_ALL     = 0;
+
+  // Return only active (non-deleted) sessions.
+  SESSION_DELETED_FILTER_ACTIVE  = 1;
+
+  // Return only deleted (terminated) sessions.
+  SESSION_DELETED_FILTER_DELETED = 2;
+}
+
+// SessionLastUsedOrder controls the sort direction of the last_used field.
+enum SessionLastUsedOrder {
+  // Most recently used first. Default.
+  SESSION_LAST_USED_ORDER_DESC = 0;
+
+  // Least recently used first.
+  SESSION_LAST_USED_ORDER_ASC  = 1;
+}
+
+message GetMySessionsRequest {
+  // Pagination parameters. Defaults: page=1, per_page=20.
+  Pagination pagination = 1;
+
+  // Filter sessions by active/deleted status. Defaults to ALL.
+  SessionDeletedFilter filter = 2;
+
+  // Sort order by last_used timestamp. Defaults to DESC.
+  SessionLastUsedOrder order = 3;
+}
+
+message GetMySessionsResponse {
+  repeated Session sessions = 1;
+  PageInfo page_info        = 2;
+}
+
+message LogoutRequest {}
+
+message DeleteMySessionRequest {
+  // UUID of the session to terminate.
+  string session_id = 1;
+}
+
+message DeleteMySessionsRequest {}

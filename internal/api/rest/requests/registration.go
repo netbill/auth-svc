@@ -7,12 +7,12 @@ import (
 
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 	"github.com/go-ozzo/ozzo-validation/v4/is"
-	"github.com/netbill/auth-svc/pkg/resources"
+	"github.com/netbill/auth-svc/pkg/oapi"
 	"github.com/netbill/restkit"
 	"github.com/netbill/restkit/tokens"
 )
 
-func Registration(r *http.Request) (req resources.Registration, err error) {
+func Registration(r *http.Request) (req oapi.Registration, err error) {
 	if err = json.NewDecoder(r.Body).Decode(&req); err != nil {
 		err = restkit.NewDecodeError("body", err)
 		return
@@ -29,7 +29,7 @@ func Registration(r *http.Request) (req resources.Registration, err error) {
 	return req, errs.Filter()
 }
 
-func RegistrationAdmin(r *http.Request) (req resources.RegistrationAdmin, err error) {
+func RegistrationAdmin(r *http.Request) (req oapi.RegistrationAdmin, err error) {
 	if err = json.NewDecoder(r.Body).Decode(&req); err != nil {
 		err = validation.Errors{
 			"body": fmt.Errorf("decode request body: %w", err),

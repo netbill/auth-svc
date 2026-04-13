@@ -2,15 +2,15 @@ package responses
 
 import (
 	"github.com/netbill/auth-svc/internal/models"
-	"github.com/netbill/auth-svc/pkg/resources"
+	"github.com/netbill/auth-svc/pkg/oapi"
 )
 
-func TokensPair(m models.TokensPair) resources.TokensPair {
-	resp := resources.TokensPair{
-		Data: resources.TokensPairData{
+func TokensPair(m models.TokensPair) oapi.TokensPair {
+	resp := oapi.TokensPair{
+		Data: oapi.TokensPairData{
 			Id:   m.SessionID,
 			Type: "tokens_pair",
-			Attributes: resources.TokensPairDataAttributes{
+			Attributes: oapi.TokensPairDataAttributes{
 				AccessToken:  m.Access,
 				RefreshToken: m.Refresh,
 			},

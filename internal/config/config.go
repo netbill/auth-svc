@@ -73,6 +73,8 @@ type AuthConfig struct {
 			RedirectURL  string `mapstructure:"redirect_url"`
 		} `mapstructure:"google"`
 	} `mapstructure:"oauth"`
+
+	PassBcryptCost int `mapstructure:"pass_bcrypt_cost"`
 }
 
 type KafkaConfig struct {
@@ -80,11 +82,16 @@ type KafkaConfig struct {
 	Identity string   `mapstructure:"identity"`
 }
 
+type GRPCConfig struct {
+	Port int `mapstructure:"port"`
+}
+
 type Config struct {
 	Service  ServiceCfg     `mapstructure:"service"`
 	Log      LogConfig      `mapstructure:"log"`
 	Database DatabaseConfig `mapstructure:"database"`
 	Rest     RestConfig     `mapstructure:"rest"`
+	GRPC     GRPCConfig     `mapstructure:"grpc"`
 	Auth     AuthConfig     `mapstructure:"auth"`
 	Kafka    KafkaConfig    `mapstructure:"kafka"`
 }

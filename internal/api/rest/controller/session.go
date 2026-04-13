@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"net/http"
@@ -12,11 +13,44 @@ import (
 	"github.com/netbill/auth-svc/internal/api/rest/responses"
 	"github.com/netbill/auth-svc/internal/api/rest/scope"
 	"github.com/netbill/auth-svc/internal/errx"
+	"github.com/netbill/auth-svc/internal/models"
 	"github.com/netbill/auth-svc/internal/modules/session"
 	"github.com/netbill/restkit/pagi"
 	"github.com/netbill/restkit/problems"
 	"github.com/netbill/restkit/render"
+	"golang.org/x/oauth2"
 )
+
+type sessionCore interface {
+	LoginByEmail(ctx context.Context, email, password string) (models.TokensPair, error)
+	LoginByGoogle(ctx context.Context, email string) (models.TokensPair, error)
+	LoginByUsername(ctx context.Context, username, password string) (models.TokensPair, error)
+
+	Refresh(ctx context.Context, oldRefreshToken string) (models.TokensPair, error)
+
+	GetMySession(ctx context.Context, actor models.AccountActor, sessionID uuid.UUID) (models.Session, error)
+	GetMySessions(
+		ctx context.Context,
+		actor models.AccountActor,
+		opts ...session.ListSessionsOption,
+	) (pagi.Page[[]models.Session], error)
+
+	Logout(ctx context.Context, actor models.AccountActor) error
+	DeleteMySession(ctx context.Context, actor models.AccountActor, sessionID uuid.UUID) error
+	DeleteMySessions(ctx context.Context, actor models.AccountActor) error
+}
+
+type SessionController struct {
+	google   oauth2.Config
+	sessions sessionCore
+}
+
+func NewSessionController(sessions sessionCore, google oauth2.Config) *SessionController {
+	return &SessionController{
+		google:   google,
+		sessions: sessions,
+	}
+}
 
 const operationGetMySession = "get_my_session"
 
@@ -46,6 +80,7 @@ func (c *SessionController) GetMySession(w http.ResponseWriter, r *http.Request)
 		log.WithError(err).Error("unexpected error")
 		render.ResponseError(w, problems.InternalError())
 	default:
+		log.Info("session retrieved")
 		render.Response(w, http.StatusOK, responses.AccountSession(s))
 	}
 }
@@ -84,6 +119,7 @@ func (c *SessionController) GetMySessions(w http.ResponseWriter, r *http.Request
 		log.WithError(err).Error("unexpected error")
 		render.ResponseError(w, problems.InternalError())
 	default:
+		log.Info("sessions retrieved")
 		render.Response(w, http.StatusOK, responses.AccountSessionsCollection(r, sessions))
 	}
 }
@@ -120,6 +156,41 @@ func (c *SessionController) RefreshSession(w http.ResponseWriter, r *http.Reques
 	default:
 		log.Info("session refreshed successfully")
 		render.Response(w, http.StatusOK, responses.TokensPair(tokensPair))
+	}
+}
+
+const operationUpdateUsername = "update_username"
+
+func (c *AccountController) UpdateUsername(w http.ResponseWriter, r *http.Request) {
+	log := scope.Log(r).WithOperation(operationUpdateUsername)
+
+	req, err := requests.UpdateUsername(r)
+	if err != nil {
+		log.WithError(err).Info("failed to parse update username request")
+		render.ResponseError(w, problems.BadRequest(err)...)
+		return
+	}
+
+	res, err := c.accounts.UpdateUsername(r.Context(), scope.AccountActor(r), req.Data.Attributes.Username)
+	switch {
+	case errors.Is(err, errx.ErrorUsernameIsNotAllowed):
+		log.WithError(err).Info("username is not allowed")
+		render.ResponseError(w, problems.BadRequest(err)...)
+	case errors.Is(err, errx.ErrorAccountDeleted):
+		log.WithError(err).Warn("account deleted")
+		render.ResponseError(w, problems.Unauthorized())
+	case errors.Is(err, errx.ErrorAccountNotFound):
+		log.WithError(err).Warn("account not found")
+		render.ResponseError(w, problems.NotFound("account not found"))
+	case errors.Is(err, errx.ErrorUsernameAlreadyTaken):
+		log.WithError(err).Warn("username is already taken")
+		render.ResponseError(w, problems.Conflict("user with this username already exists"))
+	case err != nil:
+		log.WithError(err).Error("unexpected error")
+		render.ResponseError(w, problems.InternalError())
+	default:
+		log.Info("username updated successfully")
+		render.Response(w, http.StatusOK, responses.Account(res))
 	}
 }
 
@@ -194,6 +265,7 @@ func (c *SessionController) Logout(w http.ResponseWriter, r *http.Request) {
 		log.WithError(err).Error("logout failed")
 		render.ResponseError(w, problems.InternalError())
 	default:
+		log.Info("logout successful")
 		render.Response(w, http.StatusNoContent, nil)
 	}
 }

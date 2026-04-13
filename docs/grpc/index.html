@@ -1,0 +1,1732 @@
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <title>Protocol Documentation</title>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Ubuntu:400,700,400italic"/>
+    <style>
+      body {
+        width: 60em;
+        margin: 1em auto;
+        color: #222;
+        font-family: "Ubuntu", sans-serif;
+        padding-bottom: 4em;
+      }
+
+      h1 {
+        font-weight: normal;
+        border-bottom: 1px solid #aaa;
+        padding-bottom: 0.5ex;
+      }
+
+      h2 {
+        border-bottom: 1px solid #aaa;
+        padding-bottom: 0.5ex;
+        margin: 1.5em 0;
+      }
+
+      h3 {
+        font-weight: normal;
+        border-bottom: 1px solid #aaa;
+        padding-bottom: 0.5ex;
+      }
+
+      a {
+        text-decoration: none;
+        color: #567e25;
+      }
+
+      table {
+        width: 100%;
+        font-size: 80%;
+        border-collapse: collapse;
+      }
+
+      thead {
+        font-weight: 700;
+        background-color: #dcdcdc;
+      }
+
+      tbody tr:nth-child(even) {
+        background-color: #fbfbfb;
+      }
+
+      td {
+        border: 1px solid #ccc;
+        padding: 0.5ex 2ex;
+      }
+
+      td p {
+        text-indent: 1em;
+        margin: 0;
+      }
+
+      td p:nth-child(1) {
+        text-indent: 0;  
+      }
+
+       
+      .field-table td:nth-child(1) {  
+        width: 10em;
+      }
+      .field-table td:nth-child(2) {  
+        width: 10em;
+      }
+      .field-table td:nth-child(3) {  
+        width: 6em;
+      }
+      .field-table td:nth-child(4) {  
+        width: auto;
+      }
+
+       
+      .extension-table td:nth-child(1) {  
+        width: 10em;
+      }
+      .extension-table td:nth-child(2) {  
+        width: 10em;
+      }
+      .extension-table td:nth-child(3) {  
+        width: 10em;
+      }
+      .extension-table td:nth-child(4) {  
+        width: 5em;
+      }
+      .extension-table td:nth-child(5) {  
+        width: auto;
+      }
+
+       
+      .enum-table td:nth-child(1) {  
+        width: 10em;
+      }
+      .enum-table td:nth-child(2) {  
+        width: 10em;
+      }
+      .enum-table td:nth-child(3) {  
+        width: auto;
+      }
+
+       
+      .scalar-value-types-table tr {
+        height: 3em;
+      }
+
+       
+      #toc-container ul {
+        list-style-type: none;
+        padding-left: 1em;
+        line-height: 180%;
+        margin: 0;
+      }
+      #toc > li > a {
+        font-weight: bold;
+      }
+
+       
+      .file-heading {
+        width: 100%;
+        display: table;
+        border-bottom: 1px solid #aaa;
+        margin: 4em 0 1.5em 0;
+      }
+      .file-heading h2 {
+        border: none;
+        display: table-cell;
+      }
+      .file-heading a {
+        text-align: right;
+        display: table-cell;
+      }
+
+       
+      .badge {
+        width: 1.6em;
+        height: 1.6em;
+        display: inline-block;
+
+        line-height: 1.6em;
+        text-align: center;
+        font-weight: bold;
+        font-size: 60%;
+
+        color: #89ba48;
+        background-color: #dff0c8;
+
+        margin: 0.5ex 1em 0.5ex -1em;
+        border: 1px solid #fbfbfb;
+        border-radius: 1ex;
+      }
+    </style>
+
+    
+    <link rel="stylesheet" type="text/css" href="stylesheet.css"/>
+  </head>
+
+  <body>
+
+    <h1 id="title">Protocol Documentation</h1>
+
+    <h2>Table of Contents</h2>
+
+    <div id="toc-container">
+      <ul id="toc">
+        
+          
+          <li>
+            <a href="#common.proto">common.proto</a>
+            <ul>
+              
+                <li>
+                  <a href="#auth.v1.Account"><span class="badge">M</span>Account</a>
+                </li>
+              
+                <li>
+                  <a href="#auth.v1.AccountEmail"><span class="badge">M</span>AccountEmail</a>
+                </li>
+              
+                <li>
+                  <a href="#auth.v1.PageInfo"><span class="badge">M</span>PageInfo</a>
+                </li>
+              
+                <li>
+                  <a href="#auth.v1.Pagination"><span class="badge">M</span>Pagination</a>
+                </li>
+              
+                <li>
+                  <a href="#auth.v1.Session"><span class="badge">M</span>Session</a>
+                </li>
+              
+                <li>
+                  <a href="#auth.v1.TokensPair"><span class="badge">M</span>TokensPair</a>
+                </li>
+              
+              
+              
+              
+            </ul>
+          </li>
+        
+          
+          <li>
+            <a href="#account.proto">account.proto</a>
+            <ul>
+              
+                <li>
+                  <a href="#auth.v1.CreateAccountRequest"><span class="badge">M</span>CreateAccountRequest</a>
+                </li>
+              
+                <li>
+                  <a href="#auth.v1.CreateAccountResponse"><span class="badge">M</span>CreateAccountResponse</a>
+                </li>
+              
+                <li>
+                  <a href="#auth.v1.DeleteMyAccountRequest"><span class="badge">M</span>DeleteMyAccountRequest</a>
+                </li>
+              
+                <li>
+                  <a href="#auth.v1.GetMyAccountRequest"><span class="badge">M</span>GetMyAccountRequest</a>
+                </li>
+              
+                <li>
+                  <a href="#auth.v1.GetMyAccountResponse"><span class="badge">M</span>GetMyAccountResponse</a>
+                </li>
+              
+                <li>
+                  <a href="#auth.v1.GetMyEmailRequest"><span class="badge">M</span>GetMyEmailRequest</a>
+                </li>
+              
+                <li>
+                  <a href="#auth.v1.GetMyEmailResponse"><span class="badge">M</span>GetMyEmailResponse</a>
+                </li>
+              
+                <li>
+                  <a href="#auth.v1.UpdatePasswordRequest"><span class="badge">M</span>UpdatePasswordRequest</a>
+                </li>
+              
+                <li>
+                  <a href="#auth.v1.UpdateUsernameRequest"><span class="badge">M</span>UpdateUsernameRequest</a>
+                </li>
+              
+                <li>
+                  <a href="#auth.v1.UpdateUsernameResponse"><span class="badge">M</span>UpdateUsernameResponse</a>
+                </li>
+              
+              
+              
+              
+                <li>
+                  <a href="#auth.v1.AccountService"><span class="badge">S</span>AccountService</a>
+                </li>
+              
+            </ul>
+          </li>
+        
+          
+          <li>
+            <a href="#session.proto">session.proto</a>
+            <ul>
+              
+                <li>
+                  <a href="#auth.v1.DeleteMySessionRequest"><span class="badge">M</span>DeleteMySessionRequest</a>
+                </li>
+              
+                <li>
+                  <a href="#auth.v1.DeleteMySessionsRequest"><span class="badge">M</span>DeleteMySessionsRequest</a>
+                </li>
+              
+                <li>
+                  <a href="#auth.v1.GetMySessionRequest"><span class="badge">M</span>GetMySessionRequest</a>
+                </li>
+              
+                <li>
+                  <a href="#auth.v1.GetMySessionResponse"><span class="badge">M</span>GetMySessionResponse</a>
+                </li>
+              
+                <li>
+                  <a href="#auth.v1.GetMySessionsRequest"><span class="badge">M</span>GetMySessionsRequest</a>
+                </li>
+              
+                <li>
+                  <a href="#auth.v1.GetMySessionsResponse"><span class="badge">M</span>GetMySessionsResponse</a>
+                </li>
+              
+                <li>
+                  <a href="#auth.v1.LoginByEmailRequest"><span class="badge">M</span>LoginByEmailRequest</a>
+                </li>
+              
+                <li>
+                  <a href="#auth.v1.LoginByGoogleRequest"><span class="badge">M</span>LoginByGoogleRequest</a>
+                </li>
+              
+                <li>
+                  <a href="#auth.v1.LoginByUsernameRequest"><span class="badge">M</span>LoginByUsernameRequest</a>
+                </li>
+              
+                <li>
+                  <a href="#auth.v1.LoginResponse"><span class="badge">M</span>LoginResponse</a>
+                </li>
+              
+                <li>
+                  <a href="#auth.v1.LogoutRequest"><span class="badge">M</span>LogoutRequest</a>
+                </li>
+              
+                <li>
+                  <a href="#auth.v1.RefreshRequest"><span class="badge">M</span>RefreshRequest</a>
+                </li>
+              
+              
+                <li>
+                  <a href="#auth.v1.SessionDeletedFilter"><span class="badge">E</span>SessionDeletedFilter</a>
+                </li>
+              
+                <li>
+                  <a href="#auth.v1.SessionLastUsedOrder"><span class="badge">E</span>SessionLastUsedOrder</a>
+                </li>
+              
+              
+              
+                <li>
+                  <a href="#auth.v1.SessionService"><span class="badge">S</span>SessionService</a>
+                </li>
+              
+            </ul>
+          </li>
+        
+          
+          <li>
+            <a href="#auth.proto">auth.proto</a>
+            <ul>
+              
+                <li>
+                  <a href="#auth.v1.ValidateSessionRequest"><span class="badge">M</span>ValidateSessionRequest</a>
+                </li>
+              
+                <li>
+                  <a href="#auth.v1.ValidateSessionResponse"><span class="badge">M</span>ValidateSessionResponse</a>
+                </li>
+              
+              
+              
+              
+                <li>
+                  <a href="#auth.v1.AuthService"><span class="badge">S</span>AuthService</a>
+                </li>
+              
+            </ul>
+          </li>
+        
+        <li><a href="#scalar-value-types">Scalar Value Types</a></li>
+      </ul>
+    </div>
+
+    
+      
+      <div class="file-heading">
+        <h2 id="common.proto">common.proto</h2><a href="#title">Top</a>
+      </div>
+      <p></p>
+
+      
+        <h3 id="auth.v1.Account">Account</h3>
+        <p>Account represents a user account.</p>
+
+        
+          <table class="field-table">
+            <thead>
+              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
+            </thead>
+            <tbody>
+              
+                <tr>
+                  <td>id</td>
+                  <td><a href="#string">string</a></td>
+                  <td></td>
+                  <td><p>Unique account identifier (UUID). </p></td>
+                </tr>
+              
+                <tr>
+                  <td>username</td>
+                  <td><a href="#string">string</a></td>
+                  <td></td>
+                  <td><p>Unique username. 3–32 characters, letters/digits/underscore/hyphen only. </p></td>
+                </tr>
+              
+                <tr>
+                  <td>role</td>
+                  <td><a href="#string">string</a></td>
+                  <td></td>
+                  <td><p>Account role. Possible values: &#34;user&#34;, &#34;system_admin&#34;. </p></td>
+                </tr>
+              
+                <tr>
+                  <td>version</td>
+                  <td><a href="#int32">int32</a></td>
+                  <td></td>
+                  <td><p>Optimistic concurrency version. Incremented on each update. </p></td>
+                </tr>
+              
+                <tr>
+                  <td>created_at</td>
+                  <td><a href="#google.protobuf.Timestamp">google.protobuf.Timestamp</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>updated_at</td>
+                  <td><a href="#google.protobuf.Timestamp">google.protobuf.Timestamp</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>deleted_at</td>
+                  <td><a href="#google.protobuf.Timestamp">google.protobuf.Timestamp</a></td>
+                  <td>optional</td>
+                  <td><p>Set when the account is soft-deleted. </p></td>
+                </tr>
+              
+            </tbody>
+          </table>
+
+          
+
+        
+      
+        <h3 id="auth.v1.AccountEmail">AccountEmail</h3>
+        <p>AccountEmail represents the primary email address of an account.</p>
+
+        
+          <table class="field-table">
+            <thead>
+              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
+            </thead>
+            <tbody>
+              
+                <tr>
+                  <td>account_id</td>
+                  <td><a href="#string">string</a></td>
+                  <td></td>
+                  <td><p>UUID of the owning account. </p></td>
+                </tr>
+              
+                <tr>
+                  <td>email</td>
+                  <td><a href="#string">string</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>verified</td>
+                  <td><a href="#bool">bool</a></td>
+                  <td></td>
+                  <td><p>Whether the email address has been verified. </p></td>
+                </tr>
+              
+                <tr>
+                  <td>version</td>
+                  <td><a href="#int32">int32</a></td>
+                  <td></td>
+                  <td><p>Optimistic concurrency version. </p></td>
+                </tr>
+              
+                <tr>
+                  <td>created_at</td>
+                  <td><a href="#google.protobuf.Timestamp">google.protobuf.Timestamp</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>updated_at</td>
+                  <td><a href="#google.protobuf.Timestamp">google.protobuf.Timestamp</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>deleted_at</td>
+                  <td><a href="#google.protobuf.Timestamp">google.protobuf.Timestamp</a></td>
+                  <td>optional</td>
+                  <td><p>Set when the email is soft-deleted (cascades from account deletion). </p></td>
+                </tr>
+              
+            </tbody>
+          </table>
+
+          
+
+        
+      
+        <h3 id="auth.v1.PageInfo">PageInfo</h3>
+        <p>PageInfo is returned alongside paginated results.</p>
+
+        
+          <table class="field-table">
+            <thead>
+              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
+            </thead>
+            <tbody>
+              
+                <tr>
+                  <td>total</td>
+                  <td><a href="#int32">int32</a></td>
+                  <td></td>
+                  <td><p>Total number of items across all pages. </p></td>
+                </tr>
+              
+                <tr>
+                  <td>page</td>
+                  <td><a href="#int32">int32</a></td>
+                  <td></td>
+                  <td><p>Current page number. </p></td>
+                </tr>
+              
+                <tr>
+                  <td>per_page</td>
+                  <td><a href="#int32">int32</a></td>
+                  <td></td>
+                  <td><p>Items per page used for this response. </p></td>
+                </tr>
+              
+                <tr>
+                  <td>total_pages</td>
+                  <td><a href="#int32">int32</a></td>
+                  <td></td>
+                  <td><p>Total number of pages. </p></td>
+                </tr>
+              
+            </tbody>
+          </table>
+
+          
+
+        
+      
+        <h3 id="auth.v1.Pagination">Pagination</h3>
+        <p>Pagination controls page-based result slicing.</p>
+
+        
+          <table class="field-table">
+            <thead>
+              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
+            </thead>
+            <tbody>
+              
+                <tr>
+                  <td>page</td>
+                  <td><a href="#int32">int32</a></td>
+                  <td></td>
+                  <td><p>Page number, 1-based. Defaults to 1. </p></td>
+                </tr>
+              
+                <tr>
+                  <td>per_page</td>
+                  <td><a href="#int32">int32</a></td>
+                  <td></td>
+                  <td><p>Number of items per page. Defaults to 20. </p></td>
+                </tr>
+              
+            </tbody>
+          </table>
+
+          
+
+        
+      
+        <h3 id="auth.v1.Session">Session</h3>
+        <p>Session represents an authenticated user session.</p>
+
+        
+          <table class="field-table">
+            <thead>
+              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
+            </thead>
+            <tbody>
+              
+                <tr>
+                  <td>id</td>
+                  <td><a href="#string">string</a></td>
+                  <td></td>
+                  <td><p>Unique session identifier (UUID). </p></td>
+                </tr>
+              
+                <tr>
+                  <td>account_id</td>
+                  <td><a href="#string">string</a></td>
+                  <td></td>
+                  <td><p>UUID of the owning account. </p></td>
+                </tr>
+              
+                <tr>
+                  <td>version</td>
+                  <td><a href="#int32">int32</a></td>
+                  <td></td>
+                  <td><p>Optimistic concurrency version. </p></td>
+                </tr>
+              
+                <tr>
+                  <td>created_at</td>
+                  <td><a href="#google.protobuf.Timestamp">google.protobuf.Timestamp</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>updated_at</td>
+                  <td><a href="#google.protobuf.Timestamp">google.protobuf.Timestamp</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>last_used</td>
+                  <td><a href="#google.protobuf.Timestamp">google.protobuf.Timestamp</a></td>
+                  <td></td>
+                  <td><p>Timestamp of the most recent request made with this session&#39;s token. </p></td>
+                </tr>
+              
+                <tr>
+                  <td>deleted_at</td>
+                  <td><a href="#google.protobuf.Timestamp">google.protobuf.Timestamp</a></td>
+                  <td>optional</td>
+                  <td><p>Set when the session is terminated (logout or explicit delete). </p></td>
+                </tr>
+              
+            </tbody>
+          </table>
+
+          
+
+        
+      
+        <h3 id="auth.v1.TokensPair">TokensPair</h3>
+        <p>TokensPair holds the access and refresh tokens issued after a successful login or refresh.</p>
+
+        
+          <table class="field-table">
+            <thead>
+              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
+            </thead>
+            <tbody>
+              
+                <tr>
+                  <td>session_id</td>
+                  <td><a href="#string">string</a></td>
+                  <td></td>
+                  <td><p>UUID of the session this token pair belongs to. </p></td>
+                </tr>
+              
+                <tr>
+                  <td>access_token</td>
+                  <td><a href="#string">string</a></td>
+                  <td></td>
+                  <td><p>Short-lived JWT for authenticating requests. Pass as &#34;authorization: Bearer &lt;token&gt;&#34;. </p></td>
+                </tr>
+              
+                <tr>
+                  <td>refresh_token</td>
+                  <td><a href="#string">string</a></td>
+                  <td></td>
+                  <td><p>Long-lived opaque token used to obtain a new TokensPair via Refresh. </p></td>
+                </tr>
+              
+            </tbody>
+          </table>
+
+          
+
+        
+      
+
+      
+
+      
+
+      
+    
+      
+      <div class="file-heading">
+        <h2 id="account.proto">account.proto</h2><a href="#title">Top</a>
+      </div>
+      <p></p>
+
+      
+        <h3 id="auth.v1.CreateAccountRequest">CreateAccountRequest</h3>
+        <p></p>
+
+        
+          <table class="field-table">
+            <thead>
+              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
+            </thead>
+            <tbody>
+              
+                <tr>
+                  <td>email</td>
+                  <td><a href="#string">string</a></td>
+                  <td></td>
+                  <td><p>Valid email address. Must be unique across all accounts. </p></td>
+                </tr>
+              
+                <tr>
+                  <td>username</td>
+                  <td><a href="#string">string</a></td>
+                  <td></td>
+                  <td><p>Desired username. 3–32 characters, letters/digits/underscore/hyphen only.
+Must be unique across all accounts. </p></td>
+                </tr>
+              
+                <tr>
+                  <td>password</td>
+                  <td><a href="#string">string</a></td>
+                  <td></td>
+                  <td><p>Password. 8–32 characters, must contain at least one uppercase letter,
+one lowercase letter, one digit and one special character (-.!#$%&amp;?,@). </p></td>
+                </tr>
+              
+            </tbody>
+          </table>
+
+          
+
+        
+      
+        <h3 id="auth.v1.CreateAccountResponse">CreateAccountResponse</h3>
+        <p></p>
+
+        
+          <table class="field-table">
+            <thead>
+              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
+            </thead>
+            <tbody>
+              
+                <tr>
+                  <td>account</td>
+                  <td><a href="#auth.v1.Account">Account</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+            </tbody>
+          </table>
+
+          
+
+        
+      
+        <h3 id="auth.v1.DeleteMyAccountRequest">DeleteMyAccountRequest</h3>
+        <p></p>
+
+        
+
+        
+      
+        <h3 id="auth.v1.GetMyAccountRequest">GetMyAccountRequest</h3>
+        <p></p>
+
+        
+
+        
+      
+        <h3 id="auth.v1.GetMyAccountResponse">GetMyAccountResponse</h3>
+        <p></p>
+
+        
+          <table class="field-table">
+            <thead>
+              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
+            </thead>
+            <tbody>
+              
+                <tr>
+                  <td>account</td>
+                  <td><a href="#auth.v1.Account">Account</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+            </tbody>
+          </table>
+
+          
+
+        
+      
+        <h3 id="auth.v1.GetMyEmailRequest">GetMyEmailRequest</h3>
+        <p></p>
+
+        
+
+        
+      
+        <h3 id="auth.v1.GetMyEmailResponse">GetMyEmailResponse</h3>
+        <p></p>
+
+        
+          <table class="field-table">
+            <thead>
+              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
+            </thead>
+            <tbody>
+              
+                <tr>
+                  <td>email</td>
+                  <td><a href="#auth.v1.AccountEmail">AccountEmail</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+            </tbody>
+          </table>
+
+          
+
+        
+      
+        <h3 id="auth.v1.UpdatePasswordRequest">UpdatePasswordRequest</h3>
+        <p></p>
+
+        
+          <table class="field-table">
+            <thead>
+              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
+            </thead>
+            <tbody>
+              
+                <tr>
+                  <td>old_password</td>
+                  <td><a href="#string">string</a></td>
+                  <td></td>
+                  <td><p>Current password for verification. </p></td>
+                </tr>
+              
+                <tr>
+                  <td>new_password</td>
+                  <td><a href="#string">string</a></td>
+                  <td></td>
+                  <td><p>New password. Same rules as CreateAccountRequest.password. </p></td>
+                </tr>
+              
+            </tbody>
+          </table>
+
+          
+
+        
+      
+        <h3 id="auth.v1.UpdateUsernameRequest">UpdateUsernameRequest</h3>
+        <p></p>
+
+        
+          <table class="field-table">
+            <thead>
+              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
+            </thead>
+            <tbody>
+              
+                <tr>
+                  <td>new_username</td>
+                  <td><a href="#string">string</a></td>
+                  <td></td>
+                  <td><p>New username. Same rules as CreateAccountRequest.username. </p></td>
+                </tr>
+              
+            </tbody>
+          </table>
+
+          
+
+        
+      
+        <h3 id="auth.v1.UpdateUsernameResponse">UpdateUsernameResponse</h3>
+        <p></p>
+
+        
+          <table class="field-table">
+            <thead>
+              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
+            </thead>
+            <tbody>
+              
+                <tr>
+                  <td>account</td>
+                  <td><a href="#auth.v1.Account">Account</a></td>
+                  <td></td>
+                  <td><p>Updated account with the new username and incremented version. </p></td>
+                </tr>
+              
+            </tbody>
+          </table>
+
+          
+
+        
+      
+
+      
+
+      
+
+      
+        <h3 id="auth.v1.AccountService">AccountService</h3>
+        <p>AccountService manages user accounts: registration, profile, credentials.</p><p>All methods except CreateAccount require authentication via metadata:</p><p>authorization: Bearer <access_token></p>
+        <table class="enum-table">
+          <thead>
+            <tr><td>Method Name</td><td>Request Type</td><td>Response Type</td><td>Description</td></tr>
+          </thead>
+          <tbody>
+            
+              <tr>
+                <td>CreateAccount</td>
+                <td><a href="#auth.v1.CreateAccountRequest">CreateAccountRequest</a></td>
+                <td><a href="#auth.v1.CreateAccountResponse">CreateAccountResponse</a></td>
+                <td><p>CreateAccount registers a new user account.
+
+Errors:
+  ALREADY_EXISTS      — email or username is already taken
+  INVALID_ARGUMENT    — username or password does not meet requirements</p></td>
+              </tr>
+            
+              <tr>
+                <td>GetMyAccount</td>
+                <td><a href="#auth.v1.GetMyAccountRequest">GetMyAccountRequest</a></td>
+                <td><a href="#auth.v1.GetMyAccountResponse">GetMyAccountResponse</a></td>
+                <td><p>GetMyAccount returns the authenticated account&#39;s profile.
+
+Errors:
+  NOT_FOUND           — account does not exist or was deleted</p></td>
+              </tr>
+            
+              <tr>
+                <td>GetMyEmail</td>
+                <td><a href="#auth.v1.GetMyEmailRequest">GetMyEmailRequest</a></td>
+                <td><a href="#auth.v1.GetMyEmailResponse">GetMyEmailResponse</a></td>
+                <td><p>GetMyEmail returns the authenticated account&#39;s primary email address.
+
+Errors:
+  NOT_FOUND           — account does not exist</p></td>
+              </tr>
+            
+              <tr>
+                <td>UpdateUsername</td>
+                <td><a href="#auth.v1.UpdateUsernameRequest">UpdateUsernameRequest</a></td>
+                <td><a href="#auth.v1.UpdateUsernameResponse">UpdateUsernameResponse</a></td>
+                <td><p>UpdateUsername changes the username of the authenticated account.
+If the new username is identical to the current one, the call succeeds without any changes.
+
+Errors:
+  ALREADY_EXISTS      — username is taken by another account
+  INVALID_ARGUMENT    — username does not meet requirements
+  UNAUTHENTICATED     — session is invalid or expired</p></td>
+              </tr>
+            
+              <tr>
+                <td>UpdatePassword</td>
+                <td><a href="#auth.v1.UpdatePasswordRequest">UpdatePasswordRequest</a></td>
+                <td><a href="#google.protobuf.Empty">.google.protobuf.Empty</a></td>
+                <td><p>UpdatePassword changes the password of the authenticated account.
+The old password must be provided for verification.
+
+Errors:
+  UNAUTHENTICATED     — old password is incorrect or session is invalid
+  INVALID_ARGUMENT    — new password does not meet requirements
+  FAILED_PRECONDITION — password was changed too recently</p></td>
+              </tr>
+            
+              <tr>
+                <td>DeleteMyAccount</td>
+                <td><a href="#auth.v1.DeleteMyAccountRequest">DeleteMyAccountRequest</a></td>
+                <td><a href="#google.protobuf.Empty">.google.protobuf.Empty</a></td>
+                <td><p>DeleteMyAccount soft-deletes the authenticated account along with all its
+sessions and email addresses. The operation is irreversible via the API.
+
+Errors:
+  UNAUTHENTICATED     — session is invalid or expired</p></td>
+              </tr>
+            
+          </tbody>
+        </table>
+
+        
+    
+      
+      <div class="file-heading">
+        <h2 id="session.proto">session.proto</h2><a href="#title">Top</a>
+      </div>
+      <p></p>
+
+      
+        <h3 id="auth.v1.DeleteMySessionRequest">DeleteMySessionRequest</h3>
+        <p></p>
+
+        
+          <table class="field-table">
+            <thead>
+              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
+            </thead>
+            <tbody>
+              
+                <tr>
+                  <td>session_id</td>
+                  <td><a href="#string">string</a></td>
+                  <td></td>
+                  <td><p>UUID of the session to terminate. </p></td>
+                </tr>
+              
+            </tbody>
+          </table>
+
+          
+
+        
+      
+        <h3 id="auth.v1.DeleteMySessionsRequest">DeleteMySessionsRequest</h3>
+        <p></p>
+
+        
+
+        
+      
+        <h3 id="auth.v1.GetMySessionRequest">GetMySessionRequest</h3>
+        <p></p>
+
+        
+          <table class="field-table">
+            <thead>
+              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
+            </thead>
+            <tbody>
+              
+                <tr>
+                  <td>session_id</td>
+                  <td><a href="#string">string</a></td>
+                  <td></td>
+                  <td><p>UUID of the target session. </p></td>
+                </tr>
+              
+            </tbody>
+          </table>
+
+          
+
+        
+      
+        <h3 id="auth.v1.GetMySessionResponse">GetMySessionResponse</h3>
+        <p></p>
+
+        
+          <table class="field-table">
+            <thead>
+              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
+            </thead>
+            <tbody>
+              
+                <tr>
+                  <td>session</td>
+                  <td><a href="#auth.v1.Session">Session</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+            </tbody>
+          </table>
+
+          
+
+        
+      
+        <h3 id="auth.v1.GetMySessionsRequest">GetMySessionsRequest</h3>
+        <p></p>
+
+        
+          <table class="field-table">
+            <thead>
+              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
+            </thead>
+            <tbody>
+              
+                <tr>
+                  <td>pagination</td>
+                  <td><a href="#auth.v1.Pagination">Pagination</a></td>
+                  <td></td>
+                  <td><p>Pagination parameters. Defaults: page=1, per_page=20. </p></td>
+                </tr>
+              
+                <tr>
+                  <td>filter</td>
+                  <td><a href="#auth.v1.SessionDeletedFilter">SessionDeletedFilter</a></td>
+                  <td></td>
+                  <td><p>Filter sessions by active/deleted status. Defaults to ALL. </p></td>
+                </tr>
+              
+                <tr>
+                  <td>order</td>
+                  <td><a href="#auth.v1.SessionLastUsedOrder">SessionLastUsedOrder</a></td>
+                  <td></td>
+                  <td><p>Sort order by last_used timestamp. Defaults to DESC. </p></td>
+                </tr>
+              
+            </tbody>
+          </table>
+
+          
+
+        
+      
+        <h3 id="auth.v1.GetMySessionsResponse">GetMySessionsResponse</h3>
+        <p></p>
+
+        
+          <table class="field-table">
+            <thead>
+              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
+            </thead>
+            <tbody>
+              
+                <tr>
+                  <td>sessions</td>
+                  <td><a href="#auth.v1.Session">Session</a></td>
+                  <td>repeated</td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>page_info</td>
+                  <td><a href="#auth.v1.PageInfo">PageInfo</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+            </tbody>
+          </table>
+
+          
+
+        
+      
+        <h3 id="auth.v1.LoginByEmailRequest">LoginByEmailRequest</h3>
+        <p></p>
+
+        
+          <table class="field-table">
+            <thead>
+              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
+            </thead>
+            <tbody>
+              
+                <tr>
+                  <td>email</td>
+                  <td><a href="#string">string</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>password</td>
+                  <td><a href="#string">string</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+            </tbody>
+          </table>
+
+          
+
+        
+      
+        <h3 id="auth.v1.LoginByGoogleRequest">LoginByGoogleRequest</h3>
+        <p></p>
+
+        
+          <table class="field-table">
+            <thead>
+              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
+            </thead>
+            <tbody>
+              
+                <tr>
+                  <td>id_token</td>
+                  <td><a href="#string">string</a></td>
+                  <td></td>
+                  <td><p>Google ID token obtained from the Google OAuth2 flow. </p></td>
+                </tr>
+              
+            </tbody>
+          </table>
+
+          
+
+        
+      
+        <h3 id="auth.v1.LoginByUsernameRequest">LoginByUsernameRequest</h3>
+        <p></p>
+
+        
+          <table class="field-table">
+            <thead>
+              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
+            </thead>
+            <tbody>
+              
+                <tr>
+                  <td>username</td>
+                  <td><a href="#string">string</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>password</td>
+                  <td><a href="#string">string</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+            </tbody>
+          </table>
+
+          
+
+        
+      
+        <h3 id="auth.v1.LoginResponse">LoginResponse</h3>
+        <p>LoginResponse is returned by all login and refresh methods.</p>
+
+        
+          <table class="field-table">
+            <thead>
+              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
+            </thead>
+            <tbody>
+              
+                <tr>
+                  <td>tokens</td>
+                  <td><a href="#auth.v1.TokensPair">TokensPair</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+            </tbody>
+          </table>
+
+          
+
+        
+      
+        <h3 id="auth.v1.LogoutRequest">LogoutRequest</h3>
+        <p></p>
+
+        
+
+        
+      
+        <h3 id="auth.v1.RefreshRequest">RefreshRequest</h3>
+        <p></p>
+
+        
+          <table class="field-table">
+            <thead>
+              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
+            </thead>
+            <tbody>
+              
+                <tr>
+                  <td>refresh_token</td>
+                  <td><a href="#string">string</a></td>
+                  <td></td>
+                  <td><p>Refresh token from a previous LoginResponse or RefreshResponse. </p></td>
+                </tr>
+              
+            </tbody>
+          </table>
+
+          
+
+        
+      
+
+      
+        <h3 id="auth.v1.SessionDeletedFilter">SessionDeletedFilter</h3>
+        <p>SessionDeletedFilter filters sessions by their deletion status.</p>
+        <table class="enum-table">
+          <thead>
+            <tr><td>Name</td><td>Number</td><td>Description</td></tr>
+          </thead>
+          <tbody>
+            
+              <tr>
+                <td>SESSION_DELETED_FILTER_ALL</td>
+                <td>0</td>
+                <td><p>Return both active and deleted sessions. Default.</p></td>
+              </tr>
+            
+              <tr>
+                <td>SESSION_DELETED_FILTER_ACTIVE</td>
+                <td>1</td>
+                <td><p>Return only active (non-deleted) sessions.</p></td>
+              </tr>
+            
+              <tr>
+                <td>SESSION_DELETED_FILTER_DELETED</td>
+                <td>2</td>
+                <td><p>Return only deleted (terminated) sessions.</p></td>
+              </tr>
+            
+          </tbody>
+        </table>
+      
+        <h3 id="auth.v1.SessionLastUsedOrder">SessionLastUsedOrder</h3>
+        <p>SessionLastUsedOrder controls the sort direction of the last_used field.</p>
+        <table class="enum-table">
+          <thead>
+            <tr><td>Name</td><td>Number</td><td>Description</td></tr>
+          </thead>
+          <tbody>
+            
+              <tr>
+                <td>SESSION_LAST_USED_ORDER_DESC</td>
+                <td>0</td>
+                <td><p>Most recently used first. Default.</p></td>
+              </tr>
+            
+              <tr>
+                <td>SESSION_LAST_USED_ORDER_ASC</td>
+                <td>1</td>
+                <td><p>Least recently used first.</p></td>
+              </tr>
+            
+          </tbody>
+        </table>
+      
+
+      
+
+      
+        <h3 id="auth.v1.SessionService">SessionService</h3>
+        <p>SessionService handles authentication: login, token refresh, session management.</p><p>Login and Refresh methods are public (no token required).</p><p>All other methods require authentication via metadata:</p><p>authorization: Bearer <access_token></p>
+        <table class="enum-table">
+          <thead>
+            <tr><td>Method Name</td><td>Request Type</td><td>Response Type</td><td>Description</td></tr>
+          </thead>
+          <tbody>
+            
+              <tr>
+                <td>LoginByEmail</td>
+                <td><a href="#auth.v1.LoginByEmailRequest">LoginByEmailRequest</a></td>
+                <td><a href="#auth.v1.LoginResponse">LoginResponse</a></td>
+                <td><p>LoginByEmail authenticates a user by email and password.
+Returns a token pair on success.
+
+Errors:
+  UNAUTHENTICATED     — email not found, account deleted, or password is incorrect</p></td>
+              </tr>
+            
+              <tr>
+                <td>LoginByUsername</td>
+                <td><a href="#auth.v1.LoginByUsernameRequest">LoginByUsernameRequest</a></td>
+                <td><a href="#auth.v1.LoginResponse">LoginResponse</a></td>
+                <td><p>LoginByUsername authenticates a user by username and password.
+Returns a token pair on success.
+
+Errors:
+  UNAUTHENTICATED     — username not found, account deleted, or password is incorrect</p></td>
+              </tr>
+            
+              <tr>
+                <td>LoginByGoogle</td>
+                <td><a href="#auth.v1.LoginByGoogleRequest">LoginByGoogleRequest</a></td>
+                <td><a href="#auth.v1.LoginResponse">LoginResponse</a></td>
+                <td><p>LoginByGoogle authenticates a user via a Google ID token.
+The account must already exist with the email from the Google token.
+
+Errors:
+  UNAUTHENTICATED     — account with this email not found or deleted</p></td>
+              </tr>
+            
+              <tr>
+                <td>Refresh</td>
+                <td><a href="#auth.v1.RefreshRequest">RefreshRequest</a></td>
+                <td><a href="#auth.v1.LoginResponse">LoginResponse</a></td>
+                <td><p>Refresh exchanges a valid refresh token for a new token pair.
+The old refresh token is invalidated after a successful call.
+
+Errors:
+  UNAUTHENTICATED     — refresh token is expired, invalid, mismatched, or session not found</p></td>
+              </tr>
+            
+              <tr>
+                <td>GetMySession</td>
+                <td><a href="#auth.v1.GetMySessionRequest">GetMySessionRequest</a></td>
+                <td><a href="#auth.v1.GetMySessionResponse">GetMySessionResponse</a></td>
+                <td><p>GetMySession returns a specific session belonging to the authenticated account.
+
+Errors:
+  INVALID_ARGUMENT    — session_id is not a valid UUID
+  NOT_FOUND           — session not found or does not belong to this account</p></td>
+              </tr>
+            
+              <tr>
+                <td>GetMySessions</td>
+                <td><a href="#auth.v1.GetMySessionsRequest">GetMySessionsRequest</a></td>
+                <td><a href="#auth.v1.GetMySessionsResponse">GetMySessionsResponse</a></td>
+                <td><p>GetMySessions returns a paginated list of sessions for the authenticated account.
+Supports filtering by active/deleted status and sorting by last_used timestamp.
+
+Errors:
+  INTERNAL            — unexpected server error</p></td>
+              </tr>
+            
+              <tr>
+                <td>Logout</td>
+                <td><a href="#auth.v1.LogoutRequest">LogoutRequest</a></td>
+                <td><a href="#google.protobuf.Empty">.google.protobuf.Empty</a></td>
+                <td><p>Logout terminates the current session.
+If the session is already terminated, the call succeeds without error.
+
+Errors:
+  INTERNAL            — unexpected server error</p></td>
+              </tr>
+            
+              <tr>
+                <td>DeleteMySession</td>
+                <td><a href="#auth.v1.DeleteMySessionRequest">DeleteMySessionRequest</a></td>
+                <td><a href="#google.protobuf.Empty">.google.protobuf.Empty</a></td>
+                <td><p>DeleteMySession terminates a specific session belonging to the authenticated account.
+
+Errors:
+  INVALID_ARGUMENT    — session_id is not a valid UUID
+  NOT_FOUND           — session not found
+  UNAUTHENTICATED     — session does not belong to this account</p></td>
+              </tr>
+            
+              <tr>
+                <td>DeleteMySessions</td>
+                <td><a href="#auth.v1.DeleteMySessionsRequest">DeleteMySessionsRequest</a></td>
+                <td><a href="#google.protobuf.Empty">.google.protobuf.Empty</a></td>
+                <td><p>DeleteMySessions terminates all sessions of the authenticated account.
+
+Errors:
+  UNAUTHENTICATED     — session is invalid or expired</p></td>
+              </tr>
+            
+          </tbody>
+        </table>
+
+        
+    
+      
+      <div class="file-heading">
+        <h2 id="auth.proto">auth.proto</h2><a href="#title">Top</a>
+      </div>
+      <p></p>
+
+      
+        <h3 id="auth.v1.ValidateSessionRequest">ValidateSessionRequest</h3>
+        <p>ValidateSessionRequest carries no fields — the token is read from metadata.</p>
+
+        
+
+        
+      
+        <h3 id="auth.v1.ValidateSessionResponse">ValidateSessionResponse</h3>
+        <p></p>
+
+        
+          <table class="field-table">
+            <thead>
+              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
+            </thead>
+            <tbody>
+              
+                <tr>
+                  <td>account</td>
+                  <td><a href="#auth.v1.Account">Account</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>session</td>
+                  <td><a href="#auth.v1.Session">Session</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+            </tbody>
+          </table>
+
+          
+
+        
+      
+
+      
+
+      
+
+      
+        <h3 id="auth.v1.AuthService">AuthService</h3>
+        <p>AuthService is an internal service used by other microservices to validate</p><p>incoming access tokens and retrieve the associated account and session.</p><p>Authentication: pass the access token via metadata:</p><p>authorization: Bearer <access_token></p>
+        <table class="enum-table">
+          <thead>
+            <tr><td>Method Name</td><td>Request Type</td><td>Response Type</td><td>Description</td></tr>
+          </thead>
+          <tbody>
+            
+              <tr>
+                <td>ValidateSession</td>
+                <td><a href="#auth.v1.ValidateSessionRequest">ValidateSessionRequest</a></td>
+                <td><a href="#auth.v1.ValidateSessionResponse">ValidateSessionResponse</a></td>
+                <td><p>ValidateSession parses the access token from metadata, verifies it against
+the database and returns the full account and session objects.
+
+Errors:
+  UNAUTHENTICATED     — token is missing, invalid, expired, or the session/account
+                        was deleted after the token was issued
+  INTERNAL            — unexpected server error</p></td>
+              </tr>
+            
+          </tbody>
+        </table>
+
+        
+    
+
+    <h2 id="scalar-value-types">Scalar Value Types</h2>
+    <table class="scalar-value-types-table">
+      <thead>
+        <tr><td>.proto Type</td><td>Notes</td><td>C++</td><td>Java</td><td>Python</td><td>Go</td><td>C#</td><td>PHP</td><td>Ruby</td></tr>
+      </thead>
+      <tbody>
+        
+          <tr id="double">
+            <td>double</td>
+            <td></td>
+            <td>double</td>
+            <td>double</td>
+            <td>float</td>
+            <td>float64</td>
+            <td>double</td>
+            <td>float</td>
+            <td>Float</td>
+          </tr>
+        
+          <tr id="float">
+            <td>float</td>
+            <td></td>
+            <td>float</td>
+            <td>float</td>
+            <td>float</td>
+            <td>float32</td>
+            <td>float</td>
+            <td>float</td>
+            <td>Float</td>
+          </tr>
+        
+          <tr id="int32">
+            <td>int32</td>
+            <td>Uses variable-length encoding. Inefficient for encoding negative numbers – if your field is likely to have negative values, use sint32 instead.</td>
+            <td>int32</td>
+            <td>int</td>
+            <td>int</td>
+            <td>int32</td>
+            <td>int</td>
+            <td>integer</td>
+            <td>Bignum or Fixnum (as required)</td>
+          </tr>
+        
+          <tr id="int64">
+            <td>int64</td>
+            <td>Uses variable-length encoding. Inefficient for encoding negative numbers – if your field is likely to have negative values, use sint64 instead.</td>
+            <td>int64</td>
+            <td>long</td>
+            <td>int/long</td>
+            <td>int64</td>
+            <td>long</td>
+            <td>integer/string</td>
+            <td>Bignum</td>
+          </tr>
+        
+          <tr id="uint32">
+            <td>uint32</td>
+            <td>Uses variable-length encoding.</td>
+            <td>uint32</td>
+            <td>int</td>
+            <td>int/long</td>
+            <td>uint32</td>
+            <td>uint</td>
+            <td>integer</td>
+            <td>Bignum or Fixnum (as required)</td>
+          </tr>
+        
+          <tr id="uint64">
+            <td>uint64</td>
+            <td>Uses variable-length encoding.</td>
+            <td>uint64</td>
+            <td>long</td>
+            <td>int/long</td>
+            <td>uint64</td>
+            <td>ulong</td>
+            <td>integer/string</td>
+            <td>Bignum or Fixnum (as required)</td>
+          </tr>
+        
+          <tr id="sint32">
+            <td>sint32</td>
+            <td>Uses variable-length encoding. Signed int value. These more efficiently encode negative numbers than regular int32s.</td>
+            <td>int32</td>
+            <td>int</td>
+            <td>int</td>
+            <td>int32</td>
+            <td>int</td>
+            <td>integer</td>
+            <td>Bignum or Fixnum (as required)</td>
+          </tr>
+        
+          <tr id="sint64">
+            <td>sint64</td>
+            <td>Uses variable-length encoding. Signed int value. These more efficiently encode negative numbers than regular int64s.</td>
+            <td>int64</td>
+            <td>long</td>
+            <td>int/long</td>
+            <td>int64</td>
+            <td>long</td>
+            <td>integer/string</td>
+            <td>Bignum</td>
+          </tr>
+        
+          <tr id="fixed32">
+            <td>fixed32</td>
+            <td>Always four bytes. More efficient than uint32 if values are often greater than 2^28.</td>
+            <td>uint32</td>
+            <td>int</td>
+            <td>int</td>
+            <td>uint32</td>
+            <td>uint</td>
+            <td>integer</td>
+            <td>Bignum or Fixnum (as required)</td>
+          </tr>
+        
+          <tr id="fixed64">
+            <td>fixed64</td>
+            <td>Always eight bytes. More efficient than uint64 if values are often greater than 2^56.</td>
+            <td>uint64</td>
+            <td>long</td>
+            <td>int/long</td>
+            <td>uint64</td>
+            <td>ulong</td>
+            <td>integer/string</td>
+            <td>Bignum</td>
+          </tr>
+        
+          <tr id="sfixed32">
+            <td>sfixed32</td>
+            <td>Always four bytes.</td>
+            <td>int32</td>
+            <td>int</td>
+            <td>int</td>
+            <td>int32</td>
+            <td>int</td>
+            <td>integer</td>
+            <td>Bignum or Fixnum (as required)</td>
+          </tr>
+        
+          <tr id="sfixed64">
+            <td>sfixed64</td>
+            <td>Always eight bytes.</td>
+            <td>int64</td>
+            <td>long</td>
+            <td>int/long</td>
+            <td>int64</td>
+            <td>long</td>
+            <td>integer/string</td>
+            <td>Bignum</td>
+          </tr>
+        
+          <tr id="bool">
+            <td>bool</td>
+            <td></td>
+            <td>bool</td>
+            <td>boolean</td>
+            <td>boolean</td>
+            <td>bool</td>
+            <td>bool</td>
+            <td>boolean</td>
+            <td>TrueClass/FalseClass</td>
+          </tr>
+        
+          <tr id="string">
+            <td>string</td>
+            <td>A string must always contain UTF-8 encoded or 7-bit ASCII text.</td>
+            <td>string</td>
+            <td>String</td>
+            <td>str/unicode</td>
+            <td>string</td>
+            <td>string</td>
+            <td>string</td>
+            <td>String (UTF-8)</td>
+          </tr>
+        
+          <tr id="bytes">
+            <td>bytes</td>
+            <td>May contain any arbitrary sequence of bytes.</td>
+            <td>string</td>
+            <td>ByteString</td>
+            <td>str</td>
+            <td>[]byte</td>
+            <td>ByteString</td>
+            <td>string</td>
+            <td>String (ASCII-8BIT)</td>
+          </tr>
+        
+      </tbody>
+    </table>
+  </body>
+</html>
+

@@ -233,6 +233,10 @@ func (s *Service) UpdateUsername(
 	actor models.AccountActor,
 	newUsername string,
 ) (models.Account, error) {
+	if err := s.checkUsernameRequirements(newUsername); err != nil {
+		return models.Account{}, err
+	}
+
 	current, err := s.accountCache.GetByID(ctx, actor.ID)
 	switch {
 	case errors.Is(err, errx.ErrCacheMiss):
@@ -246,6 +250,10 @@ func (s *Service) UpdateUsername(
 		if err != nil {
 			return models.Account{}, err
 		}
+	}
+
+	if current.Username == newUsername {
+		return current, nil
 	}
 
 	var updated models.Account

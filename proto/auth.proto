@@ -1,0 +1,31 @@
+syntax = "proto3";
+
+package auth.v1;
+
+option go_package = "github.com/netbill/auth-svc/proto/pb;pb";
+
+import "common.proto";
+
+// AuthService is an internal service used by other microservices to validate
+// incoming access tokens and retrieve the associated account and session.
+//
+// Authentication: pass the access token via metadata:
+//   authorization: Bearer <access_token>
+service AuthService {
+  // ValidateSession parses the access token from metadata, verifies it against
+  // the database and returns the full account and session objects.
+  //
+  // Errors:
+  //   UNAUTHENTICATED     — token is missing, invalid, expired, or the session/account
+  //                         was deleted after the token was issued
+  //   INTERNAL            — unexpected server error
+  rpc ValidateSession(ValidateSessionRequest) returns (ValidateSessionResponse);
+}
+
+// ValidateSessionRequest carries no fields — the token is read from metadata.
+message ValidateSessionRequest {}
+
+message ValidateSessionResponse {
+  Account account = 1;
+  Session session = 2;
+}

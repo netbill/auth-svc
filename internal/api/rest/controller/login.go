@@ -41,6 +41,7 @@ func (c *SessionController) LoginByUsername(w http.ResponseWriter, r *http.Reque
 		log.WithError(err).Error("unexpected error")
 		render.ResponseError(w, problems.InternalError())
 	default:
+		log.Info("login by username successful")
 		render.Response(w, http.StatusOK, responses.TokensPair(token))
 	}
 }
@@ -70,6 +71,7 @@ func (c *SessionController) LoginByEmail(w http.ResponseWriter, r *http.Request)
 		log.WithError(err).Error("unexpected error")
 		render.ResponseError(w, problems.InternalError())
 	default:
+		log.Info("login by email successful")
 		render.Response(w, http.StatusOK, responses.TokensPair(token))
 	}
 }

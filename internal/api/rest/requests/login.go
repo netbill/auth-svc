@@ -5,11 +5,11 @@ import (
 	"net/http"
 
 	validation "github.com/go-ozzo/ozzo-validation/v4"
-	"github.com/netbill/auth-svc/pkg/resources"
+	"github.com/netbill/auth-svc/pkg/oapi"
 	"github.com/netbill/restkit"
 )
 
-func LoginByEmail(r *http.Request) (req resources.LoginByEmail, err error) {
+func LoginByEmail(r *http.Request) (req oapi.LoginByEmail, err error) {
 	if err = json.NewDecoder(r.Body).Decode(&req); err != nil {
 		err = restkit.NewDecodeError("body", err)
 		return
@@ -22,7 +22,7 @@ func LoginByEmail(r *http.Request) (req resources.LoginByEmail, err error) {
 	return req, errs.Filter()
 }
 
-func LoginByUsername(r *http.Request) (req resources.LoginByUsername, err error) {
+func LoginByUsername(r *http.Request) (req oapi.LoginByUsername, err error) {
 	if err = json.NewDecoder(r.Body).Decode(&req); err != nil {
 		err = restkit.NewDecodeError("body", err)
 		return

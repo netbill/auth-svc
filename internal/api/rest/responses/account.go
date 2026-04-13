@@ -2,7 +2,7 @@ package responses
 
 import (
 	"github.com/netbill/auth-svc/internal/models"
-	"github.com/netbill/auth-svc/pkg/resources"
+	"github.com/netbill/auth-svc/pkg/oapi"
 )
 
 type accountResponse struct {
@@ -21,7 +21,7 @@ func WithAccountEmail(email models.AccountEmail) AccountOption {
 func Account(
 	m models.Account,
 	opts ...AccountOption,
-) resources.Account {
+) oapi.Account {
 	res := &accountResponse{
 		account: m,
 	}
@@ -29,10 +29,10 @@ func Account(
 		opt(res)
 	}
 
-	data := resources.AccountData{
+	data := oapi.AccountData{
 		Id:   m.ID,
 		Type: "account",
-		Attributes: resources.AccountDataAttributes{
+		Attributes: oapi.AccountDataAttributes{
 			Role:      m.Role,
 			Username:  m.Username,
 			Version:   m.Version,
@@ -41,22 +41,22 @@ func Account(
 		},
 	}
 
-	included := make([]resources.AccountEmail, 0)
+	included := make([]oapi.AccountEmail, 0)
 	if res.email != nil {
 		included = append(included, AccountEmailData(*res.email))
 	}
 
-	return resources.Account{
+	return oapi.Account{
 		Data:     data,
 		Included: included,
 	}
 }
 
-func AccountEmailData(ae models.AccountEmail) resources.AccountEmail {
-	return resources.AccountEmail{
+func AccountEmailData(ae models.AccountEmail) oapi.AccountEmail {
+	return oapi.AccountEmail{
 		Id:   ae.AccountID,
 		Type: "account_email",
-		Attributes: resources.AccountEmailAttributes{
+		Attributes: oapi.AccountEmailAttributes{
 			Email:     ae.Email,
 			Version:   ae.Version,
 			Verified:  ae.Verified,

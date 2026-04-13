@@ -12,6 +12,7 @@ Go микросервис аутентификации (`github.com/netbill/auth
 - **Redis** — кеш через `github.com/redis/go-redis/v9` (требует `go mod vendor`)
 - **Kafka** — события через `github.com/netbill/eventbox` (outbox/inbox pattern)
 - **Debezium** — подключён (ветка `feat/debezium`), читает WAL → Kafka через Outbox Event Router SMT
+- **gRPC** — планируется (следующий этап после Kafka inbox + retry)
 
 ## Структура
 
@@ -84,7 +85,20 @@ main-topic → handler OK  → commit offset
 - `OrgCreated`, `OrgDeleted`, `OrgMemberCreated`, `OrgMemberDeleted` — exactly-once (критично, порядок важен)
 - fire-and-forget события (лайки, просмотры) — at-most-once, коммит сразу
 
-**Открытый вопрос:** retry топик требует backoff (задержку перед повтором). Kafka FIFO не умеет ждать — нужно решить как реализовать задержку (отдельный топик на каждый уровень retry, или timestamp в сообщении + проверка в Consumer).
+**Retry backoff — решение принято:** отдельный топик на каждый уровень задержки. Конвенция именования: `{orig_topic}.retry.{delay}`, например:
+```
+organizations.retry.1m
+organizations.retry.2m
+organizations.retry.4m
+organizations.retry.8m
+organizations.retry.16m
+organizations.retry.32m
+organizations.retry.60m
+organizations.dlq
+```
+- `attempts` и `retry_at` передаются в payload сообщения (в outbox_events записи нет после доставки Debezium)
+- Ключ партиционирования `org_id` одинаковый на всех топиках — порядок сохраняется через retry
+- Конкурентного чтения нет — Kafka consumer group распределяет партиции между инстансами автоматически
 
 ### Outbox (уже работает через Debezium)
 - Publisher (`internal/messenger/publisher/`) пишет в outbox_events как раньше
@@ -116,27 +130,24 @@ main-topic → handler OK  → commit offset
 - **Login lookup (email/username → account)** — CP при логине, кеш не используется
 - **Списки сессий** (`GetListForAccount`) — не кешируются
 
-### TTL стратегия — обсуждается, решение не принято
+### TTL стратегия — фиксированный TTL (решение принято)
 
-**Зафиксированные наблюдения (не финальные решения):**
+**Решение:** фиксированный TTL, lazy TTL отклонён.
 
-- **Lazy TTL опасен для популярных сущностей** — горячий аккаунт/сессия читается постоянно → TTL бесконечно продлевается → данные могут быть неактуальны часами. Чем популярнее сущность, тем хуже работает lazy TTL.
-- **Фиксированный TTL** даёт предсказуемое окно неактуальности независимо от нагрузки — по сути SLA на staleness.
-- **Текущий код** уже не продлевает TTL при cache hit (Set вызывается только после DB read или DB write). Это соответствует фиксированному TTL если реализация Redis не делает KEEPTTL.
+- **Lazy TTL отклонён** — горячий аккаунт/сессия читается постоянно → TTL бесконечно продлевается → данные могут быть неактуальны часами. От lazy TTL больше проблем чем пользы.
+- **Фиксированный TTL** даёт предсказуемое окно неактуальности независимо от нагрузки — SLA на staleness.
+- **Текущий код** уже реализует это корректно: `Set` вызывается только после DB read или DB write, при cache hit TTL не продлевается.
 
 **Проблема инвалидации сессий (TOCTOU race):**
 - `DeleteMySessions` удаляет из DB, но горутина параллельного запроса может записать сессию обратно в кеш уже после удаления
-- Версионирование через `account.Version` не решает проблему — для проверки версии всё равно нужен DB/cache hit, возвращаемся к исходной проблеме
-- Распределённые транзакции PG↔Redis невозможны в принципе, при шардировании (10 PG + 10 Redis) тем более
-- **Вывод:** идеальной консистентности между Redis и Postgres не будет. Вопрос в приемлемом размере окна.
+- Распределённые транзакции PG↔Redis невозможны, при шардировании (10 PG + 10 Redis) тем более
+- **Принято:** eventual consistency для сессионного кеша — окно неактуальности ограничено TTL, это приемлемо
 
-**Открытые вопросы по TTL:**
-- Какой TTL для сессий? Для аккаунта?
-- Принимаем ли eventual consistency для сессионного кеша или меняем стратегию?
+**Открытый вопрос:** конкретные значения TTL для сессий и аккаунта — не определены.
 
 ### Модули и кеш
 - `auth.Service` — читает accountCache + sessionsCache для ValidateSession
-- `account.Service` — читает/пишет accountCache, emailCache; не знает про sessionsCache
+- `account.Service` — читает/пишет accountCache, emailCache, passwordCache; при DeleteMyAccount инвалидирует sessionsCache
 - `session.Service` — пишет accountCache + sessionsCache после логина; читает для Refresh
 
 ### Почему не вынесли кеш в отдельный слой
@@ -155,17 +166,25 @@ main-topic → handler OK  → commit offset
 ### pg репозитории
 - **Константы таблиц/колонок** — на уровне пакета: `const (accountsTable = "accounts"; accountsCols = "id, ...")`
 - **SQL запросы** — `const query = ...` внутри каждого метода, используют конкатенацию с пакетными константами
-- **scan хелперы** — централизованная обработка ошибок через `switch { case deleted_at != nil → domain error; case ErrNoRows → not found; case err != nil → wrap }`
+- **scan хелперы** — `switch { case ErrNoRows → domain error; case err != nil → wrap }`. Проверка `deleted_at != nil` в scan хелперах **не используется** — фильтрация через SQL (`AND deleted_at IS NULL`). Исключение: методы с опцией `WithDeleted` строят запрос динамически
+- **Методы с `RETURNING`** — Delete методы возвращают `(Entity, error)` через `RETURNING cols` + inline scan (не через scan хелпер, т.к. хелпер может фильтровать deleted). Используется для получения актуального состояния (deleted_at, version) для outbox event
 - **Unique constraint** — `pgconn.PgError` с кодом `23505` → доменная ошибка (`ErrorUsernameAlreadyTaken`, `ErrorEmailAlreadyExist`)
 - **Без query builders** — только чистый SQL с плейсхолдерами `$1, $2, ...`
+- **Ошибки** — всегда `.Raise(fmt.Errorf("context: %v", id))`, никогда `.Raise(nil)` или голый `errx.ErrorXxx`
 
 ### cache репозитории
 - **Ошибка Redis** — `switch { case errors.Is(err, redis.Nil): → ErrCacheMiss; case err != nil: → err }`
-- **JSON сериализация** — `json.Marshal/Unmarshal` для всех сущностей
+- **JSON сериализация** — RedisJSON (`JSONSet`/`JSONGet` напрямую на `*redis.Client`, не через `client.JSON()`)
 
-### Option types для list запросов
-- Типы `ListSessionsOption`, `ListSessionsOptions`, `WithDeleted`, `WithLimit` и т.д. — **в domain пакете** (`internal/modules/session/options.go`), не в pg
-- pg пакет импортирует domain пакет для типов и строит SQL условия инлайн
+### Option types
+- `ListSessionsOption` и типы — в domain пакете (`internal/modules/session/list.go`)
+- `GetAccountOption` / `DeletedFilter` — в `internal/modules/account/options.go`, используется для `emailRepo.GetByID(ctx, id, WithDeleted(DeletedFilterAll))`
+- pg пакет импортирует domain пакет для типов и строит SQL условия инлайн через `switch opts.Deleted`
+
+### Триггеры БД (migrations/schema/002_account.sql)
+- `cascade_account_soft_delete` — AFTER UPDATE ON accounts: при soft-delete аккаунта автоматически ставит `deleted_at` на `account_emails` и `account_passwords`
+- `forbid_manual_soft_delete_account_email` — запрещает ручной soft-delete email пока аккаунт активен (`pg_trigger_depth() = 0`)
+- **Следствие для `DeleteMyAccount`**: нельзя вызывать `emailRepo.Delete` ни до, ни после `accountRepo.Delete` — триггер делает каскад сам. Email получаем через `GetByID(..., WithDeleted(DeletedFilterAll))` уже после каскада. Сессии триггер **не трогает** — их удаляет Go-код через `sessionRepo.DeleteManyForAccount` внутри той же транзакции
 
 ## Зависимости eventbox
 
@@ -178,6 +197,30 @@ main-topic → handler OK  → commit offset
 
 `config.yaml` / `config.example.yaml` — основной конфиг через viper.
 `config_docker.yaml` — для docker окружения.
+
+## Roadmap
+
+### Следующие шаги (функциональные, в порядке приоритета)
+
+1. **Kafka Consumer + Retry система** (`internal/messenger/`)
+   - Consumer читает из Kafka, вызывает хендлеры напрямую (без InboxWorker)
+   - Retry через outbox_events + экспоненциальный backoff топики (`{topic}.retry.1m`, `.2m`, `.4m`... `.60m`)
+   - DLQ топик при исчерпании попыток
+   - evcontroller хендлеры: OrgCreated, OrgDeleted, OrgMemberCreated, OrgMemberDeleted
+
+2. **gRPC API** (`internal/api/grpc/`)
+   - Те же операции что и REST: регистрация, логин, сессии, управление аккаунтом
+   - proto файлы в `api/proto/`
+   - Запускается параллельно с REST в `run.go`
+
+3. **Тесты**
+   - Интеграционные тесты модулей (account, session, auth) — реальная БД, не моки
+   - Тесты Consumer + retry логики
+
+### Инфраструктура (не функциональные, после функциональных)
+
+4. **Nginx** — reverse proxy перед REST/gRPC
+5. **Kubernetes** — манифесты деплоя
 
 ## Команды
 

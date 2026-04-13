@@ -6,16 +6,17 @@ import (
 	"log/slog"
 	"sync"
 
+	grpcapi "github.com/netbill/auth-svc/internal/api/grpc"
 	"github.com/netbill/auth-svc/internal/api/rest"
 	"github.com/netbill/auth-svc/internal/api/rest/controller"
 	"github.com/netbill/auth-svc/internal/api/rest/middlewares"
 	"github.com/netbill/auth-svc/internal/modules/account"
 	authmodule "github.com/netbill/auth-svc/internal/modules/auth"
 	"github.com/netbill/auth-svc/internal/modules/session"
-	"github.com/netbill/auth-svc/internal/passmanager"
 	"github.com/netbill/auth-svc/internal/repo/chache"
 	"github.com/netbill/auth-svc/internal/repo/pg"
-	"github.com/netbill/auth-svc/internal/tokenmanager"
+	"github.com/netbill/auth-svc/pkg/passmanager"
+	"github.com/netbill/auth-svc/pkg/tokenmanager"
 	"github.com/netbill/pgdbx"
 )
 
@@ -64,7 +65,7 @@ func (a *App) Run(ctx context.Context) error {
 
 	// — managers —
 
-	passMgr := passmanager.New()
+	passMgr := passmanager.New(a.config.Auth.PassBcryptCost)
 
 	tokenMgr := tokenmanager.New(tokenmanager.Config{
 		Issuer:           a.config.Auth.Tokens.Issuer,
@@ -138,6 +139,22 @@ func (a *App) Run(ctx context.Context) error {
 			ReadHeaderTimeout: a.config.Rest.Timeouts.ReadHeader,
 			WriteTimeout:      a.config.Rest.Timeouts.Write,
 			IdleTimeout:       a.config.Rest.Timeouts.Idle,
+		})
+	})
+
+	// — grpc server —
+
+	grpcServer := grpcapi.New(grpcapi.ServerDeps{
+		Auth:     authSvc,
+		Accounts: accountSvc,
+		Sessions: sessionSvc,
+		TokenMgr: tokenMgr,
+		Log:      a.log,
+	})
+
+	run(func() {
+		grpcServer.Run(ctx, grpcapi.Config{
+			Port: a.config.GRPC.Port,
 		})
 	})
 
