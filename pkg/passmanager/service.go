@@ -17,7 +17,7 @@ type Manager struct {
 // bcrypt.MaxCost     int = 31 // the maximum allowable cost as passed in to bcrypt.GenerateFromPassword
 // bcrypt.DefaultCost int = 10 // the cost that will actually be set if a cost below MinCost is passed into bcrypt.GenerateFromPassword
 func New(cost int) *Manager {
-	if 4 >= cost || cost >= 31 {
+	if cost < 4 || cost > 31 {
 		panic("bcrypt cost must be between 4 and 31")
 	}
 

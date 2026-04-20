@@ -91,6 +91,12 @@ func (s *Service) GetMySession(
 				fmt.Errorf("session %s does not belong to account %s", sessionID, actor.ID),
 			)
 		}
+		if session.DeletedAt != nil {
+			return models.Session{}, errx.ErrorSessionNotFound.Raise(
+				fmt.Errorf("session %s is deleted", sessionID),
+			)
+		}
+
 		return session, nil
 	case errors.Is(err, errx.ErrCacheMiss):
 		s.log.Debug("session cache miss", "session_id", sessionID)
@@ -204,9 +210,7 @@ func (s *Service) Logout(
 	ctx context.Context,
 	actor models.AccountActor,
 ) error {
-	if err := s.tx.Transaction(ctx, func(ctx context.Context) error {
-		return s.sessionRepo.Delete(ctx, actor.SessionID)
-	}); err != nil {
+	if err := s.sessionRepo.Delete(ctx, actor.SessionID); err != nil {
 		return err
 	}
 

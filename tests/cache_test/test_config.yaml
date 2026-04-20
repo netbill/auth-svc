@@ -1,0 +1,19 @@
+database:
+  sql:
+    url: "postgresql://postgres:postgres@localhost:7001/postgres?sslmode=disable"
+  redis:
+    addr: "localhost:6001"
+    password: ""
+    db: 2
+
+auth:
+  tokens:
+    issuer: "auth-svc-test"
+    account_access:
+      secret_key: "test-access-secret-key-12345678"
+      ttl: 1h
+    account_refresh:
+      secret_key: "test-refresh-secret-key-12345678"
+      hash_key: "test-hash-key-1234567890123456"
+      ttl: 24h
+  pass_bcrypt_cost: 4
