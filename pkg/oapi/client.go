@@ -53,6 +53,8 @@ type APIClient struct {
 
 	LoginAPI *LoginAPIService
 
+	QrAPI *QrAPIService
+
 	RegistrationAPI *RegistrationAPIService
 
 	SessionsAPI *SessionsAPIService
@@ -76,6 +78,7 @@ func NewAPIClient(cfg *Configuration) *APIClient {
 	// API Services
 	c.AccountsAPI = (*AccountsAPIService)(&c.common)
 	c.LoginAPI = (*LoginAPIService)(&c.common)
+	c.QrAPI = (*QrAPIService)(&c.common)
 	c.RegistrationAPI = (*RegistrationAPIService)(&c.common)
 	c.SessionsAPI = (*SessionsAPIService)(&c.common)
 

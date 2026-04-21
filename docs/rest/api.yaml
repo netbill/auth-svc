@@ -38,6 +38,11 @@ paths:
   /auth-svc/v1/me/sessions/{session_id}:
     $ref: './spec/paths/MySession.yaml'
 
+  /auth-svc/v1/login/qr:
+    $ref: './spec/paths/QRConnect.yaml'
+  /auth-svc/v1/login/qr/confirm:
+    $ref: './spec/paths/QRConfirm.yaml'
+
 components:
   securitySchemes:
     BearerAuth:
@@ -61,6 +66,8 @@ components:
       $ref: './spec/components/schemas/requests/UpdatePassword.yaml'
     UpdateUsername:
       $ref: './spec/components/schemas/requests/UpdateUsername.yaml'
+    QRConfirm:
+      $ref: './spec/components/schemas/requests/QRConfirm.yaml'
 
     #responses
     TokensPair:

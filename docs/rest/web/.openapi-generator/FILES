@@ -4,6 +4,7 @@ README.md
 api/openapi.yaml
 api_accounts.go
 api_login.go
+api_qr.go
 api_registration.go
 api_sessions.go
 client.go
@@ -31,6 +32,10 @@ docs/LoginByUsername.md
 docs/LoginByUsernameData.md
 docs/LoginByUsernameDataAttributes.md
 docs/PaginationData.md
+docs/QRConfirm.md
+docs/QRConfirmData.md
+docs/QRConfirmDataAttributes.md
+docs/QrAPI.md
 docs/RefreshSession.md
 docs/RefreshSessionData.md
 docs/RefreshSessionDataAttributes.md
@@ -75,6 +80,9 @@ model_login_by_username.go
 model_login_by_username_data.go
 model_login_by_username_data_attributes.go
 model_pagination_data.go
+model_qr_confirm.go
+model_qr_confirm_data.go
+model_qr_confirm_data_attributes.go
 model_refresh_session.go
 model_refresh_session_data.go
 model_refresh_session_data_attributes.go
@@ -96,6 +104,7 @@ model_update_username_data_attributes.go
 response.go
 test/api_accounts_test.go
 test/api_login_test.go
+test/api_qr_test.go
 test/api_registration_test.go
 test/api_sessions_test.go
 utils.go

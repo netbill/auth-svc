@@ -12,7 +12,8 @@ Go микросервис аутентификации (`github.com/netbill/auth
 - **Redis** — кеш через `github.com/redis/go-redis/v9` (требует `go mod vendor`)
 - **Kafka** — события через `github.com/netbill/eventbox` (outbox/inbox pattern)
 - **Debezium** — подключён (ветка `feat/debezium`), читает WAL → Kafka через Outbox Event Router SMT
-- **gRPC** — планируется (следующий этап после Kafka inbox + retry)
+- **gRPC** — реализован (`internal/api/grpc/`), запускается параллельно с REST
+- **gorilla/websocket v1.5.3** — QR-логин через WebSocket
 
 ## Структура
 
@@ -20,18 +21,26 @@ Go микросервис аутентификации (`github.com/netbill/auth
 cmd/auth-svc/          — entrypoint
 internal/
   app/                 — запуск приложения (run.go, migrations.go, events.go)
+  api/
+    rest/              — chi router, контроллеры, middleware
+    grpc/              — gRPC сервер (auth, account, session)
+    ws/                — WS сервис QR-логина; service.go + qr.go + responses/token.go
   modules/
     auth/              — ValidateSession (переиспользуется в account и session)
     account/           — регистрация, управление аккаунтом
-    session/           — логин, сессии, токены; options.go — ListSessionsOption types
+    session/           — логин, сессии, токены, QR-логин; list.go — ListSessionsOption types
   messenger/
     consumer.go        — Kafka consumer (читает OrganizationsV1, OrgMembersV1)
     producer.go        — Kafka producer (пишет AccountsTopicV1)
     publisher/         — пишет события в outbox таблицу
     evcontroller/      — хендлеры входящих событий (org, org_member)
+  bus/
+    pub.go             — Publisher: низкоуровневый Publish в Redis Pub/Sub
+    sub.go             — Subscriber: низкоуровневый Subscribe из Redis Pub/Sub → (<-chan []byte, cleanup)
+    pool.go            — Broker: надстройка над pub+sub; PublishQRToken/SubscribeQRToken с префиксом ключа qr-token:{token}
   repo/
-    pg/                — PostgreSQL реализации (accounts, emails, passwords, sessions)
-    chache/            — Redis реализации (accounts, emails, passwords, sessions)
+    pg/                — PostgreSQL реализации (accounts, emails, passwords, sessions, outbox)
+    chache/            — Redis реализации (accounts, emails, passwords, sessions, qr)
   errx/                — доменные ошибки (ape)
   models/              — доменные модели
 pkg/
@@ -198,6 +207,60 @@ organizations.dlq
 `config.yaml` / `config.example.yaml` — основной конфиг через viper.
 `config_docker.yaml` — для docker окружения.
 
+## QR-код логин (WebSocket) — реализовано
+
+Фича "войти через QR-код" — как в Telegram Web. Десктоп открывает WS, получает токен, рендерит QR. Мобильный (уже залогинен) сканирует и делает POST /qr/confirm. Сервер создаёт сессию и пушит токены в WS десктопа.
+
+### Флоу
+
+```
+Desktop  → GET /auth-svc/v1/login/qr  (WS upgrade, без auth)
+Instance-1 → Broker.SubscribeQRToken("qr-token:{uuid}") → шлёт {"qr_token":"..."} по WS
+
+Mobile   → POST /auth-svc/v1/login/qr/confirm  (bearer token, body: {"qr_token":"..."})
+Instance-2 → session.ConfirmQRToken → контроллер → Broker.PublishQRToken("qr-token:{uuid}", tokensJSON)
+
+Instance-1 → получает из Pub/Sub → шлёт payload по WS → закрывает
+Mobile     → получает 204 No Content
+```
+
+### Архитектурные решения
+
+- **Redis Pub/Sub** для координации между инстансами — WS stateful, confirm может попасть на другой инстанс
+- **Subscribe до WriteJSON** — иначе race: мобильный успеет подтвердить до Subscribe
+- **Горутина чтения** в WS handler — gorilla требует читать фреймы для детекции disconnect
+- **Publish в контроллере** после `session.ConfirmQRToken` — бизнес логика не знает про Pub/Sub
+- **Broker** (`internal/bus/pool.go`) — надстройка над Publisher+Subscriber; инкапсулирует префикс ключа `qr-token:{token}`; нет in-memory map, только Redis
+- TTL pending: 2 мин, TTL confirmed: 30 сек
+
+### Redis структура
+
+- Ключ состояния: `qr:{uuid}`, значение: plain string `"pending"` | `"confirmed"` (в `chache/qr.go`)
+- Pub/Sub канал: `qr-token:{uuid}`, payload: JSON `models.TokensPair`
+
+### Файлы
+
+```
+internal/repo/chache/qr.go            ← QRCache: Set/Get (состояние в Redis key-value)
+internal/bus/pub.go                   ← Publisher: низкоуровневый Publish
+internal/bus/sub.go                   ← Subscriber: низкоуровневый Subscribe → <-chan []byte
+internal/bus/pool.go                  ← Broker: PublishQRToken/SubscribeQRToken с префиксом ключа
+internal/api/ws/service.go            ← ws.Service: upgrader + зависимости
+internal/api/ws/qr.go                 ← LoginWithQR: весь WS lifecycle QR-логина
+internal/api/ws/responses/token.go    ← WS response helpers: QRToken, AuthTokensPair, TokensExpiredError
+internal/modules/session/qr.go        ← CreateQRToken, ConfirmQRToken (бизнес логика, без Pub/Sub)
+internal/api/rest/requests/qr.go      ← парсинг confirm запроса
+internal/api/rest/controller/qr.go    ← QRController: QRConnect (WS) + QRConfirm (REST + Publish)
+```
+
+Роуты:
+- `GET /auth-svc/v1/login/qr` — WS upgrade, без auth
+- `POST /auth-svc/v1/login/qr/confirm` — REST, bearer token → 204 No Content
+
+Errx: `ErrorQRTokenNotFound`, `ErrorQRTokenAlreadyConfirmed` — в `errx/session.go`
+
+---
+
 ## Roadmap
 
 ### Следующие шаги (функциональные, в порядке приоритета)
@@ -208,19 +271,14 @@ organizations.dlq
    - DLQ топик при исчерпании попыток
    - evcontroller хендлеры: OrgCreated, OrgDeleted, OrgMemberCreated, OrgMemberDeleted
 
-2. **gRPC API** (`internal/api/grpc/`)
-   - Те же операции что и REST: регистрация, логин, сессии, управление аккаунтом
-   - proto файлы в `api/proto/`
-   - Запускается параллельно с REST в `run.go`
-
-3. **Тесты**
+2. **Тесты**
    - Интеграционные тесты модулей (account, session, auth) — реальная БД, не моки
    - Тесты Consumer + retry логики
 
 ### Инфраструктура (не функциональные, после функциональных)
 
-4. **Nginx** — reverse proxy перед REST/gRPC
-5. **Kubernetes** — манифесты деплоя
+3. **Nginx** — reverse proxy перед REST/gRPC
+4. **Kubernetes** — манифесты деплоя
 
 ## Команды
 

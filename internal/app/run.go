@@ -10,6 +10,8 @@ import (
 	"github.com/netbill/auth-svc/internal/api/rest"
 	"github.com/netbill/auth-svc/internal/api/rest/controller"
 	"github.com/netbill/auth-svc/internal/api/rest/middlewares"
+	"github.com/netbill/auth-svc/internal/api/ws"
+	"github.com/netbill/auth-svc/internal/bus"
 	"github.com/netbill/auth-svc/internal/modules/account"
 	authmodule "github.com/netbill/auth-svc/internal/modules/auth"
 	"github.com/netbill/auth-svc/internal/modules/session"
@@ -62,6 +64,12 @@ func (a *App) Run(ctx context.Context) error {
 	emailCache := chache.NewEmailCache(redisClient, redisTTL.Email)
 	passwordCache := chache.NewPasswordCache(redisClient, redisTTL.Password)
 	sessionCache := chache.NewSessionCache(redisClient, redisTTL.Session)
+	qrCache := chache.NewQRCache(redisClient)
+
+	// — bus —
+
+	qrPublisher := bus.NewPublisher(redisClient)
+	qrSubscriber := bus.NewSubscriber(redisClient)
 
 	// — managers —
 
@@ -114,13 +122,21 @@ func (a *App) Run(ctx context.Context) error {
 		SessionsCache: sessionCache,
 		PassManager:   passMgr,
 		TokenManager:  tokenMgr,
+		QRStore:       qrCache,
 		Log:           log,
 	})
 
+	// — broker —
+
+	broker := bus.NewBroker(qrPublisher, qrSubscriber)
+
 	// — controllers —
+
+	asyncSvc := ws.NewService(sessionSvc, broker, a.log)
 
 	accountCtrl := controller.NewAccountController(accountSvc)
 	sessionCtrl := controller.NewSessionController(sessionSvc, a.config.GoogleOAuth())
+	qrCtrl := controller.NewQRController(asyncSvc, sessionSvc, broker)
 
 	// — rest server —
 
@@ -128,6 +144,7 @@ func (a *App) Run(ctx context.Context) error {
 	router := rest.New(rest.ServerDeps{
 		Accounts:    accountCtrl,
 		Sessions:    sessionCtrl,
+		QR:          qrCtrl,
 		Middlewares: mdll,
 		Log:         a.log,
 	})

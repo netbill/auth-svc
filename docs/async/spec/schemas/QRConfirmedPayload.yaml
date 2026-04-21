@@ -1,0 +1,19 @@
+type: object
+required:
+  - session_id
+  - access
+  - refresh
+properties:
+  session_id:
+    type: string
+    format: uuid
+    description: The newly created session ID.
+    example: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+  access:
+    type: string
+    description: JWT access token.
+    example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+  refresh:
+    type: string
+    description: JWT refresh token.
+    example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...

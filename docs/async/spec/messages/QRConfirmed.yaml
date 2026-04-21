@@ -1,0 +1,8 @@
+name: QRConfirmed
+title: QR Confirmed
+summary: >
+  Sent when the mobile client confirms the QR token via POST /login/qr/confirm.
+  Contains the new session tokens. Connection closes after this message.
+contentType: application/json
+payload:
+  $ref: '../schemas/QRConfirmedPayload.yaml'

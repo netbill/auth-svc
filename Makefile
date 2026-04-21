@@ -6,7 +6,7 @@ DOCS_OUTPUT_DIR := ./docs/rest/web
 DOCS_INTERNAL_DIR := ./docs/rest/web/docs
 RESOURCES_DIR := ./pkg/oapi
 
-generate-models:
+bundle-oapi:
 	test -d $(RESOURCES_DIR) || mkdir -p $(RESOURCES_DIR)
 	test -d $(dir $(API_SRC)) || mkdir -p $(dir $(API_SRC))
 	test -d $(dir $(API_BUNDLED)) || mkdir -p $(dir $(API_BUNDLED))

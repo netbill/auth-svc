@@ -37,6 +37,11 @@ type SessionController interface {
 	DeleteMySessions(w http.ResponseWriter, r *http.Request)
 }
 
+type QRController interface {
+	QRConnect(w http.ResponseWriter, r *http.Request)
+	QRConfirm(w http.ResponseWriter, r *http.Request)
+}
+
 type Middlewares interface {
 	AccountAuth(allowedRoles ...string) func(next http.Handler) http.Handler
 	Logger(log *log.Logger) func(next http.Handler) http.Handler
@@ -46,6 +51,7 @@ type Middlewares interface {
 type Server struct {
 	accounts    AccountController
 	sessions    SessionController
+	qr          QRController
 	middlewares Middlewares
 	log         *log.Logger
 }
@@ -53,6 +59,7 @@ type Server struct {
 type ServerDeps struct {
 	Accounts    AccountController
 	Sessions    SessionController
+	QR          QRController
 	Middlewares Middlewares
 	Log         *log.Logger
 }
@@ -61,6 +68,7 @@ func New(deps ServerDeps) *Server {
 	return &Server{
 		accounts:    deps.Accounts,
 		sessions:    deps.Sessions,
+		qr:          deps.QR,
 		middlewares: deps.Middlewares,
 		log:         deps.Log,
 	}
@@ -98,6 +106,11 @@ func (s *Server) Run(ctx context.Context, cfg Config) {
 				r.Route("/google", func(r chi.Router) {
 					r.Post("/", s.sessions.LoginByGoogleOAuth)
 					r.Get("/callback", s.sessions.LoginByGoogleOAuthCallback)
+				})
+
+				r.Route("/qr", func(r chi.Router) {
+					r.Get("/", s.qr.QRConnect)
+					r.With(auth).Post("/confirm", s.qr.QRConfirm)
 				})
 			})
 

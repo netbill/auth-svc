@@ -1,0 +1,6 @@
+name: QRToken
+title: QR Token
+summary: Sent immediately after WebSocket connection is established.
+contentType: application/json
+payload:
+  $ref: '../schemas/QRTokenPayload.yaml'

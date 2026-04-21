@@ -86,6 +86,8 @@ Class | Method | HTTP request | Description
 *LoginAPI* | [**AuthSvcV1LoginGoogleCallbackGet**](docs/LoginAPI.md#authsvcv1logingooglecallbackget) | **Get** /auth-svc/v1/login/google/callback | Google OAuth callback
 *LoginAPI* | [**AuthSvcV1LoginGooglePost**](docs/LoginAPI.md#authsvcv1logingooglepost) | **Post** /auth-svc/v1/login/google | Start Google OAuth login
 *LoginAPI* | [**AuthSvcV1LoginUsernamePost**](docs/LoginAPI.md#authsvcv1loginusernamepost) | **Post** /auth-svc/v1/login/username | Login by username
+*QrAPI* | [**AuthSvcV1LoginQrConfirmPost**](docs/QrAPI.md#authsvcv1loginqrconfirmpost) | **Post** /auth-svc/v1/login/qr/confirm | Confirm QR token
+*QrAPI* | [**AuthSvcV1LoginQrGet**](docs/QrAPI.md#authsvcv1loginqrget) | **Get** /auth-svc/v1/login/qr | Connect to QR login session
 *RegistrationAPI* | [**AuthSvcV1RegistrationAdminPost**](docs/RegistrationAPI.md#authsvcv1registrationadminpost) | **Post** /auth-svc/v1/registration/admin | Register a new admin account
 *RegistrationAPI* | [**AuthSvcV1RegistrationPost**](docs/RegistrationAPI.md#authsvcv1registrationpost) | **Post** /auth-svc/v1/registration/ | Register a new account
 *SessionsAPI* | [**AuthSvcV1MeLogoutPost**](docs/SessionsAPI.md#authsvcv1melogoutpost) | **Post** /auth-svc/v1/me/logout | Logout
@@ -119,6 +121,9 @@ Class | Method | HTTP request | Description
  - [LoginByUsernameData](docs/LoginByUsernameData.md)
  - [LoginByUsernameDataAttributes](docs/LoginByUsernameDataAttributes.md)
  - [PaginationData](docs/PaginationData.md)
+ - [QRConfirm](docs/QRConfirm.md)
+ - [QRConfirmData](docs/QRConfirmData.md)
+ - [QRConfirmDataAttributes](docs/QRConfirmDataAttributes.md)
  - [RefreshSession](docs/RefreshSession.md)
  - [RefreshSessionData](docs/RefreshSessionData.md)
  - [RefreshSessionDataAttributes](docs/RefreshSessionDataAttributes.md)

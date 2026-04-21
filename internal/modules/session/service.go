@@ -26,8 +26,12 @@ type Service struct {
 	accountCache  accountCache
 	sessionsCache sessionsCache
 
+	qrRepo qrRepo
+
 	passManager  passwordManager
 	tokenManager tokenManager
+
+	//qrPublisher qrPublisher
 
 	log *slog.Logger
 }
@@ -44,6 +48,7 @@ type ServiceDeps struct {
 	SessionsCache sessionsCache
 	PassManager   passwordManager
 	TokenManager  tokenManager
+	QRStore       qrRepo
 	Log           *slog.Logger
 }
 
@@ -60,6 +65,7 @@ func New(deps ServiceDeps) *Service {
 		sessionsCache: deps.SessionsCache,
 		passManager:   deps.PassManager,
 		tokenManager:  deps.TokenManager,
+		qrRepo:        deps.QRStore,
 		log:           deps.Log,
 	}
 }
