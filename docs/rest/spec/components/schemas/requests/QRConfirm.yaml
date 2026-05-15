@@ -1,0 +1,23 @@
+type: object
+required:
+  - data
+properties:
+  data:
+    type: object
+    required:
+      - type
+      - attributes
+    properties:
+      type:
+        type: string
+        enum: [ qr_token ]
+      attributes:
+        type: object
+        required:
+          - qr_token
+        properties:
+          qr_token:
+            type: string
+            format: uuid
+            description: The QR token received from the WebSocket connection.
+            example: 550e8400-e29b-41d4-a716-446655440000

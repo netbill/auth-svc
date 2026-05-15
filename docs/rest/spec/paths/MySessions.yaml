@@ -1,0 +1,87 @@
+get:
+  tags:
+    - sessions
+  summary: Get my sessions
+  description: >
+    Returns sessions of the authenticated account.
+
+    Supports pagination, filtering by deletion status, and sorting by last used date.
+  security:
+    - BearerAuth: [ ]
+  parameters:
+    - in: query
+      name: page[limit]
+      required: false
+      schema:
+        type: integer
+        minimum: 1
+      description: Max number of items to return
+    - in: query
+      name: page[offset]
+      required: false
+      schema:
+        type: integer
+        minimum: 0
+      description: Number of items to skip
+    - in: query
+      name: filter[active]
+      required: false
+      schema:
+        type: boolean
+      description: >
+        Filter sessions by active status.
+        - `true` — only active (non-deleted) sessions
+        - `false` — only deleted sessions
+        - omit — all sessions (default)
+    - in: query
+      name: sort[last_used]
+      required: false
+      schema:
+        type: string
+        enum: [desc, asc]
+        default: desc
+      description: >
+        Sort sessions by last used date.
+        - `desc` — most recently used first (default)
+        - `asc` — least recently used first
+  responses:
+    '200':
+      description: Sessions successfully retrieved
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/responses/AccountSessionsCollection.yaml'
+
+    '500':
+      description: Internal Server Error
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/responses/Errors.yaml'
+
+delete:
+  tags:
+    - sessions
+  summary: Delete my sessions
+  description: >
+    Deletes all sessions of the authenticated account (logout from all devices).
+  security:
+    - BearerAuth: [ ]
+  responses:
+    '204':
+      description: Sessions successfully deleted
+
+    '401':
+      description: >
+        Unauthorized. The session is invalid or does not belong to the authenticated account.
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/responses/Errors.yaml'
+
+    '500':
+      description: Internal Server Error
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/responses/Errors.yaml'

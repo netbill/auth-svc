@@ -1,0 +1,90 @@
+get:
+  tags:
+    - accounts
+  summary: Get my account
+  description: >
+    Returns the authenticated account.
+
+  parameters:
+    - in: query
+      name: include
+      required: false
+      schema:
+        type: array
+        items:
+          type: string
+          enum:
+            - email
+      style: form
+      explode: false
+      description: >
+        Optional related resources to include. Supported values: `email`.
+
+  security:
+    - BearerAuth: [ ]
+  responses:
+    '200':
+      description: Account successfully retrieved
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/responses/Account.yaml'
+
+    '401':
+      description: >
+        Unauthorized. The account is deleted and can no longer be used.
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/responses/Errors.yaml'
+
+    '404':
+      description: >
+        Account not found.
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/responses/Errors.yaml'
+
+    '500':
+      description: Internal Server Error
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/responses/Errors.yaml'
+
+delete:
+  tags:
+    - accounts
+  summary: Delete my account
+  description: >
+    Deletes the authenticated account.
+
+  security:
+    - BearerAuth: [ ]
+  responses:
+    '204':
+      description: Account successfully deleted
+
+    '401':
+      description: >
+        Unauthorized. The session is invalid or does not belong to the authenticated account.
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/responses/Errors.yaml'
+
+    '404':
+      description: >
+        Account not found.
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/responses/Errors.yaml'
+
+    '500':
+      description: Internal Server Error
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/responses/Errors.yaml'

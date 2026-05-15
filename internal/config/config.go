@@ -8,6 +8,7 @@ import (
 
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/netbill/auth-svc/pkg/log"
+	"github.com/redis/go-redis/v9"
 	"github.com/spf13/viper"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
@@ -26,6 +27,19 @@ type DatabaseConfig struct {
 	SQL struct {
 		URL string `mapstructure:"url"`
 	} `mapstructure:"sql"`
+
+	Redis struct {
+		Addr     string `mapstructure:"addr"`
+		Password string `mapstructure:"password"`
+		DB       int    `mapstructure:"db"`
+
+		TTL struct {
+			Account  time.Duration `mapstructure:"account"`
+			Email    time.Duration `mapstructure:"email"`
+			Password time.Duration `mapstructure:"password"`
+			Session  time.Duration `mapstructure:"session"`
+		} `mapstructure:"ttl"`
+	} `mapstructure:"redis"`
 }
 
 type RestConfig struct {
@@ -59,72 +73,17 @@ type AuthConfig struct {
 			RedirectURL  string `mapstructure:"redirect_url"`
 		} `mapstructure:"google"`
 	} `mapstructure:"oauth"`
+
+	PassBcryptCost int `mapstructure:"pass_bcrypt_cost"`
 }
 
 type KafkaConfig struct {
 	Brokers  []string `mapstructure:"brokers"`
 	Identity string   `mapstructure:"identity"`
+}
 
-	Produce struct {
-		Topics struct {
-			AccountsV1 struct {
-				RequiredAcks string        `mapstructure:"required_acks"`
-				Compression  string        `mapstructure:"compression"`
-				Balancer     string        `mapstructure:"balancer"`
-				BatchSize    int           `mapstructure:"batch_size"`
-				BatchTimeout time.Duration `mapstructure:"batch_timeout"`
-				DialTimeout  time.Duration `mapstructure:"dial_timeout"`
-				IdleTimeout  time.Duration `mapstructure:"idle_timeout"`
-			} `mapstructure:"accounts_v1"`
-		} `mapstructure:"topics"`
-	} `mapstructure:"produce"`
-
-	Consume struct {
-		Backoff struct {
-			Min time.Duration `mapstructure:"min"`
-			Max time.Duration `mapstructure:"max"`
-		} `mapstructure:"backoff"`
-
-		Topics struct {
-			OrganizationsV1 struct {
-				Instances      int           `mapstructure:"instances"`
-				MinBytes       int           `mapstructure:"min_bytes"`
-				MaxBytes       int           `mapstructure:"max_bytes"`
-				MaxWait        time.Duration `mapstructure:"max_wait"`
-				CommitInterval time.Duration `mapstructure:"commit_interval"`
-				QueueCapacity  int           `mapstructure:"queue_capacity"`
-			} `mapstructure:"organizations_v1"`
-
-			OrgMembersV1 struct {
-				Instances      int           `mapstructure:"instances"`
-				MinBytes       int           `mapstructure:"min_bytes"`
-				MaxBytes       int           `mapstructure:"max_bytes"`
-				MaxWait        time.Duration `mapstructure:"max_wait"`
-				CommitInterval time.Duration `mapstructure:"commit_interval"`
-				QueueCapacity  int           `mapstructure:"queue_capacity"`
-			} `mapstructure:"organization_members_v1"`
-		} `mapstructure:"topics"`
-	} `mapstructure:"consume"`
-
-	Inbox struct {
-		Routines       int           `mapstructure:"routines"`
-		Slots          int           `mapstructure:"slots"`
-		BatchSize      int           `mapstructure:"batch_size"`
-		Sleep          time.Duration `mapstructure:"sleep"`
-		MinNextAttempt time.Duration `mapstructure:"min_next_attempt"`
-		MaxNextAttempt time.Duration `mapstructure:"max_next_attempt"`
-		MaxAttempts    int32         `mapstructure:"max_attempts"`
-	} `mapstructure:"inbox"`
-
-	Outbox struct {
-		Routines       int           `mapstructure:"routines"`
-		Slots          int           `mapstructure:"slots"`
-		BatchSize      int           `mapstructure:"batch_size"`
-		Sleep          time.Duration `mapstructure:"sleep"`
-		MinNextAttempt time.Duration `mapstructure:"min_next_attempt"`
-		MaxNextAttempt time.Duration `mapstructure:"max_next_attempt"`
-		MaxAttempts    int32         `mapstructure:"max_attempts"`
-	} `mapstructure:"outbox"`
+type GRPCConfig struct {
+	Port int `mapstructure:"port"`
 }
 
 type Config struct {
@@ -132,6 +91,7 @@ type Config struct {
 	Log      LogConfig      `mapstructure:"log"`
 	Database DatabaseConfig `mapstructure:"database"`
 	Rest     RestConfig     `mapstructure:"rest"`
+	GRPC     GRPCConfig     `mapstructure:"grpc"`
 	Auth     AuthConfig     `mapstructure:"auth"`
 	Kafka    KafkaConfig    `mapstructure:"kafka"`
 }
@@ -145,6 +105,12 @@ func LoadConfig() *Config {
 
 	if err := viper.ReadInConfig(); err != nil {
 		panic(fmt.Errorf("error reading config file: %s", err))
+	}
+
+	for _, key := range viper.AllKeys() {
+		if val, ok := viper.Get(key).(string); ok {
+			viper.Set(key, os.ExpandEnv(val))
+		}
 	}
 
 	var config Config
@@ -166,6 +132,14 @@ func (cfg *Config) PoolDB(ctx context.Context) (*pgxpool.Pool, error) {
 	}
 
 	return pool, nil
+}
+
+func (cfg *Config) RedisClient() *redis.Client {
+	return redis.NewClient(&redis.Options{
+		Addr:     cfg.Database.Redis.Addr,
+		Password: cfg.Database.Redis.Password,
+		DB:       cfg.Database.Redis.DB,
+	})
 }
 
 func (cfg *Config) GoogleOAuth() oauth2.Config {

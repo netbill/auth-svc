@@ -1,0 +1,73 @@
+parameters:
+  - in: path
+    name: session_id
+    required: true
+    schema:
+      type: string
+      format: uuid
+    description: Session ID
+
+get:
+  tags:
+    - sessions
+  summary: Get my session
+  description: >
+    Returns a single session of the authenticated account by ID.
+  security:
+    - BearerAuth: [ ]
+  responses:
+    '200':
+      description: Session successfully retrieved
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/responses/AccountSession.yaml'
+
+    '404':
+      description: Session not found
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/responses/Errors.yaml'
+
+    '500':
+      description: Internal Server Error
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/responses/Errors.yaml'
+
+delete:
+  tags:
+    - sessions
+  summary: Delete my session
+  description: >
+    Deletes a session by ID. The session must belong to the authenticated account.
+  security:
+    - BearerAuth: [ ]
+  responses:
+    '204':
+      description: Session successfully deleted
+
+    '401':
+      description: >
+        Unauthorized. The session does not belong to the authenticated account.
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/responses/Errors.yaml'
+
+    '404':
+      description: >
+        Session not found.
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/responses/Errors.yaml'
+
+    '500':
+      description: Internal Server Error
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/responses/Errors.yaml'

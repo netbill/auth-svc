@@ -1,0 +1,19 @@
+post:
+  tags:
+    - sessions
+  summary: Logout
+  description: >
+    Invalidates the current session of the authenticated account.
+    This operation is idempotent — if the session is already deleted, 204 is returned.
+  security:
+    - BearerAuth: [ ]
+  responses:
+    '204':
+      description: Successfully logged out (or session was already deleted)
+
+    '500':
+      description: Internal Server Error
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/responses/Errors.yaml'

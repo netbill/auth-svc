@@ -1,0 +1,20 @@
+get:
+  tags:
+    - qr
+  summary: Connect to QR login session
+  description: >
+    Upgrades the connection to WebSocket. Upon connection the server generates a QR token
+    and sends it as the first message. The client renders it as a QR code.
+    When the mobile client confirms the token via POST /auth-svc/v1/qr/confirm,
+    the server pushes the session tokens through this WebSocket and closes the connection.
+    The connection expires after 2 minutes if not confirmed.
+
+  responses:
+    '101':
+      description: Switching Protocols — connection upgraded to WebSocket.
+    '500':
+      description: Internal Server Error
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/responses/Errors.yaml'

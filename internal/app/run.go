@@ -3,27 +3,27 @@ package app
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"sync"
 
-	"github.com/netbill/auth-svc/internal/core/auth"
-	"github.com/netbill/auth-svc/internal/core/organization"
-	"github.com/netbill/auth-svc/internal/messenger"
-	"github.com/netbill/auth-svc/internal/messenger/evcontroller"
-	"github.com/netbill/auth-svc/internal/messenger/publisher"
-	"github.com/netbill/auth-svc/internal/passmanager"
-	"github.com/netbill/auth-svc/internal/repository"
-	"github.com/netbill/auth-svc/internal/repository/pg"
-	"github.com/netbill/auth-svc/internal/rest"
-	"github.com/netbill/auth-svc/internal/rest/controller"
-	"github.com/netbill/auth-svc/internal/rest/middlewares"
-	"github.com/netbill/auth-svc/internal/tokenmanager"
-	"github.com/netbill/eventbox"
-	eventpg "github.com/netbill/eventbox/pg"
+	grpcapi "github.com/netbill/auth-svc/internal/api/grpc"
+	"github.com/netbill/auth-svc/internal/api/rest"
+	"github.com/netbill/auth-svc/internal/api/rest/controller"
+	"github.com/netbill/auth-svc/internal/api/rest/middlewares"
+	"github.com/netbill/auth-svc/internal/api/ws"
+	"github.com/netbill/auth-svc/internal/bus"
+	"github.com/netbill/auth-svc/internal/modules/account"
+	authmodule "github.com/netbill/auth-svc/internal/modules/auth"
+	"github.com/netbill/auth-svc/internal/modules/session"
+	"github.com/netbill/auth-svc/internal/repo/chache"
+	"github.com/netbill/auth-svc/internal/repo/pg"
+	"github.com/netbill/auth-svc/pkg/passmanager"
+	"github.com/netbill/auth-svc/pkg/tokenmanager"
 	"github.com/netbill/pgdbx"
 )
 
 func (a *App) Run(ctx context.Context) error {
-	var wg = &sync.WaitGroup{}
+	var wg sync.WaitGroup
 
 	run := func(f func()) {
 		wg.Add(1)
@@ -33,75 +33,118 @@ func (a *App) Run(ctx context.Context) error {
 		}()
 	}
 
+	// — database —
+
 	pool, err := a.config.PoolDB(ctx)
 	if err != nil {
 		return fmt.Errorf("connect to database: %w", err)
 	}
 	defer pool.Close()
 
-	a.log.Info("starting application")
-
 	db := pgdbx.NewDB(pool)
 
-	outbox := eventpg.NewOutbox(db)
-	inbox := eventpg.NewInbox(db)
+	// — redis —
 
-	producer := messenger.NewProducer(a.log, messenger.ProducerConfig{
-		Producer: a.config.Kafka.Identity,
-		Brokers:  a.config.Kafka.Brokers,
-		AccountV1: messenger.ProduceKafkaConfig{
-			RequiredAcks: a.config.Kafka.Produce.Topics.AccountsV1.RequiredAcks,
-			Compression:  a.config.Kafka.Produce.Topics.AccountsV1.Compression,
-			Balancer:     a.config.Kafka.Produce.Topics.AccountsV1.Balancer,
-			BatchSize:    a.config.Kafka.Produce.Topics.AccountsV1.BatchSize,
-			BatchTimeout: a.config.Kafka.Produce.Topics.AccountsV1.BatchTimeout,
-		},
-	})
-	defer producer.Close()
+	redisClient := a.config.RedisClient()
+	defer redisClient.Close()
 
-	outbound := publisher.New(a.config.Kafka.Identity, outbox, producer)
+	// — repos —
 
-	tokenManager := tokenmanager.New(tokenmanager.Config{
-		Issuer:                  a.config.Auth.Tokens.Issuer,
-		AccountAccessTTL:        a.config.Auth.Tokens.AccountAccess.TTL,
-		AccountAccessSecretKey:  a.config.Auth.Tokens.AccountAccess.SecretKey,
-		AccountRefreshTTL:       a.config.Auth.Tokens.AccountRefresh.TTL,
-		AccountRefreshSecretKey: a.config.Auth.Tokens.AccountRefresh.SecretKey,
-		AccountRefreshHashKey:   a.config.Auth.Tokens.AccountRefresh.HashKey,
-	})
+	accountRepo := pg.NewAccountRepo(db)
+	emailRepo := pg.NewEmailRepo(db)
+	passwordRepo := pg.NewPasswordRepo(db)
+	sessionRepo := pg.NewSessionRepo(db)
+	outboxRepo := pg.NewOutboxRepo(db, a.config.Kafka.Identity)
 
-	accountRepo := repository.NewAccountRepo(pg.NewAccountsQ(db))
-	accountEmailRepo := repository.NewAccountEmailRepo(pg.NewAccountEmailsQ(db))
-	accountPassRepo := repository.NewAccountPasswordRepo(pg.NewAccountPasswordsQ(db))
-	sessionRepo := repository.NewSessionRepo(pg.NewSessionsQ(db))
-	orgRepo := repository.NewOrganizationRepo(pg.NewOrganizationsQ(db))
-	orgMembersRepo := repository.NewOrgMembersRepo(pg.NewOrganizationMembersQ(db))
-	tombstone := pg.NewTombstonesQ(db)
+	// — caches —
 
-	authCore := auth.NewService(auth.ServiceDeps{
-		Account:     accountRepo,
-		Email:       accountEmailRepo,
-		Password:    accountPassRepo,
-		Org:         orgMembersRepo,
-		Session:     sessionRepo,
-		Tombstone:   tombstone,
-		Tx:          db,
-		Token:       tokenManager,
-		Messenger:   outbound,
-		PassManager: passmanager.New(),
+	redisTTL := a.config.Database.Redis.TTL
+
+	accountCache := chache.NewAccountCache(redisClient, redisTTL.Account)
+	emailCache := chache.NewEmailCache(redisClient, redisTTL.Email)
+	passwordCache := chache.NewPasswordCache(redisClient, redisTTL.Password)
+	sessionCache := chache.NewSessionCache(redisClient, redisTTL.Session)
+	qrCache := chache.NewQRCache(redisClient)
+
+	// — bus —
+
+	qrPublisher := bus.NewPublisher(redisClient)
+	qrSubscriber := bus.NewSubscriber(redisClient)
+
+	// — managers —
+
+	passMgr := passmanager.New(a.config.Auth.PassBcryptCost)
+
+	tokenMgr := tokenmanager.New(tokenmanager.Config{
+		Issuer:           a.config.Auth.Tokens.Issuer,
+		AccessSecretKey:  a.config.Auth.Tokens.AccountAccess.SecretKey,
+		AccessTTL:        a.config.Auth.Tokens.AccountAccess.TTL,
+		RefreshSecretKey: a.config.Auth.Tokens.AccountRefresh.SecretKey,
+		RefreshTTL:       a.config.Auth.Tokens.AccountRefresh.TTL,
+		RefreshHashKey:   a.config.Auth.Tokens.AccountRefresh.HashKey,
 	})
 
-	orgCore := organization.NewOrgModule(organization.OrgCoreDeps{
-		Org:       orgRepo,
-		Member:    orgMembersRepo,
-		Tombstone: tombstone,
-		Tx:        db,
+	// — module services —
+
+	log := slog.Default()
+
+	authSvc := authmodule.New(authmodule.ServiceDeps{
+		AccountRepo: accountRepo,
+		SessionRepo: sessionRepo,
+		Log:         log,
 	})
 
-	ctrl := controller.NewAuth(authCore, a.config.GoogleOAuth())
-	mdll := middlewares.New(tokenManager)
+	accountSvc := account.New(account.ServiceDeps{
+		Auth:          authSvc,
+		AccountRepo:   accountRepo,
+		EmailRepo:     emailRepo,
+		PasswordRepo:  passwordRepo,
+		SessionRepo:   sessionRepo,
+		Tx:            db,
+		AccountCache:  accountCache,
+		EmailCache:    emailCache,
+		PasswordCache: passwordCache,
+		SessionsCache: sessionCache,
+		PassManager:   passMgr,
+		Messenger:     outboxRepo,
+		Log:           log,
+	})
+
+	sessionSvc := session.New(session.ServiceDeps{
+		Auth:          authSvc,
+		AccountRepo:   accountRepo,
+		EmailRepo:     emailRepo,
+		PasswordRepo:  passwordRepo,
+		SessionRepo:   sessionRepo,
+		Tx:            db,
+		PasswordCache: passwordCache,
+		AccountCache:  accountCache,
+		SessionsCache: sessionCache,
+		PassManager:   passMgr,
+		TokenManager:  tokenMgr,
+		QRStore:       qrCache,
+		Log:           log,
+	})
+
+	// — broker —
+
+	broker := bus.NewBroker(qrPublisher, qrSubscriber)
+
+	// — controllers —
+
+	asyncSvc := ws.NewService(sessionSvc, broker, a.log)
+
+	accountCtrl := controller.NewAccountController(accountSvc)
+	sessionCtrl := controller.NewSessionController(sessionSvc, a.config.GoogleOAuth())
+	qrCtrl := controller.NewQRController(asyncSvc, sessionSvc, broker)
+
+	// — rest server —
+
+	mdll := middlewares.New(tokenMgr)
 	router := rest.New(rest.ServerDeps{
-		Controller:  ctrl,
+		Accounts:    accountCtrl,
+		Sessions:    sessionCtrl,
+		QR:          qrCtrl,
 		Middlewares: mdll,
 		Log:         a.log,
 	})
@@ -116,64 +159,26 @@ func (a *App) Run(ctx context.Context) error {
 		})
 	})
 
-	outboxWorker := messenger.NewOutboxWorker(a.log, outbox, producer, eventbox.OutboxWorkerConfig{
-		Routines:       a.config.Kafka.Outbox.Routines,
-		Slots:          a.config.Kafka.Outbox.Slots,
-		BatchSize:      a.config.Kafka.Outbox.BatchSize,
-		Sleep:          a.config.Kafka.Outbox.Sleep,
-		MinNextAttempt: a.config.Kafka.Outbox.MinNextAttempt,
-		MaxNextAttempt: a.config.Kafka.Outbox.MaxNextAttempt,
-		MaxAttempts:    a.config.Kafka.Outbox.MaxAttempts,
+	// — grpc server —
+
+	grpcServer := grpcapi.New(grpcapi.ServerDeps{
+		Auth:     authSvc,
+		Accounts: accountSvc,
+		Sessions: sessionSvc,
+		TokenMgr: tokenMgr,
+		Log:      a.log,
 	})
-	defer outboxWorker.Clean()
 
 	run(func() {
-		outboxWorker.Run(ctx)
+		grpcServer.Run(ctx, grpcapi.Config{
+			Port: a.config.GRPC.Port,
+		})
 	})
 
-	inbound := evcontroller.New(a.log, orgCore)
+	// TODO: Kafka consumer (reads from topics, calls handlers directly — no InboxWorker)
+	// Debezium reads WAL → outbox_events → Kafka (no OutboxWorker needed)
 
-	inboxWorker := messenger.NewInboxWorker(a.log, inbox, eventbox.InboxWorkerConfig{
-		Routines:       a.config.Kafka.Inbox.Routines,
-		Slots:          a.config.Kafka.Inbox.Slots,
-		BatchSize:      a.config.Kafka.Inbox.BatchSize,
-		Sleep:          a.config.Kafka.Inbox.Sleep,
-		MinNextAttempt: a.config.Kafka.Inbox.MinNextAttempt,
-		MaxNextAttempt: a.config.Kafka.Inbox.MaxNextAttempt,
-		MaxAttempts:    a.config.Kafka.Inbox.MaxAttempts,
-	}, inbound)
-	defer inboxWorker.Clean()
-
-	run(func() {
-		inboxWorker.Run(ctx)
-	})
-
-	consumer := messenger.NewConsumer(a.log, inbox, messenger.ConsumerConfig{
-		GroupID:    a.config.Kafka.Identity,
-		Brokers:    a.config.Kafka.Brokers,
-		MinBackoff: a.config.Kafka.Consume.Backoff.Min,
-		MaxBackoff: a.config.Kafka.Consume.Backoff.Max,
-		OrganizationsV1: messenger.ConsumeKafkaConfig{
-			Instances:     a.config.Kafka.Consume.Topics.OrganizationsV1.Instances,
-			MinBytes:      a.config.Kafka.Consume.Topics.OrganizationsV1.MinBytes,
-			MaxBytes:      a.config.Kafka.Consume.Topics.OrganizationsV1.MaxBytes,
-			MaxWait:       a.config.Kafka.Consume.Topics.OrganizationsV1.MaxWait,
-			QueueCapacity: a.config.Kafka.Consume.Topics.OrganizationsV1.QueueCapacity,
-		},
-		OrgMembersV1: messenger.ConsumeKafkaConfig{
-			Instances:     a.config.Kafka.Consume.Topics.OrgMembersV1.Instances,
-			MinBytes:      a.config.Kafka.Consume.Topics.OrgMembersV1.MinBytes,
-			MaxBytes:      a.config.Kafka.Consume.Topics.OrgMembersV1.MaxBytes,
-			MaxWait:       a.config.Kafka.Consume.Topics.OrgMembersV1.MaxWait,
-			QueueCapacity: a.config.Kafka.Consume.Topics.OrgMembersV1.QueueCapacity,
-		},
-	})
-	defer consumer.Close()
-
-	run(func() {
-		consumer.Run(ctx)
-	})
-
+	a.log.Info("starting application")
 	wg.Wait()
 	return nil
 }

@@ -1,0 +1,105 @@
+syntax = "proto3";
+
+package auth.v1;
+
+option go_package = "github.com/netbill/auth-svc/proto/pb;pb";
+
+import "google/protobuf/timestamp.proto";
+
+// Account represents a user account.
+message Account {
+  // Unique account identifier (UUID).
+  string id = 1;
+
+  // Unique username. 3–32 characters, letters/digits/underscore/hyphen only.
+  string username = 2;
+
+  // Account role. Possible values: "user", "system_admin".
+  string role = 3;
+
+  // Optimistic concurrency version. Incremented on each update.
+  int32 version = 4;
+
+  google.protobuf.Timestamp created_at = 5;
+  google.protobuf.Timestamp updated_at = 6;
+
+  // Set when the account is soft-deleted.
+  optional google.protobuf.Timestamp deleted_at = 7;
+}
+
+// AccountEmail represents the primary email address of an account.
+message AccountEmail {
+  // UUID of the owning account.
+  string account_id = 1;
+
+  string email = 2;
+
+  // Whether the email address has been verified.
+  bool verified = 3;
+
+  // Optimistic concurrency version.
+  int32 version = 4;
+
+  google.protobuf.Timestamp created_at = 5;
+  google.protobuf.Timestamp updated_at = 6;
+
+  // Set when the email is soft-deleted (cascades from account deletion).
+  optional google.protobuf.Timestamp deleted_at = 7;
+}
+
+// Session represents an authenticated user session.
+message Session {
+  // Unique session identifier (UUID).
+  string id = 1;
+
+  // UUID of the owning account.
+  string account_id = 2;
+
+  // Optimistic concurrency version.
+  int32 version = 3;
+
+  google.protobuf.Timestamp created_at = 4;
+  google.protobuf.Timestamp updated_at = 5;
+
+  // Timestamp of the most recent request made with this session's token.
+  google.protobuf.Timestamp last_used = 6;
+
+  // Set when the session is terminated (logout or explicit delete).
+  optional google.protobuf.Timestamp deleted_at = 7;
+}
+
+// TokensPair holds the access and refresh tokens issued after a successful login or refresh.
+message TokensPair {
+  // UUID of the session this token pair belongs to.
+  string session_id = 1;
+
+  // Short-lived JWT for authenticating requests. Pass as "authorization: Bearer <token>".
+  string access_token = 2;
+
+  // Long-lived opaque token used to obtain a new TokensPair via Refresh.
+  string refresh_token = 3;
+}
+
+// Pagination controls page-based result slicing.
+message Pagination {
+  // Page number, 1-based. Defaults to 1.
+  int32 page = 1;
+
+  // Number of items per page. Defaults to 20.
+  int32 per_page = 2;
+}
+
+// PageInfo is returned alongside paginated results.
+message PageInfo {
+  // Total number of items across all pages.
+  int32 total = 1;
+
+  // Current page number.
+  int32 page = 2;
+
+  // Items per page used for this response.
+  int32 per_page = 3;
+
+  // Total number of pages.
+  int32 total_pages = 4;
+}

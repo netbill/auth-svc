@@ -1,0 +1,107 @@
+syntax = "proto3";
+
+package auth.v1;
+
+option go_package = "github.com/netbill/auth-svc/proto/pb;pb";
+
+import "common.proto";
+import "google/protobuf/empty.proto";
+
+// AccountService manages user accounts: registration, profile, credentials.
+//
+// All methods except CreateAccount require authentication via metadata:
+//   authorization: Bearer <access_token>
+service AccountService {
+  // CreateAccount registers a new user account.
+  //
+  // Errors:
+  //   ALREADY_EXISTS      — email or username is already taken
+  //   INVALID_ARGUMENT    — username or password does not meet requirements
+  rpc CreateAccount(CreateAccountRequest) returns (CreateAccountResponse);
+
+  // GetMyAccount returns the authenticated account's profile.
+  //
+  // Errors:
+  //   NOT_FOUND           — account does not exist or was deleted
+  rpc GetMyAccount(GetMyAccountRequest) returns (GetMyAccountResponse);
+
+  // GetMyEmail returns the authenticated account's primary email address.
+  //
+  // Errors:
+  //   NOT_FOUND           — account does not exist
+  rpc GetMyEmail(GetMyEmailRequest) returns (GetMyEmailResponse);
+
+  // UpdateUsername changes the username of the authenticated account.
+  // If the new username is identical to the current one, the call succeeds without any changes.
+  //
+  // Errors:
+  //   ALREADY_EXISTS      — username is taken by another account
+  //   INVALID_ARGUMENT    — username does not meet requirements
+  //   UNAUTHENTICATED     — session is invalid or expired
+  rpc UpdateUsername(UpdateUsernameRequest) returns (UpdateUsernameResponse);
+
+  // UpdatePassword changes the password of the authenticated account.
+  // The old password must be provided for verification.
+  //
+  // Errors:
+  //   UNAUTHENTICATED     — old password is incorrect or session is invalid
+  //   INVALID_ARGUMENT    — new password does not meet requirements
+  //   FAILED_PRECONDITION — password was changed too recently
+  rpc UpdatePassword(UpdatePasswordRequest) returns (google.protobuf.Empty);
+
+  // DeleteMyAccount soft-deletes the authenticated account along with all its
+  // sessions and email addresses. The operation is irreversible via the API.
+  //
+  // Errors:
+  //   UNAUTHENTICATED     — session is invalid or expired
+  rpc DeleteMyAccount(DeleteMyAccountRequest) returns (google.protobuf.Empty);
+}
+
+message CreateAccountRequest {
+  // Valid email address. Must be unique across all accounts.
+  string email = 1;
+
+  // Desired username. 3–32 characters, letters/digits/underscore/hyphen only.
+  // Must be unique across all accounts.
+  string username = 2;
+
+  // Password. 8–32 characters, must contain at least one uppercase letter,
+  // one lowercase letter, one digit and one special character (-.!#$%&?,@).
+  string password = 3;
+}
+
+message CreateAccountResponse {
+  Account account = 1;
+}
+
+message GetMyAccountRequest {}
+
+message GetMyAccountResponse {
+  Account account = 1;
+}
+
+message GetMyEmailRequest {}
+
+message GetMyEmailResponse {
+  AccountEmail email = 1;
+}
+
+message UpdateUsernameRequest {
+  // New username. Same rules as CreateAccountRequest.username.
+  string new_username = 1;
+}
+
+message UpdateUsernameResponse {
+  // Updated account with the new username and incremented version.
+  Account account = 1;
+}
+
+message UpdatePasswordRequest {
+  // Current password for verification.
+  string old_password = 1;
+
+  // New password. Same rules as CreateAccountRequest.password.
+  string new_password = 2;
+}
+
+message DeleteMyAccountRequest {}

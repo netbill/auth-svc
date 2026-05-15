@@ -1,0 +1,41 @@
+get:
+  tags:
+    - login
+  summary: Google OAuth callback
+  description: >
+    Exchanges Google OAuth `code` for user info and returns an access/refresh tokens pair.
+  parameters:
+    - in: query
+      name: code
+      required: true
+      schema:
+        type: string
+      description: OAuth authorization code returned by Google
+  responses:
+    '200':
+      description: Tokens pair issued
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/responses/TokensPair.yaml'
+
+    '400':
+      description: Missing or invalid query parameter `code`
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/responses/Errors.yaml'
+
+    '404':
+      description: Account not found or deleted for this email
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/responses/Errors.yaml'
+
+    '500':
+      description: Internal Server Error
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/responses/Errors.yaml'

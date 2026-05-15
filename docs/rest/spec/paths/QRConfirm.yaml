@@ -1,0 +1,60 @@
+post:
+  tags:
+    - qr
+  summary: Confirm QR token
+  description: >
+    Confirms a pending QR token. The mobile client (already authenticated) scans the QR code
+    and calls this endpoint. The server creates a new session and pushes the tokens
+    to the waiting desktop WebSocket connection.
+  security:
+    - BearerAuth: []
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: '../components/schemas/requests/QRConfirm.yaml'
+
+  responses:
+    '204':
+      description: QR token confirmed. Tokens are delivered to the desktop via WebSocket.
+
+    '400':
+      description: >
+        Bad Request. Request body is invalid or qr_token format is wrong.
+        Check the `errors` array for details.
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/responses/Errors.yaml'
+
+    '401':
+      description: >
+        Unauthorized. Bearer token is missing or invalid.
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/responses/Errors.yaml'
+
+    '404':
+      description: >
+        QR token not found or expired (TTL 2 minutes).
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/responses/Errors.yaml'
+
+    '409':
+      description: >
+        QR token already confirmed.
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/responses/Errors.yaml'
+
+    '500':
+      description: Internal Server Error
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/responses/Errors.yaml'

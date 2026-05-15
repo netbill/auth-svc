@@ -18,6 +18,5 @@ var (
 	ErrorPasswordIsNotAllowed    = ape.DeclareError("PASSWORD_IS_NOT_ALLOWED")
 	ErrorCannotChangePasswordYet = ape.DeclareError("CANNOT_CHANGE_PASSWORD_YET")
 
-	ErrorRoleNotSupported           = ape.DeclareError("ACCOUNT_ROLE_NOT_SUPPORTED")
-	ErrorAccountHaveMembershipInOrg = ape.DeclareError("CANNOT_DELETE_ACCOUNT_ORG_MEMBER")
+	ErrorRoleNotSupported = ape.DeclareError("ACCOUNT_ROLE_NOT_SUPPORTED")
 )

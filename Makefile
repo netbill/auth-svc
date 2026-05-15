@@ -1,12 +1,12 @@
 OPENAPI_GENERATOR := java -jar ~/openapi-generator-cli.jar
 CONFIG_FILE := ./config.yaml
-API_SRC := ./docs/api.yaml
-API_BUNDLED := ./docs/api-bundled.yaml
-DOCS_OUTPUT_DIR := ./docs/web
-DOCS_INTERNAL_DIR := ./docs/web/docs
-RESOURCES_DIR := ./pkg/resources
+API_SRC := ./docs/rest/api.yaml
+API_BUNDLED := ./docs/rest/api-bundled.yaml
+DOCS_OUTPUT_DIR := ./docs/rest/web
+DOCS_INTERNAL_DIR := ./docs/rest/web/docs
+RESOURCES_DIR := ./pkg/oapi
 
-generate-models:
+bundle-oapi:
 	test -d $(RESOURCES_DIR) || mkdir -p $(RESOURCES_DIR)
 	test -d $(dir $(API_SRC)) || mkdir -p $(dir $(API_SRC))
 	test -d $(dir $(API_BUNDLED)) || mkdir -p $(dir $(API_BUNDLED))
@@ -19,7 +19,7 @@ generate-models:
 	$(OPENAPI_GENERATOR) generate \
 		-i $(API_BUNDLED) -g go \
 		-o $(DOCS_OUTPUT_DIR) \
-		--additional-properties=packageName=resources \
+		--additional-properties=packageName=oapi \
 		--import-mappings uuid.UUID=github.com/google/uuid --type-mappings string+uuid=uuid.UUID
 
 	mkdir -p $(RESOURCES_DIR)
@@ -31,18 +31,38 @@ build:
 
 migrate-up:
 	KV_VIPER_FILE=$(CONFIG_FILE) go build -o ./cmd/auth-svc/main ./cmd/auth-svc/main.go
-	KV_VIPER_FILE=$(CONFIG_FILE) ./cmd/auth-svc/main migrate up
+	set -a && . ./.env && set +a && KV_VIPER_FILE=$(CONFIG_FILE) ./cmd/auth-svc/main migrate up
 
 migrate-down:
 	KV_VIPER_FILE=$(CONFIG_FILE) go build -o ./cmd/auth-svc/main ./cmd/auth-svc/main.go
-	KV_VIPER_FILE=$(CONFIG_FILE) ./cmd/auth-svc/main migrate down
+	set -a && . ./.env && set +a && KV_VIPER_FILE=$(CONFIG_FILE) ./cmd/auth-svc/main migrate down
 
 run-server:
 	KV_VIPER_FILE=$(CONFIG_FILE) go build -o ./cmd/auth-svc/main ./cmd/auth-svc/main.go
-	KV_VIPER_FILE=$(CONFIG_FILE) ./cmd/auth-svc/main run service
+	set -a && . ./.env && set +a && KV_VIPER_FILE=$(CONFIG_FILE) ./cmd/auth-svc/main run service
 
 docker-up:
 	docker compose up -d --build
 
 docker-down:
 	docker compose down
+
+.PHONY: proto
+proto:
+	mkdir -p pkg/pb
+	protoc \
+	  --proto_path=proto \
+	  --go_out=pkg/pb \
+	  --go_opt=paths=source_relative \
+	  --go-grpc_out=pkg/pb \
+	  --go-grpc_opt=paths=source_relative \
+	  proto/*.proto
+
+.PHONY: proto-doc
+proto-doc:
+	mkdir -p docs/grpc
+	protoc \
+	  --proto_path=proto \
+	  --doc_out=docs/grpc \
+	  --doc_opt=html,index.html \
+	  proto/common.proto proto/account.proto proto/session.proto proto/auth.proto

@@ -12,17 +12,19 @@ CREATE TABLE accounts (
     version    INTEGER      NOT NULL DEFAULT 1 CHECK ( version > 0 ),
 
     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-    updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    deleted_at TIMESTAMPTZ
 );
 
 CREATE TABLE account_emails (
-    account_id UUID        PRIMARY KEY REFERENCES accounts(id) ON DELETE CASCADE,
-    email      VARCHAR(32) NOT NULL UNIQUE,
-    verified   BOOLEAN     NOT NULL DEFAULT FALSE,
-    version    INTEGER     NOT NULL DEFAULT 1 CHECK ( version > 0 ),
+    account_id UUID         PRIMARY KEY REFERENCES accounts(id) ON DELETE CASCADE,
+    email      VARCHAR(254) NOT NULL UNIQUE,
+    verified   BOOLEAN      NOT NULL DEFAULT FALSE,
+    version    INTEGER      NOT NULL DEFAULT 1 CHECK ( version > 0 ),
 
-    created_at TIMESTAMPTZ  NOT NULL DEFAULT now(),
-    updated_at TIMESTAMPTZ  NOT NULL DEFAULT now()
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    deleted_at TIMESTAMPTZ
 );
 
 CREATE TABLE account_passwords (
@@ -31,7 +33,8 @@ CREATE TABLE account_passwords (
     version    INTEGER NOT NULL DEFAULT 1 CHECK ( version > 0 ),
 
     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-    updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    deleted_at TIMESTAMPTZ
 );
 
 CREATE TABLE sessions (
@@ -41,83 +44,108 @@ CREATE TABLE sessions (
     version    INTEGER NOT NULL DEFAULT 1 CHECK ( version > 0 ),
 
     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-    last_used  TIMESTAMPTZ NOT NULL DEFAULT now()
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    last_used  TIMESTAMPTZ NOT NULL DEFAULT now(),
+    deleted_at TIMESTAMPTZ
 );
 
+CREATE INDEX sessions_account_id_idx ON sessions(account_id);
+
+-- Cascade soft-delete from accounts → account_emails, account_passwords
 -- +migrate StatementBegin
-CREATE OR REPLACE FUNCTION forbid_delete_account_email_if_account_exists()
+CREATE OR REPLACE FUNCTION cascade_account_soft_delete()
 RETURNS trigger
 LANGUAGE plpgsql
 AS $$
 BEGIN
-    IF pg_trigger_depth() > 0 THEN
-        RETURN OLD;
-    END IF;
+    IF OLD.deleted_at IS NULL AND NEW.deleted_at IS NOT NULL THEN
+        UPDATE account_emails
+        SET deleted_at = NEW.deleted_at
+        WHERE account_id = NEW.id AND deleted_at IS NULL;
 
-    IF EXISTS (SELECT 1 FROM accounts a WHERE a.id = OLD.account_id) THEN
-        RAISE EXCEPTION 'cannot delete account_emails while account % exists', OLD.account_id
-            USING ERRCODE = '23503';
+        UPDATE account_passwords
+        SET deleted_at = NEW.deleted_at
+        WHERE account_id = NEW.id AND deleted_at IS NULL;
     END IF;
-
-    RETURN OLD;
+    RETURN NEW;
 END;
 $$;
 -- +migrate StatementEnd
 
-CREATE TRIGGER tr_forbid_delete_account_email
-BEFORE DELETE ON account_emails
+CREATE TRIGGER tr_cascade_account_soft_delete
+AFTER UPDATE ON accounts
 FOR EACH ROW
-EXECUTE FUNCTION forbid_delete_account_email_if_account_exists();
+EXECUTE FUNCTION cascade_account_soft_delete();
 
+-- Prevent manual soft-delete of account_emails while account is active
 -- +migrate StatementBegin
-CREATE OR REPLACE FUNCTION forbid_delete_account_password_if_account_exists()
+CREATE OR REPLACE FUNCTION forbid_manual_soft_delete_account_email()
 RETURNS trigger
 LANGUAGE plpgsql
 AS $$
 BEGIN
-    IF pg_trigger_depth() > 0 THEN
-        RETURN OLD;
-    END IF;
+    IF OLD.deleted_at IS NULL AND NEW.deleted_at IS NOT NULL THEN
+        IF pg_trigger_depth() > 0 THEN
+            RETURN NEW;
+        END IF;
 
-    IF EXISTS (SELECT 1 FROM accounts a WHERE a.id = OLD.account_id) THEN
-        RAISE EXCEPTION 'cannot delete account_passwords while account % exists', OLD.account_id
-            USING ERRCODE = '23503';
+        IF EXISTS (SELECT 1 FROM accounts WHERE id = NEW.account_id AND deleted_at IS NULL) THEN
+            RAISE EXCEPTION 'cannot soft-delete account_emails while account % is active', NEW.account_id
+                USING ERRCODE = '23503';
+        END IF;
     END IF;
-
-    RETURN OLD;
+    RETURN NEW;
 END;
 $$;
 -- +migrate StatementEnd
 
-CREATE TRIGGER tr_forbid_delete_account_password
-BEFORE DELETE ON account_passwords
+CREATE TRIGGER tr_forbid_manual_soft_delete_account_email
+BEFORE UPDATE ON account_emails
 FOR EACH ROW
-EXECUTE FUNCTION forbid_delete_account_password_if_account_exists();
+EXECUTE FUNCTION forbid_manual_soft_delete_account_email();
 
-CREATE TABLE tombstones (
-    id           UUID        PRIMARY KEY DEFAULT uuid_generate_v4(),
-    entity_type  VARCHAR(64) NOT NULL,  -- 'account', 'session', etc.
-    entity_id    UUID        NOT NULL,
-    deleted_at   TIMESTAMPTZ NOT NULL DEFAULT now(),
+-- Prevent manual soft-delete of account_passwords while account is active
+-- +migrate StatementBegin
+CREATE OR REPLACE FUNCTION forbid_manual_soft_delete_account_password()
+RETURNS trigger
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    IF OLD.deleted_at IS NULL AND NEW.deleted_at IS NOT NULL THEN
+        IF pg_trigger_depth() > 0 THEN
+            RETURN NEW;
+        END IF;
 
-    UNIQUE (entity_type, entity_id)
-);
+        IF EXISTS (SELECT 1 FROM accounts WHERE id = NEW.account_id AND deleted_at IS NULL) THEN
+            RAISE EXCEPTION 'cannot soft-delete account_passwords while account % is active', NEW.account_id
+                USING ERRCODE = '23503';
+        END IF;
+    END IF;
+    RETURN NEW;
+END;
+$$;
+-- +migrate StatementEnd
+
+CREATE TRIGGER tr_forbid_manual_soft_delete_account_password
+BEFORE UPDATE ON account_passwords
+FOR EACH ROW
+EXECUTE FUNCTION forbid_manual_soft_delete_account_password();
 
 -- +migrate Down
-DROP TRIGGER IF EXISTS tr_forbid_delete_account_email ON account_emails;
-DROP FUNCTION IF EXISTS forbid_delete_account_email_if_account_exists();
+DROP TRIGGER IF EXISTS tr_forbid_manual_soft_delete_account_email ON account_emails;
+DROP FUNCTION IF EXISTS forbid_manual_soft_delete_account_email();
 
-DROP TRIGGER IF EXISTS tr_forbid_delete_account_password ON account_passwords;
-DROP FUNCTION IF EXISTS forbid_delete_account_password_if_account_exists();
+DROP TRIGGER IF EXISTS tr_forbid_manual_soft_delete_account_password ON account_passwords;
+DROP FUNCTION IF EXISTS forbid_manual_soft_delete_account_password();
+
+DROP TRIGGER IF EXISTS tr_cascade_account_soft_delete ON accounts;
+DROP FUNCTION IF EXISTS cascade_account_soft_delete();
+
+DROP INDEX IF EXISTS sessions_account_id_idx;
 
 DROP TABLE IF EXISTS sessions CASCADE;
 DROP TABLE IF EXISTS account_passwords CASCADE;
 DROP TABLE IF EXISTS account_emails CASCADE;
 DROP TABLE IF EXISTS accounts CASCADE;
 
-DROP TABLE IF EXISTS tombstones CASCADE;
-
 DROP TYPE IF EXISTS account_role;
-DROP TYPE IF EXISTS account_status;
-
-DROP EXTENSION IF EXISTS "uuid-ossp";

@@ -1,14 +1,10 @@
 package models
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/netbill/auth-svc/internal/errx"
 )
-
-const updatePasswordCooldown = 30 * 24 * time.Hour
 
 type AccountActor struct {
 	ID        uuid.UUID `json:"id"`
@@ -22,33 +18,26 @@ type Account struct {
 	Role     string    `json:"role"`
 	Version  int32     `json:"version"`
 
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
-}
-
-type AccountPassword struct {
-	AccountID uuid.UUID `json:"account_id"`
-	Hash      string    `json:"hash"`
-	Version   int32     `json:"version"`
-	UpdatedAt time.Time `json:"updated_at"`
-	CreatedAt time.Time `json:"created_at"`
-}
-
-func (ap AccountPassword) CanChangePassword() error {
-	if time.Since(ap.UpdatedAt) >= updatePasswordCooldown {
-		return nil
-	}
-
-	return errx.ErrorCannotChangePasswordYet.Raise(fmt.Errorf(
-		"account with id %s cannot change password yet", ap.AccountID),
-	)
+	CreatedAt time.Time  `json:"created_at"`
+	UpdatedAt time.Time  `json:"updated_at"`
+	DeletedAt *time.Time `json:"deleted_at,omitempty"`
 }
 
 type AccountEmail struct {
-	AccountID uuid.UUID `json:"account_id"`
-	Email     string    `json:"email"`
-	Verified  bool      `json:"verified"`
-	Version   int32     `json:"version"`
-	UpdatedAt time.Time `json:"updated_at"`
-	CreatedAt time.Time `json:"created_at"`
+	AccountID uuid.UUID  `json:"account_id"`
+	Email     string     `json:"email"`
+	Verified  bool       `json:"verified"`
+	Version   int32      `json:"version"`
+	CreatedAt time.Time  `json:"created_at"`
+	UpdatedAt time.Time  `json:"updated_at"`
+	DeletedAt *time.Time `json:"deleted_at,omitempty"`
+}
+
+type AccountPassword struct {
+	AccountID uuid.UUID  `json:"account_id"`
+	Hash      string     `json:"hash"`
+	Version   int32      `json:"version"`
+	CreatedAt time.Time  `json:"created_at"`
+	UpdatedAt time.Time  `json:"updated_at"`
+	DeletedAt *time.Time `json:"deleted_at,omitempty"`
 }
