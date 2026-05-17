@@ -10,14 +10,17 @@ import (
 	"github.com/netbill/restkit/tokens"
 )
 
+//go:generate mockery --name=auth --inpackage
 type auth interface {
 	ValidateSession(ctx context.Context, actor models.AccountActor) (models.Account, models.Session, error)
 }
 
+//go:generate mockery --name=passwordManager --inpackage
 type passwordManager interface {
 	CheckMatch(password, hash string) error
 }
 
+//go:generate mockery --name=tokenManager --inpackage
 type tokenManager interface {
 	ParseAccountAuthAccess(token string) (tokens.AccountAuthClaims, error)
 	ParseAccountAuthRefresh(token string) (tokens.AccountAuthClaims, error)
@@ -28,6 +31,7 @@ type tokenManager interface {
 	GenerateRefresh(account models.Account, sessionID uuid.UUID) (string, error)
 }
 
+//go:generate mockery --name=bus --inpackage
 type bus interface {
 	PublishQRToken(ctx context.Context, key string, payload []byte) error
 }
@@ -95,7 +99,7 @@ func (s *Service) GetMySession(
 	actor models.AccountActor,
 	sessionID uuid.UUID,
 ) (models.Session, error) {
-	if session, ok := s.sessionsCache.Get(ctx, sessionID); ok {
+	if session, err := s.sessionsCache.Get(ctx, sessionID); err == nil {
 		if session.AccountID != actor.ID {
 			return models.Session{}, errx.ErrorSessionNotFound.Raise(
 				fmt.Errorf("session %s does not belong to account %s", sessionID, actor.ID),
@@ -114,7 +118,7 @@ func (s *Service) GetMySession(
 		return models.Session{}, err
 	}
 
-	s.sessionsCache.Set(ctx, session)
+	go s.sessionsCache.Set(context.WithoutCancel(ctx), session)
 
 	return session, nil
 }
@@ -139,7 +143,9 @@ func (s *Service) Refresh(
 	}
 
 	if storedHash != tokenHash {
-		return models.TokensPair{}, errx.ErrorSessionTokenMismatch.Raise(fmt.Errorf("refresh token hash mismatch for session %v", claims.SessionID))
+		return models.TokensPair{}, errx.ErrorSessionTokenMismatch.Raise(
+			fmt.Errorf("refresh token hash mismatch for session %v", claims.SessionID),
+		)
 	}
 
 	accountID, err := uuid.Parse(claims.Subject)
@@ -147,8 +153,8 @@ func (s *Service) Refresh(
 		return models.TokensPair{}, err
 	}
 
-	account, ok := s.accountCache.Get(ctx, accountID)
-	if !ok {
+	account, err := s.accountCache.Get(ctx, accountID)
+	if err != nil {
 		account, err = s.accountRepo.GetByID(ctx, accountID)
 		if err != nil {
 			return models.TokensPair{}, err
@@ -178,8 +184,9 @@ func (s *Service) Refresh(
 		return models.TokensPair{}, err
 	}
 
-	s.sessionsCache.Set(ctx, session)
-	s.accountCache.Set(ctx, account)
+	detached := context.WithoutCancel(ctx)
+	go s.sessionsCache.Set(detached, session)
+	go s.accountCache.Set(detached, account)
 
 	return models.TokensPair{
 		SessionID: session.ID,
@@ -196,7 +203,7 @@ func (s *Service) Logout(
 		return err
 	}
 
-	s.sessionsCache.Delete(ctx, actor.SessionID)
+	go s.sessionsCache.Delete(context.WithoutCancel(ctx), actor.SessionID)
 
 	return nil
 }
@@ -214,7 +221,7 @@ func (s *Service) DeleteMySession(
 		return err
 	}
 
-	s.sessionsCache.Delete(ctx, sessionID)
+	go s.sessionsCache.Delete(context.WithoutCancel(ctx), sessionID)
 
 	return nil
 }
@@ -232,8 +239,10 @@ func (s *Service) DeleteMySessions(
 		return err
 	}
 
+	detached := context.WithoutCancel(ctx)
 	for _, id := range sessionIDs {
-		s.sessionsCache.Delete(ctx, id)
+		id := id
+		go s.sessionsCache.Delete(detached, id)
 	}
 
 	return nil

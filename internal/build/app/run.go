@@ -90,7 +90,6 @@ func (a *App) Run(ctx context.Context) error {
 	authSvc := authmodule.New(authmodule.ServiceDeps{
 		AccountRepo: accountRepo,
 		SessionRepo: sessionRepo,
-		Log:         a.log,
 	})
 
 	accountSvc := account.New(account.ServiceDeps{

@@ -1,12 +1,14 @@
 package cache_test
 
 import (
+	"context"
 	"testing"
 	"time"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/netbill/auth-svc/internal/repo/chache"
 	"github.com/netbill/auth-svc/tests/testutil"
+	pkglog "github.com/netbill/auth-svc/pkg/log"
 	"github.com/redis/go-redis/v9"
 	"github.com/stretchr/testify/require"
 )
@@ -16,7 +18,17 @@ var (
 	testPool     *pgxpool.Pool
 	testRedis    *redis.Client
 	testCacheTTL = 10 * time.Minute
+	testLog      = pkglog.New("debug", "text", "test")
 )
+
+type noopMetrics struct{}
+
+func (n *noopMetrics) AccountCacheOp(_ context.Context, _ *error)  {}
+func (n *noopMetrics) EmailCacheOp(_ context.Context, _ *error)    {}
+func (n *noopMetrics) PasswordCacheOp(_ context.Context, _ *error) {}
+func (n *noopMetrics) SessionCacheOp(_ context.Context, _ *error)  {}
+
+var noop = &noopMetrics{}
 
 func TestMain(m *testing.M) {
 	cfg, err := testutil.LoadConfig("test_config.yaml")
@@ -55,23 +67,23 @@ func setupCacheTest(t *testing.T) *redis.Client {
 func newAccountCache(t *testing.T) *chache.AccountCache {
 	t.Helper()
 	require.NotNil(t, testRedis)
-	return chache.NewAccountCache(testRedis, testCacheTTL)
+	return chache.NewAccountCache(testRedis, testCacheTTL, noop, testLog)
 }
 
 func newEmailCache(t *testing.T) *chache.EmailCache {
 	t.Helper()
 	require.NotNil(t, testRedis)
-	return chache.NewEmailCache(testRedis, testCacheTTL)
+	return chache.NewEmailCache(testRedis, testCacheTTL, noop, testLog)
 }
 
 func newPasswordCache(t *testing.T) *chache.PasswordCache {
 	t.Helper()
 	require.NotNil(t, testRedis)
-	return chache.NewPasswordCache(testRedis, testCacheTTL)
+	return chache.NewPasswordCache(testRedis, testCacheTTL, noop, testLog)
 }
 
 func newSessionCache(t *testing.T) *chache.SessionCache {
 	t.Helper()
 	require.NotNil(t, testRedis)
-	return chache.NewSessionCache(testRedis, testCacheTTL)
+	return chache.NewSessionCache(testRedis, testCacheTTL, noop, testLog)
 }

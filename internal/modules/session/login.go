@@ -49,16 +49,15 @@ func (s *Service) LoginByUsername(
 }
 
 func (s *Service) checkPassword(ctx context.Context, accountID uuid.UUID, password string) error {
-	pwd, ok := s.passwordCache.Get(ctx, accountID)
-	if !ok {
-		var err error
+	pwd, err := s.passwordCache.Get(ctx, accountID)
+	if err != nil {
 		pwd, err = s.passwordRepo.GetByID(ctx, accountID)
 		if err != nil {
 			return err
 		}
-	}
 
-	s.passwordCache.Set(ctx, pwd)
+		go s.passwordCache.Set(context.WithoutCancel(ctx), pwd)
+	}
 
 	return s.passManager.CheckMatch(password, pwd.Hash)
 }
@@ -109,8 +108,9 @@ func (s *Service) createSession(
 		return models.TokensPair{}, err
 	}
 
-	s.accountCache.Set(ctx, account)
-	s.sessionsCache.Set(ctx, session)
+	detached := context.WithoutCancel(ctx)
+	go s.accountCache.Set(detached, account)
+	go s.sessionsCache.Set(detached, session)
 
 	return models.TokensPair{
 		SessionID: session.ID,
@@ -124,6 +124,7 @@ const (
 	qrConfirmedTTL = 30 * time.Second
 )
 
+//go:generate mockery --name=qrRepo --inpackage
 type qrRepo interface {
 	Set(ctx context.Context, token string, status string, ttl time.Duration) error
 	Get(ctx context.Context, token string) (string, error)

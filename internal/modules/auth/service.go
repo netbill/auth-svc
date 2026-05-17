@@ -8,13 +8,14 @@ import (
 	"github.com/google/uuid"
 	"github.com/netbill/auth-svc/internal/errx"
 	"github.com/netbill/auth-svc/internal/models"
-	"github.com/netbill/auth-svc/pkg/log"
 )
 
+//go:generate mockery --name=accountRepo --inpackage
 type accountRepo interface {
 	GetByID(ctx context.Context, accountID uuid.UUID) (models.Account, error)
 }
 
+//go:generate mockery --name=sessionRepo --inpackage
 type sessionRepo interface {
 	GetByID(ctx context.Context, sessionID uuid.UUID) (models.Session, error)
 }
@@ -22,23 +23,17 @@ type sessionRepo interface {
 type Service struct {
 	accountRepo accountRepo
 	sessionRepo sessionRepo
-
-	log *log.Logger
 }
 
 type ServiceDeps struct {
 	AccountRepo accountRepo
 	SessionRepo sessionRepo
-
-	Log *log.Logger
 }
 
 func New(deps ServiceDeps) *Service {
 	return &Service{
 		accountRepo: deps.AccountRepo,
 		sessionRepo: deps.SessionRepo,
-
-		log: deps.Log,
 	}
 }
 

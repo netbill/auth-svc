@@ -8,23 +8,28 @@ import (
 	"github.com/netbill/restkit/pagi"
 )
 
+//go:generate mockery --name=transaction --inpackage
 type transaction interface {
 	Transaction(ctx context.Context, fn func(ctx context.Context) error) error
 }
 
+//go:generate mockery --name=accountRepo --inpackage
 type accountRepo interface {
 	GetByID(ctx context.Context, accountID uuid.UUID) (models.Account, error)
 	GetByUsername(ctx context.Context, username string) (models.Account, error)
 }
 
+//go:generate mockery --name=emailRepo --inpackage
 type emailRepo interface {
 	GetByEmail(ctx context.Context, email string) (models.AccountEmail, error)
 }
 
+//go:generate mockery --name=passwordRepo --inpackage
 type passwordRepo interface {
 	GetByID(ctx context.Context, accountID uuid.UUID) (models.AccountPassword, error)
 }
 
+//go:generate mockery --name=sessionRepo --inpackage
 type sessionRepo interface {
 	Create(
 		ctx context.Context,

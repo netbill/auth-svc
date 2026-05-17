@@ -24,61 +24,52 @@ type SessionCache struct {
 	log     *log.Logger
 }
 
-func NewSessionCache(
-	client *redis.Client,
-	ttl time.Duration,
-	m sessionCacheMetrics,
-	log *log.Logger,
-) *SessionCache {
-	return &SessionCache{
-		client:  client,
-		ttl:     ttl,
-		metrics: m,
-		log:     log,
-	}
+func NewSessionCache(client *redis.Client, ttl time.Duration, m sessionCacheMetrics, log *log.Logger) *SessionCache {
+	return &SessionCache{client: client, ttl: ttl, metrics: m, log: log}
 }
 
 func sessionKey(id uuid.UUID) string {
 	return fmt.Sprintf("session:%s", id)
 }
 
-func (c *SessionCache) Set(ctx context.Context, session models.Session) {
-	go func() {
-		if err := c.client.JSONSet(ctx, sessionKey(session.ID), "$", session).Err(); err != nil {
-			c.log.WithError(err).Error("session cache set failed", "session", session.ID)
-		}
-
-		if err := c.client.Expire(ctx, sessionKey(session.ID), c.ttl).Err(); err != nil {
-			c.log.WithError(err).Error("session cache expire failed", "session", session.ID)
-		}
-	}()
+func (c *SessionCache) Set(ctx context.Context, session models.Session) error {
+	if err := c.client.JSONSet(ctx, sessionKey(session.ID), "$", session).Err(); err != nil {
+		c.log.WithError(err).Error("session cache set failed", "session_id", session.ID)
+		return err
+	}
+	if err := c.client.Expire(ctx, sessionKey(session.ID), c.ttl).Err(); err != nil {
+		c.log.WithError(err).Error("session cache expire failed", "session_id", session.ID)
+		return err
+	}
+	return nil
 }
 
-func (c *SessionCache) Get(ctx context.Context, sessionID uuid.UUID) (session models.Session, ok bool) {
+func (c *SessionCache) Get(ctx context.Context, sessionID uuid.UUID) (models.Session, error) {
 	var err error
 	defer c.metrics.SessionCacheOp(ctx, &err)
 
 	val, err := c.client.JSONGet(ctx, sessionKey(sessionID), ".").Result()
 	switch {
 	case errors.Is(err, redis.Nil):
-		return models.Session{}, false
+		return models.Session{}, err
 	case err != nil:
-		c.log.Error("session cache get failed", "session_id", sessionID, "error", err)
-		return models.Session{}, false
+		c.log.WithError(err).Error("session cache get failed", "session_id", sessionID)
+		return models.Session{}, err
 	}
 
+	var session models.Session
 	if err = json.Unmarshal([]byte(val), &session); err != nil {
-		c.log.Error("session cache unmarshal failed", "session_id", sessionID, "error", err)
-		return models.Session{}, false
+		c.log.WithError(err).Error("session cache unmarshal failed", "session_id", sessionID)
+		return models.Session{}, err
 	}
 
-	return session, true
+	return session, nil
 }
 
-func (c *SessionCache) Delete(ctx context.Context, sessionID uuid.UUID) {
-	go func() {
-		if err := c.client.Del(ctx, sessionKey(sessionID)).Err(); err != nil {
-			c.log.Error("session cache delete failed", "session_id", sessionID, "error", err)
-		}
-	}()
+func (c *SessionCache) Delete(ctx context.Context, sessionID uuid.UUID) error {
+	if err := c.client.Del(ctx, sessionKey(sessionID)).Err(); err != nil {
+		c.log.WithError(err).Error("session cache delete failed", "session_id", sessionID)
+		return err
+	}
+	return nil
 }

@@ -40,6 +40,7 @@ func WithDeleted(f DeletedFilter) GetAccountOption {
 	}
 }
 
+//go:generate mockery --name=auth --inpackage
 type auth interface {
 	ValidateSession(ctx context.Context, actor models.AccountActor) (models.Account, models.Session, error)
 }
@@ -101,16 +102,16 @@ func New(deps ServiceDeps) *Service {
 	}
 }
 
+//go:generate mockery --name=passwordManager --inpackage
 type passwordManager interface {
 	CheckMatch(password, hash string) error
 	GenerateHash(password string) (string, error)
 }
 
+//go:generate mockery --name=messenger --inpackage
 type messenger interface {
 	WriteAccountCreated(ctx context.Context, account models.Account, email models.AccountEmail) error
-
 	WriteAccountUsernameUpdated(ctx context.Context, account models.Account) error
-
 	WriteAccountDeleted(ctx context.Context, account models.Account, email models.AccountEmail) error
 }
 
@@ -173,9 +174,10 @@ func (s *Service) Registration(
 		return models.Account{}, err
 	}
 
-	s.accountCache.Set(ctx, account)
-	s.emailCache.Set(ctx, email)
-	s.passwordCache.Set(ctx, password)
+	detached := context.WithoutCancel(ctx)
+	go s.accountCache.Set(detached, account)
+	go s.emailCache.Set(detached, email)
+	go s.passwordCache.Set(detached, password)
 
 	return account, nil
 }
@@ -184,8 +186,8 @@ func (s *Service) GetMyAccountByID(
 	ctx context.Context,
 	actor models.AccountActor,
 ) (models.Account, error) {
-	if cache, ok := s.accountCache.Get(ctx, actor.ID); ok {
-		return cache, nil
+	if cached, err := s.accountCache.Get(ctx, actor.ID); err == nil {
+		return cached, nil
 	}
 
 	account, err := s.accountRepo.GetByID(ctx, actor.ID)
@@ -193,7 +195,7 @@ func (s *Service) GetMyAccountByID(
 		return models.Account{}, err
 	}
 
-	s.accountCache.Set(ctx, account)
+	go s.accountCache.Set(context.WithoutCancel(ctx), account)
 
 	return account, nil
 }
@@ -202,8 +204,8 @@ func (s *Service) GetMyEmailByID(
 	ctx context.Context,
 	actor models.AccountActor,
 ) (models.AccountEmail, error) {
-	if email, ok := s.emailCache.GetByID(ctx, actor.ID); ok {
-		return email, nil
+	if cached, err := s.emailCache.GetByID(ctx, actor.ID); err == nil {
+		return cached, nil
 	}
 
 	email, err := s.emailRepo.GetByID(ctx, actor.ID)
@@ -211,7 +213,7 @@ func (s *Service) GetMyEmailByID(
 		return models.AccountEmail{}, err
 	}
 
-	s.emailCache.Set(ctx, email)
+	go s.emailCache.Set(context.WithoutCancel(ctx), email)
 
 	return email, nil
 }
@@ -223,10 +225,6 @@ func (s *Service) UpdateUsername(
 ) (models.Account, error) {
 	if err := s.checkUsernameRequirements(newUsername); err != nil {
 		return models.Account{}, err
-	}
-
-	if current, ok := s.accountCache.Get(ctx, actor.ID); ok {
-		return current, nil
 	}
 
 	current, err := s.accountRepo.GetByID(ctx, actor.ID)
@@ -250,7 +248,7 @@ func (s *Service) UpdateUsername(
 		return models.Account{}, err
 	}
 
-	s.accountCache.Set(ctx, updated)
+	go s.accountCache.Set(context.WithoutCancel(ctx), updated)
 
 	return updated, nil
 }
@@ -264,9 +262,8 @@ func (s *Service) UpdatePassword(
 		return err
 	}
 
-	var err error
-	pwd, ok := s.passwordCache.Get(ctx, actor.ID)
-	if !ok {
+	pwd, err := s.passwordCache.Get(ctx, actor.ID)
+	if err != nil {
 		pwd, err = s.passwordRepo.GetByID(ctx, actor.ID)
 		if err != nil {
 			return err
@@ -294,7 +291,7 @@ func (s *Service) UpdatePassword(
 		return err
 	}
 
-	s.passwordCache.Set(ctx, updated)
+	go s.passwordCache.Set(context.WithoutCancel(ctx), updated)
 
 	return nil
 }
@@ -335,12 +332,14 @@ func (s *Service) DeleteMyAccount(
 		return err
 	}
 
-	s.accountCache.Delete(ctx, actor.ID)
-	s.emailCache.DeleteByID(ctx, actor.ID)
-	s.passwordCache.Delete(ctx, actor.ID)
+	detached := context.WithoutCancel(ctx)
+
+	go s.accountCache.Delete(detached, actor.ID)
+	go s.emailCache.DeleteByID(detached, actor.ID)
+	go s.passwordCache.Delete(detached, actor.ID)
 
 	for _, id := range sessionIDs {
-		s.sessionsCache.Delete(ctx, id)
+		go s.sessionsCache.Delete(detached, id)
 	}
 
 	return nil
@@ -395,19 +394,13 @@ func (s *Service) checkPasswordRequirements(password string) error {
 	}
 
 	if !hasUpper {
-		return errx.ErrorPasswordIsNotAllowed.Raise(
-			fmt.Errorf("need at least one uppercase letter"),
-		)
+		return errx.ErrorPasswordIsNotAllowed.Raise(fmt.Errorf("need at least one uppercase letter"))
 	}
 	if !hasLower {
-		return errx.ErrorPasswordIsNotAllowed.Raise(
-			fmt.Errorf("need at least one lower case letter"),
-		)
+		return errx.ErrorPasswordIsNotAllowed.Raise(fmt.Errorf("need at least one lower case letter"))
 	}
 	if !hasDigit {
-		return errx.ErrorPasswordIsNotAllowed.Raise(
-			fmt.Errorf("need at least one digit"),
-		)
+		return errx.ErrorPasswordIsNotAllowed.Raise(fmt.Errorf("need at least one digit"))
 	}
 	if !hasSpecial {
 		return errx.ErrorPasswordIsNotAllowed.Raise(

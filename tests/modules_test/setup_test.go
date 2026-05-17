@@ -2,7 +2,6 @@ package modules_test
 
 import (
 	"context"
-	"log/slog"
 	"testing"
 	"time"
 
@@ -13,6 +12,7 @@ import (
 	"github.com/netbill/auth-svc/internal/modules/session"
 	"github.com/netbill/auth-svc/internal/repo/chache"
 	"github.com/netbill/auth-svc/internal/repo/pg"
+	pkglog "github.com/netbill/auth-svc/pkg/log"
 	"github.com/netbill/auth-svc/pkg/passmanager"
 	"github.com/netbill/auth-svc/pkg/tokenmanager"
 	"github.com/netbill/auth-svc/tests/testutil"
@@ -24,7 +24,17 @@ var (
 	testCfg   *testutil.Config
 	testPool  *pgxpool.Pool
 	testRedis *redis.Client
+	testLog   = pkglog.New("debug", "text", "test")
 )
+
+type noopMetrics struct{}
+
+func (n *noopMetrics) AccountCacheOp(_ context.Context, _ *error)  {}
+func (n *noopMetrics) EmailCacheOp(_ context.Context, _ *error)    {}
+func (n *noopMetrics) PasswordCacheOp(_ context.Context, _ *error) {}
+func (n *noopMetrics) SessionCacheOp(_ context.Context, _ *error)  {}
+
+var noop = &noopMetrics{}
 
 func TestMain(m *testing.M) {
 	cfg, err := testutil.LoadConfig("test_config.yaml")
@@ -69,15 +79,14 @@ func newServices(t *testing.T, db *pgdbx.DB, rc *redis.Client) (*account.Service
 	passwordRepo := pg.NewPasswordRepo(db)
 	sessionRepo := pg.NewSessionRepo(db)
 
-	accountCache := chache.NewAccountCache(rc, cacheTTL)
-	emailCache := chache.NewEmailCache(rc, cacheTTL)
-	passwordCache := chache.NewPasswordCache(rc, cacheTTL)
-	sessionCache := chache.NewSessionCache(rc, cacheTTL)
+	accountCache := chache.NewAccountCache(rc, cacheTTL, noop, testLog)
+	emailCache := chache.NewEmailCache(rc, cacheTTL, noop, testLog)
+	passwordCache := chache.NewPasswordCache(rc, cacheTTL, noop, testLog)
+	sessionCache := chache.NewSessionCache(rc, cacheTTL, noop, testLog)
 
 	authSvc := authmodule.New(authmodule.ServiceDeps{
 		AccountRepo: accountRepo,
 		SessionRepo: sessionRepo,
-		Log:         slog.Default(),
 	})
 
 	passMgr := passmanager.New(testCfg.Auth.PassBcryptCost)
@@ -104,7 +113,6 @@ func newServices(t *testing.T, db *pgdbx.DB, rc *redis.Client) (*account.Service
 		SessionsCache: sessionCache,
 		PassManager:   passMgr,
 		Messenger:     &noopMessenger{},
-		Log:           slog.Default(),
 	})
 
 	sessionSvc := session.New(session.ServiceDeps{
@@ -119,13 +127,11 @@ func newServices(t *testing.T, db *pgdbx.DB, rc *redis.Client) (*account.Service
 		SessionsCache: sessionCache,
 		PassManager:   passMgr,
 		TokenManager:  tokenMgr,
-		Log:           slog.Default(),
 	})
 
 	return accountSvc, sessionSvc
 }
 
-// noopMessenger satisfies account.Service's messenger interface without touching Kafka.
 type noopMessenger struct{}
 
 func (n *noopMessenger) WriteAccountCreated(_ context.Context, _ models.Account, _ models.AccountEmail) error {
