@@ -5,9 +5,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/netbill/auth-svc/internal/errx"
 	"github.com/netbill/auth-svc/internal/models"
 	"github.com/netbill/auth-svc/tests/testutil"
+	"github.com/redis/go-redis/v9"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -28,7 +28,7 @@ func TestSessionCache_SetAndGetByID(t *testing.T) {
 	err := cache.Set(ctx, sess)
 	require.NoError(t, err)
 
-	got, err := cache.GetByID(ctx, sess.ID)
+	got, err := cache.Get(ctx, sess.ID)
 	require.NoError(t, err)
 	assert.Equal(t, sess.ID, got.ID)
 	assert.Equal(t, sess.AccountID, got.AccountID)
@@ -39,8 +39,8 @@ func TestSessionCache_GetByID_Miss(t *testing.T) {
 	cache := newSessionCache(t)
 	ctx := context.Background()
 
-	_, err := cache.GetByID(ctx, testutil.RandomUUID())
-	assert.ErrorIs(t, err, errx.ErrCacheMiss)
+	_, err := cache.Get(ctx, testutil.RandomUUID())
+	assert.ErrorIs(t, err, redis.Nil)
 }
 
 func TestSessionCache_DeleteByID(t *testing.T) {
@@ -57,11 +57,11 @@ func TestSessionCache_DeleteByID(t *testing.T) {
 	err := cache.Set(ctx, sess)
 	require.NoError(t, err)
 
-	err = cache.DeleteByID(ctx, sess.ID)
+	err = cache.Delete(ctx, sess.ID)
 	require.NoError(t, err)
 
-	_, err = cache.GetByID(ctx, sess.ID)
-	assert.ErrorIs(t, err, errx.ErrCacheMiss)
+	_, err = cache.Get(ctx, sess.ID)
+	assert.ErrorIs(t, err, redis.Nil)
 }
 
 func TestSessionCache_DeleteByID_NonExistent(t *testing.T) {
@@ -70,7 +70,7 @@ func TestSessionCache_DeleteByID_NonExistent(t *testing.T) {
 	ctx := context.Background()
 
 	// Deleting a non-existent key should not error
-	err := cache.DeleteByID(ctx, testutil.RandomUUID())
+	err := cache.Delete(ctx, testutil.RandomUUID())
 	assert.NoError(t, err)
 }
 
@@ -86,20 +86,20 @@ func TestSessionCache_MultipleSessions(t *testing.T) {
 	require.NoError(t, cache.Set(ctx, sess1))
 	require.NoError(t, cache.Set(ctx, sess2))
 
-	got1, err := cache.GetByID(ctx, sess1.ID)
+	got1, err := cache.Get(ctx, sess1.ID)
 	require.NoError(t, err)
 	assert.Equal(t, accountID, got1.AccountID)
 
-	got2, err := cache.GetByID(ctx, sess2.ID)
+	got2, err := cache.Get(ctx, sess2.ID)
 	require.NoError(t, err)
 	assert.Equal(t, accountID, got2.AccountID)
 
 	// Delete one — the other should survive
-	require.NoError(t, cache.DeleteByID(ctx, sess1.ID))
+	require.NoError(t, cache.Delete(ctx, sess1.ID))
 
-	_, err = cache.GetByID(ctx, sess1.ID)
-	assert.ErrorIs(t, err, errx.ErrCacheMiss)
+	_, err = cache.Get(ctx, sess1.ID)
+	assert.ErrorIs(t, err, redis.Nil)
 
-	_, err = cache.GetByID(ctx, sess2.ID)
+	_, err = cache.Get(ctx, sess2.ID)
 	assert.NoError(t, err)
 }

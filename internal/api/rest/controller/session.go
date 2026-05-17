@@ -35,20 +35,50 @@ type sessionCore interface {
 		opts ...session.ListSessionsOption,
 	) (pagi.Page[[]models.Session], error)
 
+	ConfirmQRToken(
+		ctx context.Context,
+		actor models.AccountActor,
+		qrToken string,
+	) (models.TokensPair, error)
+
+	PublishQRToken(ctx context.Context, key string, payload []byte) error
+
 	Logout(ctx context.Context, actor models.AccountActor) error
 	DeleteMySession(ctx context.Context, actor models.AccountActor, sessionID uuid.UUID) error
 	DeleteMySessions(ctx context.Context, actor models.AccountActor) error
 }
 
-type SessionController struct {
-	google   oauth2.Config
-	sessions sessionCore
+type SessionMetrics interface {
+	RecordEmailLogin(ctx context.Context, err *error)
+	RecordUsernameLogin(ctx context.Context, err *error)
+	RecordGoogleLogin(ctx context.Context, err *error)
+	RecordTokenRefresh(ctx context.Context, err *error)
+	RecordSessionDeleted(ctx context.Context, scope string, err *error)
+	RecordQRLogin(ctx context.Context, err *error)
 }
 
-func NewSessionController(sessions sessionCore, google oauth2.Config) *SessionController {
+type handler interface {
+	LoginWithQR(w http.ResponseWriter, r *http.Request, h http.Header)
+}
+
+type SessionController struct {
+	google    oauth2.Config
+	sessions  sessionCore
+	metrics   SessionMetrics
+	wsHandler handler
+}
+
+func NewSessionController(
+	sessions sessionCore,
+	google oauth2.Config,
+	m SessionMetrics,
+	wsHandler handler,
+) *SessionController {
 	return &SessionController{
-		google:   google,
-		sessions: sessions,
+		google:    google,
+		sessions:  sessions,
+		metrics:   m,
+		wsHandler: wsHandler,
 	}
 }
 
@@ -136,6 +166,8 @@ func (c *SessionController) RefreshSession(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
+	defer c.metrics.RecordTokenRefresh(r.Context(), &err)
+
 	tokensPair, err := c.sessions.Refresh(r.Context(), req.Data.Attributes.RefreshToken)
 	switch {
 	case errors.Is(err, errx.ErrorSessionExpired):
@@ -170,6 +202,8 @@ func (c *AccountController) UpdateUsername(w http.ResponseWriter, r *http.Reques
 		render.ResponseError(w, problems.BadRequest(err)...)
 		return
 	}
+
+	log = log.WithField("new_username", req.Data.Attributes.Username)
 
 	res, err := c.accounts.UpdateUsername(r.Context(), scope.AccountActor(r), req.Data.Attributes.Username)
 	switch {
@@ -213,6 +247,8 @@ func (c *SessionController) DeleteMySession(w http.ResponseWriter, r *http.Reque
 
 	log = log.WithField("target_session_id", sessionID)
 
+	defer c.metrics.RecordSessionDeleted(r.Context(), "single", &err)
+
 	err = c.sessions.DeleteMySession(r.Context(), scope.AccountActor(r), sessionID)
 	switch {
 	case errors.Is(err, errx.ErrorAccountInvalidSession):
@@ -235,7 +271,10 @@ const operationDeleteMySessions = "delete_my_sessions"
 func (c *SessionController) DeleteMySessions(w http.ResponseWriter, r *http.Request) {
 	log := scope.Log(r).WithOperation(operationDeleteMySessions)
 
-	err := c.sessions.DeleteMySessions(r.Context(), scope.AccountActor(r))
+	var err error
+	defer c.metrics.RecordSessionDeleted(r.Context(), "all", &err)
+
+	err = c.sessions.DeleteMySessions(r.Context(), scope.AccountActor(r))
 	switch {
 	case errors.Is(err, errx.ErrorAccountInvalidSession),
 		errors.Is(err, errx.ErrorSessionNotFound):

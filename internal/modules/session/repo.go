@@ -8,23 +8,28 @@ import (
 	"github.com/netbill/restkit/pagi"
 )
 
+//go:generate mockery --name=transaction --inpackage
 type transaction interface {
 	Transaction(ctx context.Context, fn func(ctx context.Context) error) error
 }
 
+//go:generate mockery --name=accountRepo --inpackage
 type accountRepo interface {
 	GetByID(ctx context.Context, accountID uuid.UUID) (models.Account, error)
 	GetByUsername(ctx context.Context, username string) (models.Account, error)
 }
 
+//go:generate mockery --name=emailRepo --inpackage
 type emailRepo interface {
 	GetByEmail(ctx context.Context, email string) (models.AccountEmail, error)
 }
 
+//go:generate mockery --name=passwordRepo --inpackage
 type passwordRepo interface {
 	GetByID(ctx context.Context, accountID uuid.UUID) (models.AccountPassword, error)
 }
 
+//go:generate mockery --name=sessionRepo --inpackage
 type sessionRepo interface {
 	Create(
 		ctx context.Context,
@@ -47,24 +52,4 @@ type sessionRepo interface {
 	Delete(ctx context.Context, sessionID uuid.UUID) error
 	DeleteOneForAccount(ctx context.Context, accountID, sessionID uuid.UUID) error
 	DeleteManyForAccount(ctx context.Context, accountID uuid.UUID) ([]uuid.UUID, error)
-}
-
-type auth interface {
-	ValidateSession(ctx context.Context, actor models.AccountActor) (models.Account, models.Session, error)
-}
-
-type passwordCache interface {
-	SetByID(ctx context.Context, password models.AccountPassword) error
-	GetByID(ctx context.Context, accountID uuid.UUID) (models.AccountPassword, error)
-}
-
-type accountCache interface {
-	Set(ctx context.Context, account models.Account) error
-	GetByID(ctx context.Context, accountID uuid.UUID) (models.Account, error)
-}
-
-type sessionsCache interface {
-	Set(ctx context.Context, session models.Session) error
-	GetByID(ctx context.Context, sessionID uuid.UUID) (models.Session, error)
-	DeleteByID(ctx context.Context, sessionID uuid.UUID) error
 }

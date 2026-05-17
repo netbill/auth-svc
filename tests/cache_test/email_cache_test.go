@@ -5,9 +5,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/netbill/auth-svc/internal/errx"
 	"github.com/netbill/auth-svc/internal/models"
 	"github.com/netbill/auth-svc/tests/testutil"
+	"github.com/redis/go-redis/v9"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -61,7 +61,7 @@ func TestEmailCache_GetByID_Miss(t *testing.T) {
 	ctx := context.Background()
 
 	_, err := cache.GetByID(ctx, testutil.RandomUUID())
-	assert.ErrorIs(t, err, errx.ErrCacheMiss)
+	assert.ErrorIs(t, err, redis.Nil)
 }
 
 func TestEmailCache_GetByEmail_Miss(t *testing.T) {
@@ -70,7 +70,7 @@ func TestEmailCache_GetByEmail_Miss(t *testing.T) {
 	ctx := context.Background()
 
 	_, err := cache.GetByEmail(ctx, "nobody@example.com")
-	assert.ErrorIs(t, err, errx.ErrCacheMiss)
+	assert.ErrorIs(t, err, redis.Nil)
 }
 
 func TestEmailCache_DeleteByID(t *testing.T) {
@@ -92,7 +92,7 @@ func TestEmailCache_DeleteByID(t *testing.T) {
 
 	// ID-keyed entry should be gone
 	_, err = cache.GetByID(ctx, email.AccountID)
-	assert.ErrorIs(t, err, errx.ErrCacheMiss)
+	assert.ErrorIs(t, err, redis.Nil)
 
 	// Email-keyed entry should still exist (DeleteByID only removes the ID key)
 	got, err := cache.GetByEmail(ctx, email.Email)
@@ -118,7 +118,7 @@ func TestEmailCache_DeleteByEmail(t *testing.T) {
 	require.NoError(t, err)
 
 	_, err = cache.GetByEmail(ctx, email.Email)
-	assert.ErrorIs(t, err, errx.ErrCacheMiss)
+	assert.ErrorIs(t, err, redis.Nil)
 
 	// ID-keyed entry should still exist
 	got, err := cache.GetByID(ctx, email.AccountID)

@@ -3,6 +3,7 @@ package session
 import (
 	"context"
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/google/uuid"
@@ -48,28 +49,14 @@ func (s *Service) LoginByUsername(
 }
 
 func (s *Service) checkPassword(ctx context.Context, accountID uuid.UUID, password string) error {
-	pwd, err := s.passwordCache.GetByID(ctx, accountID)
-	switch {
-	case errors.Is(err, errx.ErrCacheMiss):
-		s.log.Debug("password cache miss", "account_id", accountID)
-	case err != nil:
-		s.log.Error("failed to get password from cache", "error", err)
-	}
-
+	pwd, err := s.passwordCache.Get(ctx, accountID)
 	if err != nil {
 		pwd, err = s.passwordRepo.GetByID(ctx, accountID)
 		if err != nil {
 			return err
 		}
 
-		go func() {
-			ctx, cancel := context.WithTimeout(context.WithoutCancel(ctx), 5*time.Second)
-			defer cancel()
-
-			if err := s.passwordCache.SetByID(ctx, pwd); err != nil {
-				s.log.Error("failed to set password cache", "error", err)
-			}
-		}()
+		go s.passwordCache.Set(context.WithoutCancel(ctx), pwd)
 	}
 
 	return s.passManager.CheckMatch(password, pwd.Hash)
@@ -121,21 +108,73 @@ func (s *Service) createSession(
 		return models.TokensPair{}, err
 	}
 
-	go func() {
-		ctx, cancel := context.WithTimeout(context.WithoutCancel(ctx), 5*time.Second)
-		defer cancel()
-
-		if err := s.accountCache.Set(ctx, account); err != nil {
-			s.log.Error("failed to set account cache", "error", err)
-		}
-		if err := s.sessionsCache.Set(ctx, session); err != nil {
-			s.log.Error("failed to set session cache", "error", err)
-		}
-	}()
+	detached := context.WithoutCancel(ctx)
+	go s.accountCache.Set(detached, account)
+	go s.sessionsCache.Set(detached, session)
 
 	return models.TokensPair{
 		SessionID: session.ID,
 		Refresh:   refreshToken,
 		Access:    accessToken,
 	}, nil
+}
+
+const (
+	qrTokenTTL     = 5 * time.Minute
+	qrConfirmedTTL = 30 * time.Second
+)
+
+//go:generate mockery --name=qrRepo --inpackage
+type qrRepo interface {
+	Set(ctx context.Context, token string, status string, ttl time.Duration) error
+	Get(ctx context.Context, token string) (string, error)
+}
+
+func (s *Service) CreateQRToken(ctx context.Context) (string, error) {
+	token := uuid.New().String()
+	if err := s.qrRepo.Set(ctx, token, "pending", qrTokenTTL); err != nil {
+		return "", err
+	}
+
+	return token, nil
+}
+
+func (s *Service) ConfirmQRToken(
+	ctx context.Context,
+	actor models.AccountActor,
+	qrToken string,
+) (models.TokensPair, error) {
+	status, err := s.qrRepo.Get(ctx, qrToken)
+	switch {
+	case errors.Is(err, errx.ErrorQRTokenNotFound):
+		return models.TokensPair{}, err
+	case err != nil:
+		return models.TokensPair{}, err
+	}
+
+	if status != "pending" {
+		return models.TokensPair{}, errx.ErrorQRTokenAlreadyConfirmed.Raise(
+			fmt.Errorf("qr token %s already confirmed", qrToken),
+		)
+	}
+
+	account, err := s.accountRepo.GetByID(ctx, actor.ID)
+	if err != nil {
+		return models.TokensPair{}, err
+	}
+
+	pair, err := s.createSession(ctx, account)
+	if err != nil {
+		return models.TokensPair{}, err
+	}
+
+	if err = s.qrRepo.Set(ctx, qrToken, "confirmed", qrConfirmedTTL); err != nil {
+		return models.TokensPair{}, err
+	}
+
+	return pair, nil
+}
+
+func (s *Service) PublishQRToken(ctx context.Context, key string, payload []byte) error {
+	return s.bus.PublishQRToken(ctx, key, payload)
 }

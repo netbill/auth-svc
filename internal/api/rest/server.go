@@ -10,6 +10,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/netbill/auth-svc/pkg/log"
 	"github.com/netbill/restkit/tokens"
+	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 )
 
 type AccountController interface {
@@ -139,7 +140,7 @@ func (s *Server) Run(ctx context.Context, cfg Config) {
 
 	srv := &http.Server{
 		Addr:              fmt.Sprintf(":%d", cfg.Port),
-		Handler:           r,
+		Handler:           otelhttp.NewHandler(r, "auth-svc"),
 		ReadTimeout:       cfg.ReadTimeout,
 		ReadHeaderTimeout: cfg.ReadHeaderTimeout,
 		WriteTimeout:      cfg.WriteTimeout,

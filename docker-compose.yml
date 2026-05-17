@@ -2,9 +2,17 @@ services:
   auth-svc:
     build: .
     container_name: auth-svc
+    environment:
+      - DATABASE_SQL_URL=postgres://postgres:postgres@auth-svc-postgres:5432/postgres
+      - REDIS_ADDR=auth-svc-redis:6379
+      - REDIS_PASSWORD=
+      - OTEL_COLLECTOR_ENDPOINT=http://otel-collector:4318
     ports:
-      - "${REST_PORT:-8001}:8000"
+      - "${REST_PORT:-8001}:8001"
       - "${GRPC_PORT:-9001}:9001"
+    depends_on:
+      - auth-svc-postgres
+      - auth-svc-redis
     networks:
       - netbill-net
 
@@ -65,6 +73,7 @@ services:
       - "${GRPC_DOC_PORT:-5002}:80"
     networks:
       - netbill-net
+
 
 volumes:
   pgdata:

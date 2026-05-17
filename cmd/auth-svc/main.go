@@ -3,7 +3,7 @@ package main
 import (
 	"os"
 
-	"github.com/netbill/auth-svc/internal/cli"
+	"github.com/netbill/auth-svc/internal/build/cli"
 )
 
 func main() {

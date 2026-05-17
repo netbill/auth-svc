@@ -30,6 +30,7 @@ func (c *SessionController) LoginByUsername(w http.ResponseWriter, r *http.Reque
 
 	log = log.WithField("username", req.Data.Attributes.Username)
 
+	defer c.metrics.RecordUsernameLogin(r.Context(), &err)
 	token, err := c.sessions.LoginByUsername(r.Context(), req.Data.Attributes.Username, req.Data.Attributes.Password)
 	switch {
 	case errors.Is(err, errx.ErrorPasswordInvalid),
@@ -60,6 +61,7 @@ func (c *SessionController) LoginByEmail(w http.ResponseWriter, r *http.Request)
 
 	log = log.WithField("email", req.Data.Attributes.Email)
 
+	defer c.metrics.RecordEmailLogin(r.Context(), &err)
 	token, err := c.sessions.LoginByEmail(r.Context(), req.Data.Attributes.Email, req.Data.Attributes.Password)
 	switch {
 	case errors.Is(err, errx.ErrorPasswordInvalid),
@@ -132,6 +134,7 @@ func (c *SessionController) LoginByGoogleOAuthCallback(w http.ResponseWriter, r 
 
 	log = log.WithField("user_email", userInfo.Email)
 
+	defer c.metrics.RecordGoogleLogin(r.Context(), &err)
 	tokensPair, err := c.sessions.LoginByGoogle(r.Context(), userInfo.Email)
 	switch {
 	case errors.Is(err, errx.ErrorAccountNotFound),
@@ -145,4 +148,57 @@ func (c *SessionController) LoginByGoogleOAuthCallback(w http.ResponseWriter, r 
 		log.Info("login by google successful")
 		render.Response(w, http.StatusOK, responses.TokensPair(tokensPair))
 	}
+}
+
+func (c *SessionController) QRConnect(w http.ResponseWriter, r *http.Request) {
+	c.wsHandler.LoginWithQR(w, r, nil)
+}
+
+const operationQRConfirm = "qr_confirm"
+
+func (c *SessionController) QRConfirm(w http.ResponseWriter, r *http.Request) {
+	log := scope.Log(r).WithOperation(operationQRConfirm)
+
+	req, err := requests.QRConfirm(r)
+	if err != nil {
+		log.WithError(err).Warn("invalid qr confirm request")
+		render.ResponseError(w, problems.BadRequest(err)...)
+		return
+	}
+
+	qrToken := req.Data.Attributes.QrToken.String()
+
+	defer c.metrics.RecordQRLogin(r.Context(), &err)
+
+	pair, err := c.sessions.ConfirmQRToken(r.Context(), scope.AccountActor(r), qrToken)
+	switch {
+	case errors.Is(err, errx.ErrorQRTokenNotFound):
+		log.WithError(err).Warn("qr token not found")
+		render.ResponseError(w, problems.NotFound("qr token not found or expired"))
+		return
+	case errors.Is(err, errx.ErrorQRTokenAlreadyConfirmed):
+		log.WithError(err).Warn("qr token already confirmed")
+		render.ResponseError(w, problems.Conflict("qr token already confirmed"))
+		return
+	case err != nil:
+		log.WithError(err).Error("unexpected error")
+		render.ResponseError(w, problems.InternalError())
+		return
+	}
+
+	payload, err := json.Marshal(pair)
+	if err != nil {
+		log.WithError(err).Error("failed to marshal tokens pair")
+		render.ResponseError(w, problems.InternalError())
+		return
+	}
+
+	if err = c.sessions.PublishQRToken(r.Context(), qrToken, payload); err != nil {
+		log.WithError(err).Error("failed to publish qr confirm")
+		render.ResponseError(w, problems.InternalError())
+		return
+	}
+
+	log.Info("qr token confirmed")
+	render.Response(w, http.StatusNoContent, nil)
 }

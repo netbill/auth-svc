@@ -5,9 +5,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/netbill/auth-svc/internal/errx"
 	"github.com/netbill/auth-svc/internal/models"
 	"github.com/netbill/auth-svc/tests/testutil"
+	"github.com/redis/go-redis/v9"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -28,7 +28,7 @@ func TestAccountCache_SetAndGet(t *testing.T) {
 	err := cache.Set(ctx, acc)
 	require.NoError(t, err)
 
-	got, err := cache.GetByID(ctx, acc.ID)
+	got, err := cache.Get(ctx, acc.ID)
 	require.NoError(t, err)
 	assert.Equal(t, acc.ID, got.ID)
 	assert.Equal(t, acc.Username, got.Username)
@@ -40,8 +40,8 @@ func TestAccountCache_GetByID_Miss(t *testing.T) {
 	cache := newAccountCache(t)
 	ctx := context.Background()
 
-	_, err := cache.GetByID(ctx, testutil.RandomUUID())
-	assert.ErrorIs(t, err, errx.ErrCacheMiss)
+	_, err := cache.Get(ctx, testutil.RandomUUID())
+	assert.ErrorIs(t, err, redis.Nil)
 }
 
 func TestAccountCache_Delete(t *testing.T) {
@@ -61,8 +61,8 @@ func TestAccountCache_Delete(t *testing.T) {
 	err = cache.Delete(ctx, acc.ID)
 	require.NoError(t, err)
 
-	_, err = cache.GetByID(ctx, acc.ID)
-	assert.ErrorIs(t, err, errx.ErrCacheMiss)
+	_, err = cache.Get(ctx, acc.ID)
+	assert.ErrorIs(t, err, redis.Nil)
 }
 
 func TestAccountCache_Delete_NonExistent(t *testing.T) {
@@ -96,7 +96,7 @@ func TestAccountCache_Overwrite(t *testing.T) {
 	err = cache.Set(ctx, acc)
 	require.NoError(t, err)
 
-	got, err := cache.GetByID(ctx, acc.ID)
+	got, err := cache.Get(ctx, acc.ID)
 	require.NoError(t, err)
 	assert.Equal(t, "charlie_updated", got.Username)
 	assert.Equal(t, int32(2), got.Version)
@@ -113,11 +113,11 @@ func TestAccountCache_MultipleAccounts(t *testing.T) {
 	require.NoError(t, cache.Set(ctx, acc1))
 	require.NoError(t, cache.Set(ctx, acc2))
 
-	got1, err := cache.GetByID(ctx, acc1.ID)
+	got1, err := cache.Get(ctx, acc1.ID)
 	require.NoError(t, err)
 	assert.Equal(t, "user1", got1.Username)
 
-	got2, err := cache.GetByID(ctx, acc2.ID)
+	got2, err := cache.Get(ctx, acc2.ID)
 	require.NoError(t, err)
 	assert.Equal(t, "user2", got2.Username)
 }

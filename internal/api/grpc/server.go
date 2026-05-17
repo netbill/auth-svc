@@ -8,6 +8,7 @@ import (
 	"github.com/netbill/auth-svc/internal/api/grpc/controller"
 	"github.com/netbill/auth-svc/internal/api/grpc/interceptors"
 	"github.com/netbill/auth-svc/internal/modules/auth"
+	"github.com/netbill/auth-svc/internal/observability/metrics"
 	"github.com/netbill/auth-svc/pkg/log"
 	"github.com/netbill/auth-svc/pkg/pb"
 	"google.golang.org/grpc"
@@ -19,6 +20,7 @@ type Server struct {
 	accounts controller.AccountCore
 	sessions controller.SessionCore
 	tokenMgr interceptors.TokenParser
+	metrics  *metrics.Metrics
 	log      *log.Logger
 }
 
@@ -27,6 +29,7 @@ type ServerDeps struct {
 	Accounts controller.AccountCore
 	Sessions controller.SessionCore
 	TokenMgr interceptors.TokenParser
+	Metrics  *metrics.Metrics
 	Log      *log.Logger
 }
 
@@ -39,6 +42,7 @@ func New(deps ServerDeps) *Server {
 		auth:     deps.Auth,
 		accounts: deps.Accounts,
 		sessions: deps.Sessions,
+		metrics:  deps.Metrics,
 		tokenMgr: deps.TokenMgr,
 		log:      deps.Log,
 	}
@@ -58,8 +62,8 @@ func (s *Server) Run(ctx context.Context, cfg Config) {
 		),
 	)
 	pb.RegisterAuthServiceServer(srv, controller.NewAuthServer(s.auth, s.tokenMgr))
-	pb.RegisterAccountServiceServer(srv, controller.NewAccountServer(s.accounts))
-	pb.RegisterSessionServiceServer(srv, controller.NewSessionServer(s.sessions))
+	pb.RegisterAccountServiceServer(srv, controller.NewAccountServer(s.accounts, s.metrics))
+	pb.RegisterSessionServiceServer(srv, controller.NewSessionServer(s.sessions, s.metrics))
 	reflection.Register(srv)
 
 	s.log.Info("starting grpc server", "port", cfg.Port)
