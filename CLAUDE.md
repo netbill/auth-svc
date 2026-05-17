@@ -261,6 +261,191 @@ Errx: `ErrorQRTokenNotFound`, `ErrorQRTokenAlreadyConfirmed` — в `errx/sessio
 
 ---
 
+## Observability — план реализации (Prometheus + Grafana + OTEL)
+
+### Поток данных
+
+```
+auth-svc
+  │
+  ├─► OTLP HTTP :4318 ────────► OTEL Collector ──────────► Tempo ──────► Grafana
+  │   (traces: каждый span)      (буферизует,               (хранит        (поиск
+  │                               ретраит,                   трейсы)        трейсов)
+  │                               фильтрует)
+  │
+  └─► GET /metrics ──────────► Prometheus ──────────────────────────────► Grafana
+      (Prometheus scrape         (хранит метрики,                          (графики,
+       раз в 15 сек)              time-series DB)                           алерты)
+```
+
+**Метрики** — агрегат: "за 5 минут 200 req, 3 ошибки, p99=45ms"
+**Трейсы** — конкретный запрос: "POST /login = 120ms: 5ms parse + 80ms DB + 35ms Redis"
+
+**OTEL Collector используем** — приложение знает только один endpoint (коллектор). Бэкенды (Tempo, Jaeger, любой другой) меняются только в конфиге коллектора без изменений Go кода. Коллектор буферизует spans и ретраит при временной недоступности Tempo.
+
+### Архитектурные решения (принятые)
+
+- Traces backend: **Tempo** (нативная интеграция с Grafana, одна экосистема)
+- Traces routing: **OTEL Collector** — приложение шлёт OTLP в коллектор, коллектор шлёт в Tempo; смена бэкенда = правка конфига коллектора без изменений кода
+- Metrics: **Prometheus scrape** — pull model, Prometheus сам приходит за метриками на `/metrics`
+- Span propagation: **W3C TraceContext** заголовки (стандарт, поддерживается везде)
+- Sampling: **100%** в dev (трейсим всё), в продакшне снизить до 10-20%
+- OTEL SDK версия: **v1.x** (stable, не experimental)
+
+### Новые файлы
+
+```
+internal/telemetry/
+  telemetry.go     — Init(ctx, cfg) → (shutdown func, error): поднимает TracerProvider + MeterProvider
+  config.go        — OTELConfig: ServiceName, CollectorEndpoint, SamplingRatio
+
+observability/
+  otelcol-config.yaml     — OTEL Collector: receivers(otlp) → exporters(otlphttp→tempo)
+  prometheus.yml          — scrape_configs: auth-svc /metrics каждые 15 сек
+  grafana/
+    provisioning/
+      datasources/
+        datasources.yaml  — авто-подключение Prometheus + Tempo к Grafana
+      dashboards/
+        dashboards.yaml   — авто-загрузка dashboard JSON
+    dashboards/
+      auth-svc.json       — основной дашборд (HTTP rps, latency, errors, cache hits)
+```
+
+### Фаза 1 — Инфраструктура (docker-compose)
+
+**Шаг 1.** Создать `observability/prometheus.yml` — конфиг Prometheus:
+```yaml
+scrape_configs:
+  - job_name: auth-svc
+    static_configs:
+      - targets: ['auth-svc:8000']  # внутри docker сети
+    metrics_path: /metrics
+    scrape_interval: 15s
+```
+
+**Шаг 2.** Создать `observability/grafana/provisioning/datasources/datasources.yaml` — авто-подключение источников данных (Prometheus + Tempo) при старте Grafana.
+
+**Шаг 3.** Создать `observability/otelcol-config.yaml` — конфиг OTEL Collector:
+```yaml
+receivers:
+  otlp:
+    protocols:
+      http:
+        endpoint: "0.0.0.0:4318"  # сюда шлёт auth-svc
+
+exporters:
+  otlphttp/tempo:
+    endpoint: "http://tempo:4318"  # коллектор шлёт в Tempo
+
+service:
+  pipelines:
+    traces:
+      receivers: [otlp]
+      exporters: [otlphttp/tempo]
+```
+
+**Шаг 4.** Добавить в `docker-compose.yml` четыре сервиса:
+- `otel-collector` — image `otel/opentelemetry-collector-contrib`, монтирует `otelcol-config.yaml`
+- `prometheus` — image `prom/prometheus`, монтирует `prometheus.yml`
+- `tempo` — image `grafana/tempo`, принимает OTLP от коллектора
+- `grafana` — image `grafana/grafana`, монтирует `provisioning/`
+
+**Проверка фазы 1:** `docker compose up otel-collector prometheus grafana tempo` → Grafana открывается на `:3000`, видит оба datasource.
+
+### Фаза 2 — OTEL в Go (инициализация)
+
+**Шаг 4.** Добавить зависимости (`go get`):
+```
+go.opentelemetry.io/otel
+go.opentelemetry.io/otel/sdk/trace
+go.opentelemetry.io/otel/sdk/metric
+go.opentelemetry.io/otel/exporters/prometheus
+go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp
+go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp
+go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc
+github.com/prometheus/client_golang
+```
+
+**Шаг 5.** Написать `internal/telemetry/telemetry.go` — функция `Init`:
+- Создаёт `otlptracehttp.Exporter` (отправляет spans в **OTEL Collector**, не напрямую в Tempo)
+- Создаёт `TracerProvider` с этим экспортером + `BatchSpanProcessor`
+- Создаёт `prometheus.Exporter` (метрики в Prometheus формате)
+- Создаёт `MeterProvider` с этим экспортером
+- Регистрирует оба как глобальные (`otel.SetTracerProvider`, `otelmetric.SetMeterProvider`)
+- Возвращает `shutdown func(ctx)` — вызывается при остановке приложения (flush всех буферов)
+
+**Шаг 6.** Добавить в `config.yaml` секцию `otel`:
+```yaml
+otel:
+  collector_endpoint: "http://localhost:4318"  # OTEL Collector, не Tempo напрямую
+  sampling_ratio: 1.0
+```
+
+**Шаг 7.** Вызвать `telemetry.Init` в `internal/app/run.go` самым первым шагом, зарегистрировать `shutdown` в defer.
+
+**Шаг 8.** Добавить эндпоинт `GET /metrics` на HTTP сервер — `promhttp.Handler()`. Prometheus будет его скрейпить. Этот роут не должен проходить через auth middleware.
+
+**Проверка фазы 2:** `curl localhost:8000/metrics` → видно `go_*` метрики и `process_*` (базовые, Go runtime).
+
+### Фаза 3 — Автоматическая инструментация
+
+**Шаг 9.** HTTP middleware: обернуть chi router в `otelhttp.NewHandler(router, "auth-svc")`.
+
+Что даёт автоматически:
+- Span на каждый HTTP запрос (route, method, status code)
+- Метрики: `http.server.request.duration` (histogram), `http.server.active_requests` (gauge)
+- Propagation: читает `traceparent` заголовок от клиента (связывает трейсы между сервисами)
+
+**Шаг 10.** gRPC interceptors: при создании gRPC сервера добавить:
+- `otelgrpc.UnaryServerInterceptor()` — для unary вызовов
+- `otelgrpc.StreamServerInterceptor()` — для streaming
+
+**Проверка фазы 3:** сделать любой запрос к API → в Grafana → Tempo найти трейс с spans.
+
+### Фаза 4 — Бизнес-метрики (ручные счётчики)
+
+**Шаг 11.** Добавить кастомные метрики в модули через `otel/metric` API. Метрики создаются один раз при инициализации сервиса, инкрементируются при каждой операции.
+
+Что считаем:
+
+| Метрика | Тип | Labels | Где |
+|---------|-----|--------|-----|
+| `auth.logins_total` | counter | `method=password\|qr`, `status=ok\|fail` | `session.Service` |
+| `auth.registrations_total` | counter | `status=ok\|fail` | `account.Service` |
+| `auth.sessions_created_total` | counter | — | `session.Service` |
+| `auth.cache_operations_total` | counter | `entity=account\|session\|email`, `result=hit\|miss` | caches |
+
+**Шаг 12.** (опционально) Добавить spans вручную на критичные операции — например, span на `tx.Transaction()` чтобы видеть время транзакции в трейсе.
+
+### Фаза 5 — Grafana дашборд
+
+**Шаг 13.** Создать `observability/grafana/dashboards/auth-svc.json` с панелями:
+- RPS (requests per second) по роутам
+- Latency p50/p95/p99
+- Error rate (5xx)
+- Cache hit rate (hits / (hits + misses))
+- Активные сессии (registrations_total - deletions_total)
+
+Дашборд провижонируется автоматически при старте Grafana — не нужно создавать руками.
+
+### Порядок выполнения шагов
+
+```
+Шаг 1-4  (docker: collector+prometheus+tempo+grafana)
+→ Шаг 5 (go get)
+→ Шаг 6-9 (telemetry init + /metrics endpoint)
+→ Шаг 10-11 (auto instrumentation: http + grpc)
+→ Шаг 12 (business metrics)
+→ Шаг 13-14 (dashboard)
+```
+
+Нумерация шагов выше сдвинулась из-за добавления шага с коллектором — при реализации следить по описанию шагов, не по номерам.
+
+Каждый шаг верифицируется отдельно перед переходом к следующему.
+
+---
+
 ## Roadmap
 
 ### Следующие шаги (функциональные, в порядке приоритета)
@@ -278,15 +463,70 @@ Errx: `ErrorQRTokenNotFound`, `ErrorQRTokenAlreadyConfirmed` — в `errx/sessio
 ### Инфраструктура (не функциональные, после функциональных)
 
 3. **Nginx** — reverse proxy перед REST/gRPC
-4. **Kubernetes** — манифесты деплоя
+4. **Kubernetes** — манифесты деплоя (план ниже)
 
-## Команды
+---
 
-```bash
-# запуск
-go run ./cmd/auth-svc
+## Kubernetes — план деплоя
 
-# миграции
-go run ./cmd/auth-svc migrate-up
-go run ./cmd/auth-svc migrate-down
+### Docker Compose → Kubernetes маппинг
+
 ```
+docker-compose service  →  Deployment + Service
+container               →  Pod (минимальная единица запуска)
+ports:                  →  Service (ClusterIP / NodePort / LoadBalancer)
+environment:            →  ConfigMap + Secret
+volumes:                →  PersistentVolumeClaim (PVC)
+networks:               →  Namespace + Service DNS
+depends_on:             →  readinessProbe / initContainers
+```
+
+### Структура файлов
+
+```
+k8s/
+  namespace.yaml
+  auth-svc/
+    deployment.yaml
+    service.yaml
+    configmap.yaml
+    secret.yaml
+  postgres/
+    statefulset.yaml
+    service.yaml
+    pvc.yaml
+  redis/
+    statefulset.yaml
+    service.yaml
+    pvc.yaml
+  observability/
+    prometheus/
+    grafana/
+    tempo/
+    otel-collector/
+  ingress.yaml          ← внешний трафик (nginx-ingress)
+```
+
+### Ключевые концепции
+
+**Namespace** — изоляция всех ресурсов проекта:
+```bash
+kubectl create namespace netbill
+kubectl config set-context --current --namespace=netbill
+```
+
+**Secret** — sensitive данные (DSN, пароли):
+```bash
+kubectl create secret generic auth-svc-secrets \
+  --from-literal=DATABASE_SQL_URL="postgres://postgres:postgres@postgres:5432/postgres" \
+  --from-literal=REDIS_ADDR="redis:6379" \
+  --from-literal=REDIS_PASSWORD=""
+```
+
+**ConfigMap** — нечувствительные конфиги:
+```bash
+kubectl create configmap auth-svc-config \
+  --from-literal=OTEL_COLLECTOR_ENDPOINT="http://otel-collector:4318"
+```
+
+**Service DNS** — внутри кластера сервисы резолвятся как `<name>.<namespace>.svc.cluster.local` или просто `<name>` в том же namespace. Env-переменные в манифестах должны указывать на имена сервисов, не на `localhost`.

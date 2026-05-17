@@ -31,12 +31,17 @@ type accountCore interface {
 	DeleteMyAccount(ctx context.Context, actor models.AccountActor) error
 }
 
-type AccountController struct {
-	accounts accountCore
+type accountMetrics interface {
+	RecordRegistration(ctx context.Context, err *error)
 }
 
-func NewAccountController(accounts accountCore) *AccountController {
-	return &AccountController{accounts: accounts}
+type AccountController struct {
+	accounts accountCore
+	metrics  accountMetrics
+}
+
+func NewAccountController(accounts accountCore, m accountMetrics) *AccountController {
+	return &AccountController{accounts: accounts, metrics: m}
 }
 
 const operationRegistration = "registration"
@@ -51,13 +56,13 @@ func (c *AccountController) Registration(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
+	defer c.metrics.RecordRegistration(r.Context(), &err)
 	_, err = c.accounts.Registration(r.Context(), account.RegistrationParams{
 		Email:    req.Data.Attributes.Email,
 		Password: req.Data.Attributes.Password,
 		Username: req.Data.Attributes.Username,
 		Role:     tokens.RoleSystemUser,
 	})
-
 	switch {
 	case errors.Is(err, errx.ErrorEmailAlreadyExist):
 		log.WithError(err).Warn("email already exists")
@@ -102,6 +107,7 @@ func (c *AccountController) RegistrationByAdmin(w http.ResponseWriter, r *http.R
 		"role":     req.Data.Attributes.Role,
 	})
 
+	defer c.metrics.RecordRegistration(r.Context(), &err)
 	u, err := c.accounts.Registration(r.Context(), account.RegistrationParams{
 		Email:    req.Data.Attributes.Email,
 		Username: req.Data.Attributes.Username,
@@ -144,7 +150,7 @@ const operationGetMyAccount = "get_my_account"
 func (c *AccountController) GetMyAccount(w http.ResponseWriter, r *http.Request) {
 	log := scope.Log(r).WithOperation(operationGetMyAccount)
 
-	account, err := c.accounts.GetMyAccountByID(r.Context(), scope.AccountActor(r))
+	res, err := c.accounts.GetMyAccountByID(r.Context(), scope.AccountActor(r))
 	switch {
 	case errors.Is(err, errx.ErrorAccountDeleted):
 		log.WithError(err).Warn("account deleted")
@@ -184,7 +190,7 @@ func (c *AccountController) GetMyAccount(w http.ResponseWriter, r *http.Request)
 	}
 
 	log.Info("account retrieved")
-	render.Response(w, http.StatusOK, responses.Account(account, opts...))
+	render.Response(w, http.StatusOK, responses.Account(res, opts...))
 }
 
 const operationUpdatePassword = "update_password"

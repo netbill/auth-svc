@@ -48,23 +48,3 @@ type sessionRepo interface {
 	DeleteOneForAccount(ctx context.Context, accountID, sessionID uuid.UUID) error
 	DeleteManyForAccount(ctx context.Context, accountID uuid.UUID) ([]uuid.UUID, error)
 }
-
-type auth interface {
-	ValidateSession(ctx context.Context, actor models.AccountActor) (models.Account, models.Session, error)
-}
-
-type passwordCache interface {
-	SetByID(ctx context.Context, password models.AccountPassword) error
-	GetByID(ctx context.Context, accountID uuid.UUID) (models.AccountPassword, error)
-}
-
-type accountCache interface {
-	Set(ctx context.Context, account models.Account) error
-	GetByID(ctx context.Context, accountID uuid.UUID) (models.Account, error)
-}
-
-type sessionsCache interface {
-	Set(ctx context.Context, session models.Session) error
-	GetByID(ctx context.Context, sessionID uuid.UUID) (models.Session, error)
-	DeleteByID(ctx context.Context, sessionID uuid.UUID) error
-}

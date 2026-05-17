@@ -29,19 +29,28 @@ type SessionCore interface {
 	DeleteMySessions(ctx context.Context, actor models.AccountActor) error
 }
 
+type SessionMetrics interface {
+	RecordEmailLogin(ctx context.Context, err *error)
+	RecordUsernameLogin(ctx context.Context, err *error)
+	RecordGoogleLogin(ctx context.Context, err *error)
+	RecordTokenRefresh(ctx context.Context, err *error)
+	RecordSessionDeleted(ctx context.Context, scope string, err *error)
+}
 type SessionServer struct {
 	pb.UnimplementedSessionServiceServer
 	sessions SessionCore
+	metrics  SessionMetrics
 }
 
-func NewSessionServer(sessions SessionCore) *SessionServer {
-	return &SessionServer{sessions: sessions}
+func NewSessionServer(sessions SessionCore, m SessionMetrics) *SessionServer {
+	return &SessionServer{sessions: sessions, metrics: m}
 }
 
 const operationLoginByEmail = "login_by_email"
 
-func (s *SessionServer) LoginByEmail(ctx context.Context, req *pb.LoginByEmailRequest) (*pb.LoginResponse, error) {
+func (s *SessionServer) LoginByEmail(ctx context.Context, req *pb.LoginByEmailRequest) (_ *pb.LoginResponse, err error) {
 	log := scope.Log(ctx).WithOperation(operationLoginByEmail)
+	defer s.metrics.RecordEmailLogin(ctx, &err)
 
 	pair, err := s.sessions.LoginByEmail(ctx, req.Email, req.Password)
 	switch {
@@ -63,8 +72,9 @@ func (s *SessionServer) LoginByEmail(ctx context.Context, req *pb.LoginByEmailRe
 
 const operationLoginByUsername = "login_by_username"
 
-func (s *SessionServer) LoginByUsername(ctx context.Context, req *pb.LoginByUsernameRequest) (*pb.LoginResponse, error) {
+func (s *SessionServer) LoginByUsername(ctx context.Context, req *pb.LoginByUsernameRequest) (_ *pb.LoginResponse, err error) {
 	log := scope.Log(ctx).WithOperation(operationLoginByUsername)
+	defer s.metrics.RecordUsernameLogin(ctx, &err)
 
 	pair, err := s.sessions.LoginByUsername(ctx, req.Username, req.Password)
 	switch {
@@ -86,8 +96,9 @@ func (s *SessionServer) LoginByUsername(ctx context.Context, req *pb.LoginByUser
 
 const operationLoginByGoogle = "login_by_google"
 
-func (s *SessionServer) LoginByGoogle(ctx context.Context, req *pb.LoginByGoogleRequest) (*pb.LoginResponse, error) {
+func (s *SessionServer) LoginByGoogle(ctx context.Context, req *pb.LoginByGoogleRequest) (_ *pb.LoginResponse, err error) {
 	log := scope.Log(ctx).WithOperation(operationLoginByGoogle)
+	defer s.metrics.RecordGoogleLogin(ctx, &err)
 
 	pair, err := s.sessions.LoginByGoogle(ctx, req.IdToken)
 	switch {
@@ -106,8 +117,9 @@ func (s *SessionServer) LoginByGoogle(ctx context.Context, req *pb.LoginByGoogle
 
 const operationRefresh = "refresh"
 
-func (s *SessionServer) Refresh(ctx context.Context, req *pb.RefreshRequest) (*pb.LoginResponse, error) {
+func (s *SessionServer) Refresh(ctx context.Context, req *pb.RefreshRequest) (_ *pb.LoginResponse, err error) {
 	log := scope.Log(ctx).WithOperation(operationRefresh)
+	defer s.metrics.RecordTokenRefresh(ctx, &err)
 
 	pair, err := s.sessions.Refresh(ctx, req.RefreshToken)
 	switch {
@@ -207,7 +219,6 @@ func (s *SessionServer) Logout(ctx context.Context, _ *pb.LogoutRequest) (*empty
 	err := s.sessions.Logout(ctx, scope.AccountActor(ctx))
 	switch {
 	case errors.Is(err, errx.ErrorSessionNotFound):
-		// сессия уже удалена — считаем успехом, как в REST
 		log.Debug("session already deleted, treating as success")
 		return &emptypb.Empty{}, nil
 	case err != nil:

@@ -25,19 +25,25 @@ type AccountCore interface {
 	DeleteMyAccount(ctx context.Context, actor models.AccountActor) error
 }
 
+type AccountMetrics interface {
+	RecordRegistration(ctx context.Context, err *error)
+}
+
 type AccountServer struct {
 	pb.UnimplementedAccountServiceServer
 	accounts AccountCore
+	metrics  AccountMetrics
 }
 
-func NewAccountServer(accounts AccountCore) *AccountServer {
-	return &AccountServer{accounts: accounts}
+func NewAccountServer(accounts AccountCore, m AccountMetrics) *AccountServer {
+	return &AccountServer{accounts: accounts, metrics: m}
 }
 
 const operationCreateAccount = "create_account"
 
-func (s *AccountServer) CreateAccount(ctx context.Context, req *pb.CreateAccountRequest) (*pb.CreateAccountResponse, error) {
+func (s *AccountServer) CreateAccount(ctx context.Context, req *pb.CreateAccountRequest) (_ *pb.CreateAccountResponse, err error) {
 	log := scope.Log(ctx).WithOperation(operationCreateAccount)
+	defer s.metrics.RecordRegistration(ctx, &err)
 
 	acc, err := s.accounts.Registration(ctx, account.RegistrationParams{
 		Email:    req.Email,

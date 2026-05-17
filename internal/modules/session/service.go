@@ -2,10 +2,7 @@ package session
 
 import (
 	"context"
-	"errors"
 	"fmt"
-	"log/slog"
-	"time"
 
 	"github.com/google/uuid"
 	"github.com/netbill/auth-svc/internal/errx"
@@ -13,61 +10,8 @@ import (
 	"github.com/netbill/restkit/tokens"
 )
 
-type Service struct {
-	auth auth
-
-	accountRepo  accountRepo
-	emailRepo    emailRepo
-	passwordRepo passwordRepo
-	sessionRepo  sessionRepo
-	tx           transaction
-
-	passwordCache passwordCache
-	accountCache  accountCache
-	sessionsCache sessionsCache
-
-	qrRepo qrRepo
-
-	passManager  passwordManager
-	tokenManager tokenManager
-
-	//qrPublisher qrPublisher
-
-	log *slog.Logger
-}
-
-type ServiceDeps struct {
-	Auth          auth
-	AccountRepo   accountRepo
-	EmailRepo     emailRepo
-	PasswordRepo  passwordRepo
-	SessionRepo   sessionRepo
-	Tx            transaction
-	PasswordCache passwordCache
-	AccountCache  accountCache
-	SessionsCache sessionsCache
-	PassManager   passwordManager
-	TokenManager  tokenManager
-	QRStore       qrRepo
-	Log           *slog.Logger
-}
-
-func New(deps ServiceDeps) *Service {
-	return &Service{
-		auth:          deps.Auth,
-		accountRepo:   deps.AccountRepo,
-		emailRepo:     deps.EmailRepo,
-		passwordRepo:  deps.PasswordRepo,
-		sessionRepo:   deps.SessionRepo,
-		tx:            deps.Tx,
-		passwordCache: deps.PasswordCache,
-		accountCache:  deps.AccountCache,
-		sessionsCache: deps.SessionsCache,
-		passManager:   deps.PassManager,
-		tokenManager:  deps.TokenManager,
-		qrRepo:        deps.QRStore,
-		log:           deps.Log,
-	}
+type auth interface {
+	ValidateSession(ctx context.Context, actor models.AccountActor) (models.Account, models.Session, error)
 }
 
 type passwordManager interface {
@@ -84,14 +28,74 @@ type tokenManager interface {
 	GenerateRefresh(account models.Account, sessionID uuid.UUID) (string, error)
 }
 
+type bus interface {
+	PublishQRToken(ctx context.Context, key string, payload []byte) error
+}
+
+type Service struct {
+	auth auth
+
+	accountRepo  accountRepo
+	emailRepo    emailRepo
+	passwordRepo passwordRepo
+	sessionRepo  sessionRepo
+	tx           transaction
+
+	passwordCache passwordCache
+	accountCache  accountCache
+	sessionsCache sessionsCache
+
+	qrRepo qrRepo
+	bus    bus
+
+	passManager  passwordManager
+	tokenManager tokenManager
+}
+
+type ServiceDeps struct {
+	Auth auth
+
+	AccountRepo  accountRepo
+	EmailRepo    emailRepo
+	PasswordRepo passwordRepo
+	SessionRepo  sessionRepo
+
+	Tx transaction
+
+	PasswordCache passwordCache
+	AccountCache  accountCache
+	SessionsCache sessionsCache
+
+	PassManager  passwordManager
+	TokenManager tokenManager
+	QRStore      qrRepo
+	Bus          bus
+}
+
+func New(deps ServiceDeps) *Service {
+	return &Service{
+		auth:          deps.Auth,
+		accountRepo:   deps.AccountRepo,
+		emailRepo:     deps.EmailRepo,
+		passwordRepo:  deps.PasswordRepo,
+		sessionRepo:   deps.SessionRepo,
+		tx:            deps.Tx,
+		passwordCache: deps.PasswordCache,
+		accountCache:  deps.AccountCache,
+		sessionsCache: deps.SessionsCache,
+		passManager:   deps.PassManager,
+		tokenManager:  deps.TokenManager,
+		qrRepo:        deps.QRStore,
+		bus:           deps.Bus,
+	}
+}
+
 func (s *Service) GetMySession(
 	ctx context.Context,
 	actor models.AccountActor,
 	sessionID uuid.UUID,
 ) (models.Session, error) {
-	session, err := s.sessionsCache.GetByID(ctx, sessionID)
-	switch {
-	case err == nil:
+	if session, ok := s.sessionsCache.Get(ctx, sessionID); ok {
 		if session.AccountID != actor.ID {
 			return models.Session{}, errx.ErrorSessionNotFound.Raise(
 				fmt.Errorf("session %s does not belong to account %s", sessionID, actor.ID),
@@ -102,27 +106,15 @@ func (s *Service) GetMySession(
 				fmt.Errorf("session %s is deleted", sessionID),
 			)
 		}
-
 		return session, nil
-	case errors.Is(err, errx.ErrCacheMiss):
-		s.log.Debug("session cache miss", "session_id", sessionID)
-	default:
-		s.log.Error("failed to get session from cache", "error", err)
 	}
 
-	session, err = s.sessionRepo.GetForAccount(ctx, actor.ID, sessionID)
+	session, err := s.sessionRepo.GetForAccount(ctx, actor.ID, sessionID)
 	if err != nil {
 		return models.Session{}, err
 	}
 
-	go func() {
-		ctx, cancel := context.WithTimeout(context.WithoutCancel(ctx), 5*time.Second)
-		defer cancel()
-
-		if err := s.sessionsCache.Set(ctx, session); err != nil {
-			s.log.Error("failed to set session cache", "error", err)
-		}
-	}()
+	s.sessionsCache.Set(ctx, session)
 
 	return session, nil
 }
@@ -155,15 +147,8 @@ func (s *Service) Refresh(
 		return models.TokensPair{}, err
 	}
 
-	account, err := s.accountCache.GetByID(ctx, accountID)
-	switch {
-	case errors.Is(err, errx.ErrCacheMiss):
-		s.log.Debug("account cache miss", "account_id", accountID)
-	case err != nil:
-		s.log.Error("failed to get account from cache", "error", err)
-	}
-
-	if err != nil {
+	account, ok := s.accountCache.Get(ctx, accountID)
+	if !ok {
 		account, err = s.accountRepo.GetByID(ctx, accountID)
 		if err != nil {
 			return models.TokensPair{}, err
@@ -193,17 +178,8 @@ func (s *Service) Refresh(
 		return models.TokensPair{}, err
 	}
 
-	go func() {
-		ctx, cancel := context.WithTimeout(context.WithoutCancel(ctx), 5*time.Second)
-		defer cancel()
-
-		if err := s.sessionsCache.Set(ctx, session); err != nil {
-			s.log.Error("failed to set session cache", "error", err)
-		}
-		if err := s.accountCache.Set(ctx, account); err != nil {
-			s.log.Error("failed to set account cache", "error", err)
-		}
-	}()
+	s.sessionsCache.Set(ctx, session)
+	s.accountCache.Set(ctx, account)
 
 	return models.TokensPair{
 		SessionID: session.ID,
@@ -220,14 +196,7 @@ func (s *Service) Logout(
 		return err
 	}
 
-	go func() {
-		ctx, cancel := context.WithTimeout(context.WithoutCancel(ctx), 5*time.Second)
-		defer cancel()
-
-		if err := s.sessionsCache.DeleteByID(ctx, actor.SessionID); err != nil {
-			s.log.Error("failed to delete session cache", "error", err)
-		}
-	}()
+	s.sessionsCache.Delete(ctx, actor.SessionID)
 
 	return nil
 }
@@ -241,20 +210,11 @@ func (s *Service) DeleteMySession(
 		return err
 	}
 
-	if err := s.tx.Transaction(ctx, func(ctx context.Context) error {
-		return s.sessionRepo.DeleteOneForAccount(ctx, actor.ID, sessionID)
-	}); err != nil {
+	if err := s.sessionRepo.DeleteOneForAccount(ctx, actor.ID, sessionID); err != nil {
 		return err
 	}
 
-	go func() {
-		ctx, cancel := context.WithTimeout(context.WithoutCancel(ctx), 5*time.Second)
-		defer cancel()
-
-		if err := s.sessionsCache.DeleteByID(ctx, sessionID); err != nil {
-			s.log.Error("failed to delete session cache", "error", err)
-		}
-	}()
+	s.sessionsCache.Delete(ctx, sessionID)
 
 	return nil
 }
@@ -267,25 +227,14 @@ func (s *Service) DeleteMySessions(
 		return err
 	}
 
-	var sessionIDs []uuid.UUID
-	var err error
-	if err = s.tx.Transaction(ctx, func(ctx context.Context) error {
-		sessionIDs, err = s.sessionRepo.DeleteManyForAccount(ctx, actor.ID)
-		return err
-	}); err != nil {
+	sessionIDs, err := s.sessionRepo.DeleteManyForAccount(ctx, actor.ID)
+	if err != nil {
 		return err
 	}
 
-	go func() {
-		ctx, cancel := context.WithTimeout(context.WithoutCancel(ctx), 5*time.Second)
-		defer cancel()
-
-		for _, id := range sessionIDs {
-			if err := s.sessionsCache.DeleteByID(ctx, id); err != nil {
-				s.log.Error("failed to delete session cache", "session_id", id, "error", err)
-			}
-		}
-	}()
+	for _, id := range sessionIDs {
+		s.sessionsCache.Delete(ctx, id)
+	}
 
 	return nil
 }

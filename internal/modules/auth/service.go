@@ -4,11 +4,11 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"log/slog"
 
 	"github.com/google/uuid"
 	"github.com/netbill/auth-svc/internal/errx"
 	"github.com/netbill/auth-svc/internal/models"
+	"github.com/netbill/auth-svc/pkg/log"
 )
 
 type accountRepo interface {
@@ -23,14 +23,14 @@ type Service struct {
 	accountRepo accountRepo
 	sessionRepo sessionRepo
 
-	log *slog.Logger
+	log *log.Logger
 }
 
 type ServiceDeps struct {
 	AccountRepo accountRepo
 	SessionRepo sessionRepo
 
-	Log *slog.Logger
+	Log *log.Logger
 }
 
 func New(deps ServiceDeps) *Service {
