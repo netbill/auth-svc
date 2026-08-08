@@ -1,0 +1,60 @@
+patch:
+  tags:
+    - users
+  summary: Update my username
+  description: >
+    Updates the authenticated user's username.
+    The request body must contain the same `data.id` as the authenticated user id.
+
+  security:
+    - BearerAuth: [ ]
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: '../components/schemas/requests/UpdateUsername.yaml'
+  responses:
+    '200':
+      description: Username successfully updated
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/responses/User.yaml'
+
+    '400':
+      description: Bad request (validation error / invalid username).
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/responses/Errors.yaml'
+
+    '401':
+      description: >
+        Unauthorized. The session is invalid or does not belong to the authenticated user.
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/responses/Errors.yaml'
+
+    '404':
+      description: >
+        User not found.
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/responses/Errors.yaml'
+
+    '409':
+      description: Conflict (username already taken).
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/responses/Errors.yaml'
+
+    '500':
+      description: Internal Server Error
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/responses/Errors.yaml'

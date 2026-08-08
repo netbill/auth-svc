@@ -25,7 +25,7 @@ func createUserForPassword(t *testing.T, accRepo *pg.UserRepo) models.User {
 	t.Helper()
 	acc, err := accRepo.Create(context.Background(), user.RegistrationParams{
 		Role: "user",
-	})
+	}, testutil.UniqueUsername())
 	require.NoError(t, err)
 	return acc
 }

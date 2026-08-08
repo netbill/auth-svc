@@ -8,6 +8,8 @@ import (
 	models "github.com/netbill/auth-svc/internal/models"
 	mock "github.com/stretchr/testify/mock"
 
+	pagi "github.com/netbill/restkit/pagi"
+
 	uuid "github.com/google/uuid"
 )
 
@@ -16,9 +18,9 @@ type mockUserRepo struct {
 	mock.Mock
 }
 
-// Create provides a mock function with given fields: ctx, params
-func (_m *mockUserRepo) Create(ctx context.Context, params RegistrationParams) (models.User, error) {
-	ret := _m.Called(ctx, params)
+// Create provides a mock function with given fields: ctx, params, username
+func (_m *mockUserRepo) Create(ctx context.Context, params RegistrationParams, username string) (models.User, error) {
+	ret := _m.Called(ctx, params, username)
 
 	if len(ret) == 0 {
 		panic("no return value specified for Create")
@@ -26,17 +28,17 @@ func (_m *mockUserRepo) Create(ctx context.Context, params RegistrationParams) (
 
 	var r0 models.User
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, RegistrationParams) (models.User, error)); ok {
-		return rf(ctx, params)
+	if rf, ok := ret.Get(0).(func(context.Context, RegistrationParams, string) (models.User, error)); ok {
+		return rf(ctx, params, username)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, RegistrationParams) models.User); ok {
-		r0 = rf(ctx, params)
+	if rf, ok := ret.Get(0).(func(context.Context, RegistrationParams, string) models.User); ok {
+		r0 = rf(ctx, params, username)
 	} else {
 		r0 = ret.Get(0).(models.User)
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, RegistrationParams) error); ok {
-		r1 = rf(ctx, params)
+	if rf, ok := ret.Get(1).(func(context.Context, RegistrationParams, string) error); ok {
+		r1 = rf(ctx, params, username)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -72,6 +74,62 @@ func (_m *mockUserRepo) Delete(ctx context.Context, userID uuid.UUID) (models.Us
 	return r0, r1
 }
 
+// ExistByUsername provides a mock function with given fields: ctx, username
+func (_m *mockUserRepo) ExistByUsername(ctx context.Context, username string) (bool, error) {
+	ret := _m.Called(ctx, username)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ExistByUsername")
+	}
+
+	var r0 bool
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string) (bool, error)); ok {
+		return rf(ctx, username)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string) bool); ok {
+		r0 = rf(ctx, username)
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = rf(ctx, username)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// Filter provides a mock function with given fields: ctx, params, limit, offset
+func (_m *mockUserRepo) Filter(ctx context.Context, params FilterParams, limit uint, offset uint) (pagi.Page[[]models.User], error) {
+	ret := _m.Called(ctx, params, limit, offset)
+
+	if len(ret) == 0 {
+		panic("no return value specified for Filter")
+	}
+
+	var r0 pagi.Page[[]models.User]
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, FilterParams, uint, uint) (pagi.Page[[]models.User], error)); ok {
+		return rf(ctx, params, limit, offset)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, FilterParams, uint, uint) pagi.Page[[]models.User]); ok {
+		r0 = rf(ctx, params, limit, offset)
+	} else {
+		r0 = ret.Get(0).(pagi.Page[[]models.User])
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, FilterParams, uint, uint) error); ok {
+		r1 = rf(ctx, params, limit, offset)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetByID provides a mock function with given fields: ctx, userID
 func (_m *mockUserRepo) GetByID(ctx context.Context, userID uuid.UUID) (models.User, error) {
 	ret := _m.Called(ctx, userID)
@@ -93,6 +151,90 @@ func (_m *mockUserRepo) GetByID(ctx context.Context, userID uuid.UUID) (models.U
 
 	if rf, ok := ret.Get(1).(func(context.Context, uuid.UUID) error); ok {
 		r1 = rf(ctx, userID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetByUsername provides a mock function with given fields: ctx, username
+func (_m *mockUserRepo) GetByUsername(ctx context.Context, username string) (models.User, error) {
+	ret := _m.Called(ctx, username)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetByUsername")
+	}
+
+	var r0 models.User
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string) (models.User, error)); ok {
+		return rf(ctx, username)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string) models.User); ok {
+		r0 = rf(ctx, username)
+	} else {
+		r0 = ret.Get(0).(models.User)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = rf(ctx, username)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// Update provides a mock function with given fields: ctx, userID, params
+func (_m *mockUserRepo) Update(ctx context.Context, userID uuid.UUID, params UpdateParams) (models.User, error) {
+	ret := _m.Called(ctx, userID, params)
+
+	if len(ret) == 0 {
+		panic("no return value specified for Update")
+	}
+
+	var r0 models.User
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID, UpdateParams) (models.User, error)); ok {
+		return rf(ctx, userID, params)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID, UpdateParams) models.User); ok {
+		r0 = rf(ctx, userID, params)
+	} else {
+		r0 = ret.Get(0).(models.User)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, uuid.UUID, UpdateParams) error); ok {
+		r1 = rf(ctx, userID, params)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// UpdateUsername provides a mock function with given fields: ctx, userID, username
+func (_m *mockUserRepo) UpdateUsername(ctx context.Context, userID uuid.UUID, username string) (models.User, error) {
+	ret := _m.Called(ctx, userID, username)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UpdateUsername")
+	}
+
+	var r0 models.User
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID, string) (models.User, error)); ok {
+		return rf(ctx, userID, username)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID, string) models.User); ok {
+		r0 = rf(ctx, userID, username)
+	} else {
+		r0 = ret.Get(0).(models.User)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, uuid.UUID, string) error); ok {
+		r1 = rf(ctx, userID, username)
 	} else {
 		r1 = ret.Error(1)
 	}

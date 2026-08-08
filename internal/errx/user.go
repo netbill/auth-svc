@@ -17,4 +17,8 @@ var (
 	ErrorCannotChangePasswordYet = ape.DeclareError("CANNOT_CHANGE_PASSWORD_YET")
 
 	ErrorRoleNotSupported = ape.DeclareError("USER_ROLE_NOT_SUPPORTED")
+
+	ErrorUserUploadedAvatarInvalid = ape.DeclareError("USER_UPLOADED_AVATAR_INVALID")
+	ErrorUsernameNotValid          = ape.DeclareError("USERNAME_NOT_VALID")
+	ErrorUsernameTaken             = ape.DeclareError("USERNAME_TAKEN")
 )

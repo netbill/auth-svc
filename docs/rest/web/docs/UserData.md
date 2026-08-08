@@ -4,7 +4,7 @@
 
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-**Id** | [**uuid.UUID**](uuid.UUID.md) | user ID | 
+**Id** | [**uuid.UUID**](uuid.UUID.md) | user id | 
 **Type** | **string** |  | 
 **Attributes** | [**UserDataAttributes**](UserDataAttributes.md) |  | 
 

@@ -1,0 +1,30 @@
+type: object
+required:
+  - data
+properties:
+  data:
+    type: object
+    required:
+      - id
+      - type
+      - attributes
+    properties:
+      id:
+        type: string
+        format: uuid
+        description: "user id"
+      type:
+        type: string
+        enum: [ user_profile ]
+      attributes:
+        type: object
+        properties:
+          pseudonym:
+            type: string
+            description: "pseudonym"
+          description:
+            type: string
+            description: "description"
+          avatar_key:
+            type: string
+            description: "avatar media key"

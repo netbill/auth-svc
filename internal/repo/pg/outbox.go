@@ -50,12 +50,27 @@ func (r *OutboxRepo) WriteUserCreated(
 ) error {
 	return r.write(
 		ctx,
-		evtypes.AccountsTopicV1,
+		evtypes.UsersTopicV1,
 		user.ID.String(),
-		evtypes.AccountCreatedEvent,
-		evtypes.AccountCreatedPayload{
-			Account:      toEvUser(user),
-			AccountEmail: toEvUserEmail(email),
+		evtypes.UserCreatedEvent,
+		evtypes.UserCreatedPayload{
+			User:      toEvUser(user),
+			UserEmail: toEvUserEmail(email),
+		},
+	)
+}
+
+func (r *OutboxRepo) WriteUserUpdated(
+	ctx context.Context,
+	user models.User,
+) error {
+	return r.write(
+		ctx,
+		evtypes.UsersTopicV1,
+		user.ID.String(),
+		evtypes.UserUpdatedEvent,
+		evtypes.UserUpdatedPayload{
+			User: toEvUser(user),
 		},
 	)
 }
@@ -67,30 +82,33 @@ func (r *OutboxRepo) WriteUserDeleted(
 ) error {
 	return r.write(
 		ctx,
-		evtypes.AccountsTopicV1,
+		evtypes.UsersTopicV1,
 		user.ID.String(),
-		evtypes.AccountDeletedEvent,
-		evtypes.AccountDeletedPayload{
-			Account:      toEvUser(user),
-			AccountEmail: toEvUserEmail(email),
+		evtypes.UserDeletedEvent,
+		evtypes.UserDeletedPayload{
+			User:      toEvUser(user),
+			UserEmail: toEvUserEmail(email),
 		},
 	)
 }
 
-func toEvUser(a models.User) evtypes.Account {
-	return evtypes.Account{
-		ID:        a.ID,
-		Role:      a.Role,
-		Version:   a.Version,
-		CreatedAt: a.CreatedAt,
-		UpdatedAt: a.UpdatedAt,
-		DeletedAt: a.DeletedAt,
+func toEvUser(u models.User) evtypes.User {
+	return evtypes.User{
+		ID:        u.ID,
+		Username:  u.Username,
+		Pseudonym: u.Pseudonym,
+		Bio:       u.Description,
+		AvatarKey: u.AvatarKey,
+		Version:   u.Version,
+		CreatedAt: u.CreatedAt,
+		UpdatedAt: u.UpdatedAt,
+		DeletedAt: u.DeletedAt,
 	}
 }
 
-func toEvUserEmail(e models.UserEmail) evtypes.AccountEmail {
-	return evtypes.AccountEmail{
-		AccountID: e.UserID,
+func toEvUserEmail(e models.UserEmail) evtypes.UserEmail {
+	return evtypes.UserEmail{
+		UserID:    e.UserID,
 		Email:     e.Email,
 		Verified:  e.Verified,
 		Version:   e.Version,

@@ -25,7 +25,7 @@ func TestEmailRepo_Create(t *testing.T) {
 	accRepo, emailRepo := newEmailRepo(t)
 	ctx := context.Background()
 
-	acc, err := accRepo.Create(ctx, user.RegistrationParams{Role: "user"})
+	acc, err := accRepo.Create(ctx, user.RegistrationParams{Role: "user"}, testutil.UniqueUsername())
 	require.NoError(t, err)
 
 	email, err := emailRepo.Create(ctx, models.UserEmail{
@@ -42,9 +42,9 @@ func TestEmailRepo_Create_DuplicateEmail(t *testing.T) {
 	accRepo, emailRepo := newEmailRepo(t)
 	ctx := context.Background()
 
-	acc1, err := accRepo.Create(ctx, user.RegistrationParams{Role: "user"})
+	acc1, err := accRepo.Create(ctx, user.RegistrationParams{Role: "user"}, testutil.UniqueUsername())
 	require.NoError(t, err)
-	acc2, err := accRepo.Create(ctx, user.RegistrationParams{Role: "user"})
+	acc2, err := accRepo.Create(ctx, user.RegistrationParams{Role: "user"}, testutil.UniqueUsername())
 	require.NoError(t, err)
 
 	_, err = emailRepo.Create(ctx, models.UserEmail{UserID: acc1.ID, Email: "dup@example.com"})
@@ -58,7 +58,7 @@ func TestEmailRepo_GetByID_Active(t *testing.T) {
 	accRepo, emailRepo := newEmailRepo(t)
 	ctx := context.Background()
 
-	acc, err := accRepo.Create(ctx, user.RegistrationParams{Role: "user"})
+	acc, err := accRepo.Create(ctx, user.RegistrationParams{Role: "user"}, testutil.UniqueUsername())
 	require.NoError(t, err)
 
 	_, err = emailRepo.Create(ctx, models.UserEmail{UserID: acc.ID, Email: "bob@example.com"})
@@ -80,7 +80,7 @@ func TestEmailRepo_GetByID_WithDeletedFilter(t *testing.T) {
 	accRepo, emailRepo := newEmailRepo(t)
 	ctx := context.Background()
 
-	acc, err := accRepo.Create(ctx, user.RegistrationParams{Role: "user"})
+	acc, err := accRepo.Create(ctx, user.RegistrationParams{Role: "user"}, testutil.UniqueUsername())
 	require.NoError(t, err)
 
 	_, err = emailRepo.Create(ctx, models.UserEmail{UserID: acc.ID, Email: "charlie@example.com"})
@@ -104,7 +104,7 @@ func TestEmailRepo_GetByEmail(t *testing.T) {
 	accRepo, emailRepo := newEmailRepo(t)
 	ctx := context.Background()
 
-	acc, err := accRepo.Create(ctx, user.RegistrationParams{Role: "user"})
+	acc, err := accRepo.Create(ctx, user.RegistrationParams{Role: "user"}, testutil.UniqueUsername())
 	require.NoError(t, err)
 
 	_, err = emailRepo.Create(ctx, models.UserEmail{UserID: acc.ID, Email: "dave@example.com"})

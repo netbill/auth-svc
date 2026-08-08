@@ -1,0 +1,49 @@
+type: object
+required:
+  - id
+  - type
+  - attributes
+properties:
+  id:
+    type: string
+    format: uuid
+    description: "user id"
+  type:
+    type: string
+    enum: [ user ]
+  attributes:
+    type: object
+    required:
+      - username
+      - role
+      - version
+      - created_at
+      - updated_at
+    properties:
+      username:
+        type: string
+        description: "unique username"
+      pseudonym:
+        type: string
+        description: "display name"
+      description:
+        type: string
+        description: "user bio"
+      avatar_url:
+        type: string
+        format: uri
+        description: "resolved URL of the user's avatar, if one is set"
+      role:
+        type: string
+        description: "The role assigned to the user"
+      version:
+        type: integer
+        description: "The version number of the user record"
+      created_at:
+        type: string
+        format: date-time
+        description: "The date and time when the user was created"
+      updated_at:
+        type: string
+        format: date-time
+        description: "The date and time when the user was last updated"

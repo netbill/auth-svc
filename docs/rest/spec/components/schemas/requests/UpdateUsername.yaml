@@ -1,0 +1,26 @@
+type: object
+required:
+  - data
+properties:
+  data:
+    type: object
+    required:
+      - id
+      - type
+      - attributes
+    properties:
+      id:
+        type: string
+        format: uuid
+        description: "user id"
+      type:
+        type: string
+        enum: [ user_username ]
+      attributes:
+        type: object
+        required:
+          - username
+        properties:
+          username:
+            type: string
+            description: "new username"

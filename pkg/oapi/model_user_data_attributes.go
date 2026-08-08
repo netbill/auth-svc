@@ -22,6 +22,14 @@ var _ MappedNullable = &UserDataAttributes{}
 
 // UserDataAttributes struct for UserDataAttributes
 type UserDataAttributes struct {
+	// unique username
+	Username string `json:"username"`
+	// display name
+	Pseudonym *string `json:"pseudonym,omitempty"`
+	// user bio
+	Description *string `json:"description,omitempty"`
+	// resolved URL of the user's avatar, if one is set
+	AvatarUrl *string `json:"avatar_url,omitempty"`
 	// The role assigned to the user
 	Role string `json:"role"`
 	// The version number of the user record
@@ -38,8 +46,9 @@ type _UserDataAttributes UserDataAttributes
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewUserDataAttributes(role string, version int32, createdAt time.Time, updatedAt time.Time) *UserDataAttributes {
+func NewUserDataAttributes(username string, role string, version int32, createdAt time.Time, updatedAt time.Time) *UserDataAttributes {
 	this := UserDataAttributes{}
+	this.Username = username
 	this.Role = role
 	this.Version = version
 	this.CreatedAt = createdAt
@@ -53,6 +62,126 @@ func NewUserDataAttributes(role string, version int32, createdAt time.Time, upda
 func NewUserDataAttributesWithDefaults() *UserDataAttributes {
 	this := UserDataAttributes{}
 	return &this
+}
+
+// GetUsername returns the Username field value
+func (o *UserDataAttributes) GetUsername() string {
+	if o == nil {
+		var ret string
+		return ret
+	}
+
+	return o.Username
+}
+
+// GetUsernameOk returns a tuple with the Username field value
+// and a boolean to check if the value has been set.
+func (o *UserDataAttributes) GetUsernameOk() (*string, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return &o.Username, true
+}
+
+// SetUsername sets field value
+func (o *UserDataAttributes) SetUsername(v string) {
+	o.Username = v
+}
+
+// GetPseudonym returns the Pseudonym field value if set, zero value otherwise.
+func (o *UserDataAttributes) GetPseudonym() string {
+	if o == nil || IsNil(o.Pseudonym) {
+		var ret string
+		return ret
+	}
+	return *o.Pseudonym
+}
+
+// GetPseudonymOk returns a tuple with the Pseudonym field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *UserDataAttributes) GetPseudonymOk() (*string, bool) {
+	if o == nil || IsNil(o.Pseudonym) {
+		return nil, false
+	}
+	return o.Pseudonym, true
+}
+
+// HasPseudonym returns a boolean if a field has been set.
+func (o *UserDataAttributes) HasPseudonym() bool {
+	if o != nil && !IsNil(o.Pseudonym) {
+		return true
+	}
+
+	return false
+}
+
+// SetPseudonym gets a reference to the given string and assigns it to the Pseudonym field.
+func (o *UserDataAttributes) SetPseudonym(v string) {
+	o.Pseudonym = &v
+}
+
+// GetDescription returns the Description field value if set, zero value otherwise.
+func (o *UserDataAttributes) GetDescription() string {
+	if o == nil || IsNil(o.Description) {
+		var ret string
+		return ret
+	}
+	return *o.Description
+}
+
+// GetDescriptionOk returns a tuple with the Description field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *UserDataAttributes) GetDescriptionOk() (*string, bool) {
+	if o == nil || IsNil(o.Description) {
+		return nil, false
+	}
+	return o.Description, true
+}
+
+// HasDescription returns a boolean if a field has been set.
+func (o *UserDataAttributes) HasDescription() bool {
+	if o != nil && !IsNil(o.Description) {
+		return true
+	}
+
+	return false
+}
+
+// SetDescription gets a reference to the given string and assigns it to the Description field.
+func (o *UserDataAttributes) SetDescription(v string) {
+	o.Description = &v
+}
+
+// GetAvatarUrl returns the AvatarUrl field value if set, zero value otherwise.
+func (o *UserDataAttributes) GetAvatarUrl() string {
+	if o == nil || IsNil(o.AvatarUrl) {
+		var ret string
+		return ret
+	}
+	return *o.AvatarUrl
+}
+
+// GetAvatarUrlOk returns a tuple with the AvatarUrl field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *UserDataAttributes) GetAvatarUrlOk() (*string, bool) {
+	if o == nil || IsNil(o.AvatarUrl) {
+		return nil, false
+	}
+	return o.AvatarUrl, true
+}
+
+// HasAvatarUrl returns a boolean if a field has been set.
+func (o *UserDataAttributes) HasAvatarUrl() bool {
+	if o != nil && !IsNil(o.AvatarUrl) {
+		return true
+	}
+
+	return false
+}
+
+// SetAvatarUrl gets a reference to the given string and assigns it to the AvatarUrl field.
+func (o *UserDataAttributes) SetAvatarUrl(v string) {
+	o.AvatarUrl = &v
 }
 
 // GetRole returns the Role field value
@@ -161,6 +290,16 @@ func (o UserDataAttributes) MarshalJSON() ([]byte, error) {
 
 func (o UserDataAttributes) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
+	toSerialize["username"] = o.Username
+	if !IsNil(o.Pseudonym) {
+		toSerialize["pseudonym"] = o.Pseudonym
+	}
+	if !IsNil(o.Description) {
+		toSerialize["description"] = o.Description
+	}
+	if !IsNil(o.AvatarUrl) {
+		toSerialize["avatar_url"] = o.AvatarUrl
+	}
 	toSerialize["role"] = o.Role
 	toSerialize["version"] = o.Version
 	toSerialize["created_at"] = o.CreatedAt
@@ -173,6 +312,7 @@ func (o *UserDataAttributes) UnmarshalJSON(data []byte) (err error) {
 	// by unmarshalling the object into a generic map with string keys and checking
 	// that every required field exists as a key in the generic map.
 	requiredProperties := []string{
+		"username",
 		"role",
 		"version",
 		"created_at",

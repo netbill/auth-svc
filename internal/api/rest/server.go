@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/netbill/auth-svc/internal/media"
 	"github.com/netbill/auth-svc/pkg/log"
 	"github.com/netbill/restkit/tokens"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
@@ -18,8 +19,17 @@ type UserController interface {
 	RegistrationByAdmin(w http.ResponseWriter, r *http.Request)
 
 	GetMyUser(w http.ResponseWriter, r *http.Request)
+	UpdateMyUser(w http.ResponseWriter, r *http.Request)
+	UpdateUsername(w http.ResponseWriter, r *http.Request)
 	UpdatePassword(w http.ResponseWriter, r *http.Request)
 	DeleteMyUser(w http.ResponseWriter, r *http.Request)
+
+	GetUserByID(w http.ResponseWriter, r *http.Request)
+	GetUserByUsername(w http.ResponseWriter, r *http.Request)
+	FilterUsers(w http.ResponseWriter, r *http.Request)
+
+	CreateUploadMediaLink(w http.ResponseWriter, r *http.Request)
+	DeleteUploadMedia(w http.ResponseWriter, r *http.Request)
 }
 
 type SessionController interface {
@@ -45,6 +55,7 @@ type Middlewares interface {
 	UserAuth(allowedRoles ...string) func(next http.Handler) http.Handler
 	Logger(log *log.Logger) func(next http.Handler) http.Handler
 	CorsDocs() func(next http.Handler) http.Handler
+	ResolverUrl(resolver *media.Resolver) func(next http.Handler) http.Handler
 }
 
 type Server struct {
@@ -53,6 +64,7 @@ type Server struct {
 	qr          QRController
 	middlewares Middlewares
 	log         *log.Logger
+	resolver    *media.Resolver
 }
 
 type ServerDeps struct {
@@ -61,6 +73,7 @@ type ServerDeps struct {
 	QR          QRController
 	Middlewares Middlewares
 	Log         *log.Logger
+	Resolver    *media.Resolver
 }
 
 func New(deps ServerDeps) *Server {
@@ -70,6 +83,7 @@ func New(deps ServerDeps) *Server {
 		qr:          deps.QR,
 		middlewares: deps.Middlewares,
 		log:         deps.Log,
+		resolver:    deps.Resolver,
 	}
 }
 
@@ -88,6 +102,7 @@ func (s *Server) Run(ctx context.Context, cfg Config) {
 	r := chi.NewRouter()
 	r.Use(
 		s.middlewares.Logger(s.log),
+		s.middlewares.ResolverUrl(s.resolver),
 		s.middlewares.CorsDocs(),
 	)
 
@@ -116,10 +131,17 @@ func (s *Server) Run(ctx context.Context, cfg Config) {
 
 			r.With(auth).Route("/me", func(r chi.Router) {
 				r.Get("/", s.users.GetMyUser)
+				r.Patch("/", s.users.UpdateMyUser)
 				r.Delete("/", s.users.DeleteMyUser)
 
 				r.Post("/logout", s.sessions.Logout)
 				r.Patch("/password", s.users.UpdatePassword)
+				r.Patch("/username", s.users.UpdateUsername)
+
+				r.Route("/media", func(r chi.Router) {
+					r.Post("/", s.users.CreateUploadMediaLink)
+					r.Delete("/", s.users.DeleteUploadMedia)
+				})
 
 				r.Route("/sessions", func(r chi.Router) {
 					r.Get("/", s.sessions.GetMySessions)
@@ -130,6 +152,12 @@ func (s *Server) Run(ctx context.Context, cfg Config) {
 						r.Delete("/", s.sessions.DeleteMySession)
 					})
 				})
+			})
+
+			r.Route("/users", func(r chi.Router) {
+				r.Get("/", s.users.FilterUsers)
+				r.Get("/@{username}", s.users.GetUserByUsername)
+				r.Get("/{user_id:[0-9a-fA-F-]{36}}", s.users.GetUserByID)
 			})
 		})
 	})

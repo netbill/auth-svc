@@ -5,6 +5,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/netbill/auth-svc/internal/models"
+	"github.com/netbill/restkit/pagi"
 )
 
 //go:generate mockery --name=transaction --inpackage
@@ -14,9 +15,46 @@ type transaction interface {
 
 //go:generate mockery --name=userRepo --inpackage
 type userRepo interface {
-	Create(ctx context.Context, params RegistrationParams) (models.User, error)
+	Create(ctx context.Context, params RegistrationParams, username string) (models.User, error)
 	GetByID(ctx context.Context, userID uuid.UUID) (models.User, error)
+	GetByUsername(ctx context.Context, username string) (models.User, error)
+	ExistByUsername(ctx context.Context, username string) (bool, error)
+	Update(ctx context.Context, userID uuid.UUID, params UpdateParams) (models.User, error)
+	UpdateUsername(ctx context.Context, userID uuid.UUID, username string) (models.User, error)
+	Filter(ctx context.Context, params FilterParams, limit, offset uint) (pagi.Page[[]models.User], error)
 	Delete(ctx context.Context, userID uuid.UUID) (models.User, error)
+}
+
+//go:generate mockery --name=media --inpackage
+type media interface {
+	CreateUserAvatarUploadMediaLinks(
+		ctx context.Context,
+		userID uuid.UUID,
+	) (models.UploadMediaLink, error)
+
+	DeleteUploadUserAvatar(
+		ctx context.Context,
+		userID uuid.UUID,
+		key string,
+	) error
+
+	DeleteUserAvatar(
+		ctx context.Context,
+		userID uuid.UUID,
+		key string,
+	) error
+
+	UpdateUserAvatar(
+		ctx context.Context,
+		userID uuid.UUID,
+		key string,
+	) (string, error)
+}
+
+//go:generate mockery --name=usernameGenerator --inpackage
+type usernameGenerator interface {
+	Validate(username string) error
+	Generate() string
 }
 
 //go:generate mockery --name=emailRepo --inpackage

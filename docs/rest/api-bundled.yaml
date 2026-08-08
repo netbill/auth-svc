@@ -268,6 +268,53 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Errors'
+    patch:
+      tags:
+        - users
+      summary: Update my user profile
+      description: |
+        Updates the profile fields (pseudonym, description, avatar) of the authenticated user. The request body must contain the same `data.id` as the authenticated user id.
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateProfile'
+      responses:
+        '200':
+          description: User profile successfully updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          description: Bad request (validation error / invalid avatar key).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Errors'
+        '401':
+          description: |
+            Unauthorized. The session is invalid or does not belong to the authenticated user.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Errors'
+        '404':
+          description: |
+            User not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Errors'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Errors'
     delete:
       tags:
         - users
@@ -352,6 +399,119 @@ paths:
                 $ref: '#/components/schemas/Errors'
         '500':
           description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Errors'
+  /auth-svc/v1/me/username:
+    patch:
+      tags:
+        - users
+      summary: Update my username
+      description: |
+        Updates the authenticated user's username. The request body must contain the same `data.id` as the authenticated user id.
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateUsername'
+      responses:
+        '200':
+          description: Username successfully updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          description: Bad request (validation error / invalid username).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Errors'
+        '401':
+          description: |
+            Unauthorized. The session is invalid or does not belong to the authenticated user.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Errors'
+        '404':
+          description: |
+            User not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Errors'
+        '409':
+          description: Conflict (username already taken).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Errors'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Errors'
+  /auth-svc/v1/me/media:
+    post:
+      tags:
+        - users
+      summary: Create user avatar upload media link
+      description: |
+        Creates upload media links for the authenticated user's avatar.
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Upload media links successfully created.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UploadUserMediaLinks'
+        '401':
+          description: |
+            Unauthorized. Missing or invalid authorization token, or the authenticated user does not exist.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Errors'
+        '500':
+          description: Internal Server Error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Errors'
+    delete:
+      tags:
+        - users
+      summary: Delete uploaded user media
+      description: |
+        Deletes a previously uploaded (not yet attached) media for the user's avatar.
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DeleteUploadUserAvatar'
+      responses:
+        '200':
+          description: Media successfully deleted.
+        '401':
+          description: |
+            Unauthorized. Missing or invalid authorization token, or the authenticated user does not exist.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Errors'
+        '500':
+          description: Internal Server Error.
           content:
             application/json:
               schema:
@@ -585,6 +745,123 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Errors'
+  /auth-svc/v1/users/:
+    get:
+      tags:
+        - users
+      summary: Filter users
+      description: |
+        Returns a paginated list of public users filtered by optional query parameters. Supports prefix-based filtering for `username` and `pseudonym`.
+      parameters:
+        - in: query
+          name: text
+          required: false
+          schema:
+            type: string
+          description: |
+            Text to filter users by. Matches against `username` and `pseudonym` fields.
+        - in: query
+          name: page
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+          description: Page number (1-based).
+        - in: query
+          name: size
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+          description: Max number of items per page (1-100).
+      responses:
+        '200':
+          description: Users list.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UsersCollection'
+        '500':
+          description: Internal server error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Errors'
+  '/auth-svc/v1/users/@{username}':
+    get:
+      tags:
+        - users
+      summary: Get user by username
+      description: |
+        Returns a public user by `username`. If the user does not exist, responds with 404.
+      parameters:
+        - name: username
+          in: path
+          required: true
+          description: Username of the user.
+          schema:
+            type: string
+            minLength: 1
+      responses:
+        '200':
+          description: User found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '404':
+          description: User does not exist.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Errors'
+        '500':
+          description: Internal server error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Errors'
+  '/auth-svc/v1/users/{user_id}':
+    get:
+      tags:
+        - users
+      summary: Get user by id
+      description: |
+        Returns a public user by `user_id` (UUID). If the user does not exist, responds with 404.
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          description: User id (UUID).
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: User found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          description: Bad request (invalid user_id).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Errors'
+        '404':
+          description: User does not exist.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Errors'
+        '500':
+          description: Internal server error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Errors'
 components:
   securitySchemes:
     BearerAuth:
@@ -748,6 +1025,92 @@ components:
                   format: password
                   description: The user's password.
                   example: StrongP@ssw0rd!
+    UpdateProfile:
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          type: object
+          required:
+            - id
+            - type
+            - attributes
+          properties:
+            id:
+              type: string
+              format: uuid
+              description: user id
+            type:
+              type: string
+              enum:
+                - user_profile
+            attributes:
+              type: object
+              properties:
+                pseudonym:
+                  type: string
+                  description: pseudonym
+                description:
+                  type: string
+                  description: description
+                avatar_key:
+                  type: string
+                  description: avatar media key
+    UpdateUsername:
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          type: object
+          required:
+            - id
+            - type
+            - attributes
+          properties:
+            id:
+              type: string
+              format: uuid
+              description: user id
+            type:
+              type: string
+              enum:
+                - user_username
+            attributes:
+              type: object
+              required:
+                - username
+              properties:
+                username:
+                  type: string
+                  description: new username
+    DeleteUploadUserAvatar:
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          type: object
+          required:
+            - id
+            - type
+            - attributes
+          properties:
+            id:
+              type: string
+              format: uuid
+              description: user id
+            type:
+              type: string
+              enum:
+                - user_avatar
+            attributes:
+              type: object
+              properties:
+                avatar_key:
+                  type: string
+                  description: avatar media key
     QRConfirm:
       type: object
       required:
@@ -929,47 +1292,146 @@ components:
         - data
       properties:
         data:
-          type: object
-          required:
-            - id
-            - type
-            - attributes
-          properties:
-            id:
-              type: string
-              format: uuid
-              description: user ID
-            type:
-              type: string
-              enum:
-                - user
-            attributes:
-              type: object
-              required:
-                - role
-                - version
-                - created_at
-                - updated_at
-              properties:
-                role:
-                  type: string
-                  description: The role assigned to the user
-                version:
-                  type: integer
-                  description: The version number of the user record
-                created_at:
-                  type: string
-                  format: date-time
-                  description: The date and time when the user was created
-                updated_at:
-                  type: string
-                  format: date-time
-                  description: The date and time when the user was last updated
+          $ref: '#/components/schemas/UserData'
         included:
           type: array
           items:
             oneOf:
               - $ref: '#/components/schemas/UserEmail'
+    UserData:
+      type: object
+      required:
+        - id
+        - type
+        - attributes
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: user id
+        type:
+          type: string
+          enum:
+            - user
+        attributes:
+          type: object
+          required:
+            - username
+            - role
+            - version
+            - created_at
+            - updated_at
+          properties:
+            username:
+              type: string
+              description: unique username
+            pseudonym:
+              type: string
+              description: display name
+            description:
+              type: string
+              description: user bio
+            avatar_url:
+              type: string
+              format: uri
+              description: 'resolved URL of the user''s avatar, if one is set'
+            role:
+              type: string
+              description: The role assigned to the user
+            version:
+              type: integer
+              description: The version number of the user record
+            created_at:
+              type: string
+              format: date-time
+              description: The date and time when the user was created
+            updated_at:
+              type: string
+              format: date-time
+              description: The date and time when the user was last updated
+    UsersCollection:
+      type: object
+      required:
+        - data
+        - links
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/UserData'
+        links:
+          $ref: '#/components/schemas/PaginationData'
+    UploadUserMediaLinks:
+      type: object
+      required:
+        - data
+        - included
+      properties:
+        data:
+          type: object
+          required:
+            - id
+            - type
+            - attributes
+            - relationships
+          properties:
+            id:
+              type: string
+              format: uuid
+              description: user id
+            type:
+              type: string
+              enum:
+                - user_upload_links
+            attributes:
+              type: object
+              required:
+                - avatar
+              properties:
+                avatar:
+                  type: object
+                  required:
+                    - key
+                    - upload_url
+                    - preload_url
+                  properties:
+                    key:
+                      type: string
+                      description: Key for the avatar in the storage service
+                    upload_url:
+                      type: string
+                      format: uri
+                      description: Pre-signed URL for uploading the avatar
+                    preload_url:
+                      type: string
+                      format: uri
+                      description: URL for preloading the avatar after upload
+            relationships:
+              type: object
+              properties:
+                user:
+                  type: object
+                  required:
+                    - data
+                  properties:
+                    data:
+                      type: object
+                      required:
+                        - id
+                        - type
+                      properties:
+                        id:
+                          type: string
+                          format: uuid
+                          description: User id
+                        type:
+                          type: string
+                          enum:
+                            - user
+        included:
+          type: array
+          items:
+            $ref: '#/components/schemas/UserData'
     UserEmail:
       type: object
       required:

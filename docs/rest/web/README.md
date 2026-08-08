@@ -86,7 +86,14 @@ Class | Method | HTTP request | Description
 *SessionsAPI* | [**AuthSvcV1RefreshPost**](docs/SessionsAPI.md#authsvcv1refreshpost) | **Post** /auth-svc/v1/refresh | Refresh session
 *UsersAPI* | [**AuthSvcV1MeDelete**](docs/UsersAPI.md#authsvcv1medelete) | **Delete** /auth-svc/v1/me | Delete my user
 *UsersAPI* | [**AuthSvcV1MeGet**](docs/UsersAPI.md#authsvcv1meget) | **Get** /auth-svc/v1/me | Get my user
+*UsersAPI* | [**AuthSvcV1MeMediaDelete**](docs/UsersAPI.md#authsvcv1memediadelete) | **Delete** /auth-svc/v1/me/media | Delete uploaded user media
+*UsersAPI* | [**AuthSvcV1MeMediaPost**](docs/UsersAPI.md#authsvcv1memediapost) | **Post** /auth-svc/v1/me/media | Create user avatar upload media link
 *UsersAPI* | [**AuthSvcV1MePasswordPatch**](docs/UsersAPI.md#authsvcv1mepasswordpatch) | **Patch** /auth-svc/v1/me/password | Update password
+*UsersAPI* | [**AuthSvcV1MePatch**](docs/UsersAPI.md#authsvcv1mepatch) | **Patch** /auth-svc/v1/me | Update my user profile
+*UsersAPI* | [**AuthSvcV1MeUsernamePatch**](docs/UsersAPI.md#authsvcv1meusernamepatch) | **Patch** /auth-svc/v1/me/username | Update my username
+*UsersAPI* | [**AuthSvcV1UsersGet**](docs/UsersAPI.md#authsvcv1usersget) | **Get** /auth-svc/v1/users/ | Filter users
+*UsersAPI* | [**AuthSvcV1UsersUserIdGet**](docs/UsersAPI.md#authsvcv1usersuseridget) | **Get** /auth-svc/v1/users/{user_id} | Get user by id
+*UsersAPI* | [**AuthSvcV1UsersUsernameGet**](docs/UsersAPI.md#authsvcv1usersusernameget) | **Get** /auth-svc/v1/users/@{username} | Get user by username
 
 
 ## Documentation For Models
@@ -94,6 +101,9 @@ Class | Method | HTTP request | Description
  - [AccessToken](docs/AccessToken.md)
  - [AccessTokenData](docs/AccessTokenData.md)
  - [AccessTokenDataAttributes](docs/AccessTokenDataAttributes.md)
+ - [DeleteUploadUserAvatar](docs/DeleteUploadUserAvatar.md)
+ - [DeleteUploadUserAvatarData](docs/DeleteUploadUserAvatarData.md)
+ - [DeleteUploadUserAvatarDataAttributes](docs/DeleteUploadUserAvatarDataAttributes.md)
  - [Errors](docs/Errors.md)
  - [ErrorsErrorsInner](docs/ErrorsErrorsInner.md)
  - [LoginByEmail](docs/LoginByEmail.md)
@@ -120,6 +130,19 @@ Class | Method | HTTP request | Description
  - [UpdatePassword](docs/UpdatePassword.md)
  - [UpdatePasswordData](docs/UpdatePasswordData.md)
  - [UpdatePasswordDataAttributes](docs/UpdatePasswordDataAttributes.md)
+ - [UpdateProfile](docs/UpdateProfile.md)
+ - [UpdateProfileData](docs/UpdateProfileData.md)
+ - [UpdateProfileDataAttributes](docs/UpdateProfileDataAttributes.md)
+ - [UpdateUsername](docs/UpdateUsername.md)
+ - [UpdateUsernameData](docs/UpdateUsernameData.md)
+ - [UpdateUsernameDataAttributes](docs/UpdateUsernameDataAttributes.md)
+ - [UploadUserMediaLinks](docs/UploadUserMediaLinks.md)
+ - [UploadUserMediaLinksData](docs/UploadUserMediaLinksData.md)
+ - [UploadUserMediaLinksDataAttributes](docs/UploadUserMediaLinksDataAttributes.md)
+ - [UploadUserMediaLinksDataAttributesAvatar](docs/UploadUserMediaLinksDataAttributesAvatar.md)
+ - [UploadUserMediaLinksDataRelationships](docs/UploadUserMediaLinksDataRelationships.md)
+ - [UploadUserMediaLinksDataRelationshipsUser](docs/UploadUserMediaLinksDataRelationshipsUser.md)
+ - [UploadUserMediaLinksDataRelationshipsUserData](docs/UploadUserMediaLinksDataRelationshipsUserData.md)
  - [User](docs/User.md)
  - [UserData](docs/UserData.md)
  - [UserDataAttributes](docs/UserDataAttributes.md)
@@ -129,6 +152,7 @@ Class | Method | HTTP request | Description
  - [UserSessionAttributes](docs/UserSessionAttributes.md)
  - [UserSessionData](docs/UserSessionData.md)
  - [UserSessionsCollection](docs/UserSessionsCollection.md)
+ - [UsersCollection](docs/UsersCollection.md)
 
 
 ## Documentation For Authorization

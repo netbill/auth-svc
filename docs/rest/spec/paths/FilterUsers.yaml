@@ -1,0 +1,44 @@
+get:
+  tags:
+    - users
+  summary: Filter users
+  description: >
+    Returns a paginated list of public users filtered by optional query parameters.
+    Supports prefix-based filtering for `username` and `pseudonym`.
+  parameters:
+    - in: query
+      name: text
+      required: false
+      schema:
+        type: string
+      description: >
+        Text to filter users by. Matches against `username` and `pseudonym` fields.
+    - in: query
+      name: page
+      required: false
+      schema:
+        type: integer
+        minimum: 1
+      description: Page number (1-based).
+    - in: query
+      name: size
+      required: false
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+      description: Max number of items per page (1-100).
+  responses:
+    "200":
+      description: Users list.
+      content:
+        application/json:
+          schema:
+            $ref: "../components/schemas/responses/UsersCollection.yaml"
+
+    "500":
+      description: Internal server error.
+      content:
+        application/json:
+          schema:
+            $ref: "../components/schemas/responses/Errors.yaml"

@@ -28,7 +28,7 @@ func CreateUser(t *testing.T, db *pgdbx.DB, email string) (models.User, models.U
 
 	acc, err := userRepo.Create(ctx, user.RegistrationParams{
 		Role: "user",
-	})
+	}, UniqueUsername())
 	require.NoError(t, err)
 
 	em, err := emailRepo.Create(ctx, models.UserEmail{

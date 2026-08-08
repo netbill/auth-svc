@@ -3,41 +3,7 @@ required:
   - data
 properties:
   data:
-    type: object
-    required:
-      - id
-      - type
-      - attributes
-    properties:
-      id:
-        type: string
-        format: uuid
-        description: "user ID"
-      type:
-        type: string
-        enum: [ user ]
-      attributes:
-        type: object
-        required:
-          - role
-          - version
-          - created_at
-          - updated_at
-        properties:
-          role:
-            type: string
-            description: "The role assigned to the user"
-          version:
-            type: integer
-            description: "The version number of the user record"
-          created_at:
-            type: string
-            format: date-time
-            description: "The date and time when the user was created"
-          updated_at:
-            type: string
-            format: date-time
-            description: "The date and time when the user was last updated"
+    $ref: './UserData.yaml'
   included:
     type: array
     items:

@@ -22,7 +22,7 @@ var _ MappedNullable = &UserData{}
 
 // UserData struct for UserData
 type UserData struct {
-	// user ID
+	// user id
 	Id         uuid.UUID          `json:"id"`
 	Type       string             `json:"type"`
 	Attributes UserDataAttributes `json:"attributes"`

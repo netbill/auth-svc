@@ -5,11 +5,14 @@ import (
 	"fmt"
 	"sync"
 
+	awscfg "github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/credentials"
 	grpcapi "github.com/netbill/auth-svc/internal/api/grpc"
 	"github.com/netbill/auth-svc/internal/api/rest"
 	"github.com/netbill/auth-svc/internal/api/rest/controller"
 	"github.com/netbill/auth-svc/internal/api/rest/middlewares"
 	"github.com/netbill/auth-svc/internal/bus"
+	"github.com/netbill/auth-svc/internal/media"
 	authmodule "github.com/netbill/auth-svc/internal/modules/auth"
 	"github.com/netbill/auth-svc/internal/modules/session"
 	"github.com/netbill/auth-svc/internal/modules/user"
@@ -20,6 +23,8 @@ import (
 	"github.com/netbill/auth-svc/pkg/googleid"
 	"github.com/netbill/auth-svc/pkg/passmanager"
 	"github.com/netbill/auth-svc/pkg/tokenmanager"
+	"github.com/netbill/auth-svc/pkg/username"
+	"github.com/netbill/awsx"
 	"github.com/netbill/pgdbx"
 )
 
@@ -78,6 +83,28 @@ func (a *App) Run(ctx context.Context) error {
 
 	passMgr := passmanager.New(a.config.Auth.PassBcryptCost)
 
+	awsCfg, err := awscfg.LoadDefaultConfig(
+		ctx,
+		awscfg.WithRegion(a.config.S3.Aws.Region),
+		awscfg.WithCredentialsProvider(
+			credentials.NewStaticCredentialsProvider(
+				a.config.S3.Aws.AccessKeyID,
+				a.config.S3.Aws.SecretAccessKey,
+				a.config.S3.Aws.SessionToken,
+			),
+		),
+	)
+	if err != nil {
+		return fmt.Errorf("load aws config: %w", err)
+	}
+
+	mediaStorage := media.NewStorage(awsx.New(a.config.S3.Aws.BucketName, awsCfg), media.Config{
+		LinkTTL:    a.config.S3.Media.Link.TTL,
+		UserAvatar: a.config.S3.Media.Resources.User.Avatar,
+	})
+	mediaResolver := media.NewResolver(a.config.S3.Aws.BaseURL)
+	usernameValidator := username.NewValidator()
+
 	tokenMgr := tokenmanager.New(tokenmanager.Config{
 		Issuer:           a.config.Auth.Tokens.Issuer,
 		AccessSecretKey:  a.config.Auth.Tokens.UserAccess.SecretKey,
@@ -105,6 +132,8 @@ func (a *App) Run(ctx context.Context) error {
 		SessionsCache: sessionCache,
 		PassManager:   passMgr,
 		Messenger:     outboxRepo,
+		Bucket:        mediaStorage,
+		Username:      usernameValidator,
 	})
 
 	broker := bus.NewBroker(qrPublisher, qrSubscriber)
@@ -135,6 +164,7 @@ func (a *App) Run(ctx context.Context) error {
 		QR:          sessionCtrl,
 		Middlewares: mdll,
 		Log:         a.log,
+		Resolver:    mediaResolver,
 	})
 
 	run(func() {

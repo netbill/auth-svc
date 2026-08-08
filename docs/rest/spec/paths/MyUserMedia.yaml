@@ -1,0 +1,62 @@
+post:
+  tags:
+    - users
+  summary: Create user avatar upload media link
+  description: >
+    Creates upload media links for the authenticated user's avatar.
+  security:
+    - BearerAuth: [ ]
+  responses:
+    '200':
+      description: Upload media links successfully created.
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/responses/UploadUserMediaLinks.yaml'
+    '401':
+      description: >
+        Unauthorized. Missing or invalid authorization token,
+        or the authenticated user does not exist.
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/responses/Errors.yaml'
+
+    '500':
+      description: Internal Server Error.
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/responses/Errors.yaml'
+
+delete:
+  tags:
+    - users
+  summary: Delete uploaded user media
+  description: >
+    Deletes a previously uploaded (not yet attached) media for the user's avatar.
+  security:
+    - BearerAuth: [ ]
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: '../components/schemas/requests/DeleteUploadUserAvatar.yaml'
+  responses:
+    '200':
+      description: Media successfully deleted.
+    '401':
+      description: >
+        Unauthorized. Missing or invalid authorization token,
+        or the authenticated user does not exist.
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/responses/Errors.yaml'
+    '500':
+      description: Internal Server Error.
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/responses/Errors.yaml'

@@ -13,13 +13,27 @@ type UserActor struct {
 }
 
 type User struct {
-	ID      uuid.UUID `json:"id"`
-	Role    string    `json:"role"`
-	Version int32     `json:"version"`
+	ID          uuid.UUID `json:"id"`
+	Role        string    `json:"role"`
+	Username    string    `json:"username"`
+	Pseudonym   *string   `json:"pseudonym,omitempty"`
+	Description *string   `json:"description,omitempty"`
+	AvatarKey   *string   `json:"avatar_key,omitempty"`
+	Version     int32     `json:"version"`
 
 	CreatedAt time.Time  `json:"created_at"`
 	UpdatedAt time.Time  `json:"updated_at"`
 	DeletedAt *time.Time `json:"deleted_at,omitempty"`
+}
+
+type UploadUserMediaLinks struct {
+	Avatar UploadMediaLink `json:"avatar"`
+}
+
+type UploadMediaLink struct {
+	Key        string `json:"key"`
+	UploadURL  string `json:"upload_url"`
+	PreloadUrl string `json:"preload_url"`
 }
 
 type UserEmail struct {

@@ -304,6 +304,53 @@ paths:
       summary: Get my user
       tags:
       - users
+    patch:
+      description: |
+        Updates the profile fields (pseudonym, description, avatar) of the authenticated user. The request body must contain the same `data.id` as the authenticated user id.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateProfile"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+          description: User profile successfully updated
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Errors"
+          description: Bad request (validation error / invalid avatar key).
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Errors"
+          description: |
+            Unauthorized. The session is invalid or does not belong to the authenticated user.
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Errors"
+          description: |
+            User not found.
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Errors"
+          description: Internal Server Error
+      security:
+      - BearerAuth: []
+      summary: Update my user profile
+      tags:
+      - users
   /auth-svc/v1/me/logout:
     post:
       description: |
@@ -359,6 +406,119 @@ paths:
       security:
       - BearerAuth: []
       summary: Update password
+      tags:
+      - users
+  /auth-svc/v1/me/username:
+    patch:
+      description: |
+        Updates the authenticated user's username. The request body must contain the same `data.id` as the authenticated user id.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateUsername"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+          description: Username successfully updated
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Errors"
+          description: Bad request (validation error / invalid username).
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Errors"
+          description: |
+            Unauthorized. The session is invalid or does not belong to the authenticated user.
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Errors"
+          description: |
+            User not found.
+        "409":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Errors"
+          description: Conflict (username already taken).
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Errors"
+          description: Internal Server Error
+      security:
+      - BearerAuth: []
+      summary: Update my username
+      tags:
+      - users
+  /auth-svc/v1/me/media:
+    delete:
+      description: |
+        Deletes a previously uploaded (not yet attached) media for the user's avatar.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DeleteUploadUserAvatar"
+        required: true
+      responses:
+        "200":
+          description: Media successfully deleted.
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Errors"
+          description: |
+            Unauthorized. Missing or invalid authorization token, or the authenticated user does not exist.
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Errors"
+          description: Internal Server Error.
+      security:
+      - BearerAuth: []
+      summary: Delete uploaded user media
+      tags:
+      - users
+    post:
+      description: |
+        Creates upload media links for the authenticated user's avatar.
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UploadUserMediaLinks"
+          description: Upload media links successfully created.
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Errors"
+          description: |
+            Unauthorized. Missing or invalid authorization token, or the authenticated user does not exist.
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Errors"
+          description: Internal Server Error.
+      security:
+      - BearerAuth: []
+      summary: Create user avatar upload media link
       tags:
       - users
   /auth-svc/v1/me/sessions:
@@ -621,6 +781,133 @@ paths:
       summary: Confirm QR token
       tags:
       - qr
+  /auth-svc/v1/users/:
+    get:
+      description: |
+        Returns a paginated list of public users filtered by optional query parameters. Supports prefix-based filtering for `username` and `pseudonym`.
+      parameters:
+      - description: |
+          Text to filter users by. Matches against `username` and `pseudonym` fields.
+        explode: true
+        in: query
+        name: text
+        required: false
+        schema:
+          type: string
+        style: form
+      - description: Page number (1-based).
+        explode: true
+        in: query
+        name: page
+        required: false
+        schema:
+          minimum: 1
+          type: integer
+        style: form
+      - description: Max number of items per page (1-100).
+        explode: true
+        in: query
+        name: size
+        required: false
+        schema:
+          maximum: 100
+          minimum: 1
+          type: integer
+        style: form
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UsersCollection"
+          description: Users list.
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Errors"
+          description: Internal server error.
+      summary: Filter users
+      tags:
+      - users
+  /auth-svc/v1/users/@{username}:
+    get:
+      description: |
+        Returns a public user by `username`. If the user does not exist, responds with 404.
+      parameters:
+      - description: Username of the user.
+        explode: false
+        in: path
+        name: username
+        required: true
+        schema:
+          minLength: 1
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+          description: User found.
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Errors"
+          description: User does not exist.
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Errors"
+          description: Internal server error.
+      summary: Get user by username
+      tags:
+      - users
+  /auth-svc/v1/users/{user_id}:
+    get:
+      description: |
+        Returns a public user by `user_id` (UUID). If the user does not exist, responds with 404.
+      parameters:
+      - description: User id (UUID).
+        explode: false
+        in: path
+        name: user_id
+        required: true
+        schema:
+          format: uuid
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+          description: User found.
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Errors"
+          description: Bad request (invalid user_id).
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Errors"
+          description: User does not exist.
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Errors"
+          description: Internal server error.
+      summary: Get user by id
+      tags:
+      - users
 components:
   schemas:
     LoginByEmail:
@@ -681,6 +968,44 @@ components:
       properties:
         data:
           $ref: "#/components/schemas/UpdatePassword_data"
+      required:
+      - data
+    UpdateProfile:
+      example:
+        data:
+          id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+          type: user_profile
+          attributes:
+            pseudonym: pseudonym
+            description: description
+            avatar_key: avatar_key
+      properties:
+        data:
+          $ref: "#/components/schemas/UpdateProfile_data"
+      required:
+      - data
+    UpdateUsername:
+      example:
+        data:
+          id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+          type: user_username
+          attributes:
+            username: username
+      properties:
+        data:
+          $ref: "#/components/schemas/UpdateUsername_data"
+      required:
+      - data
+    DeleteUploadUserAvatar:
+      example:
+        data:
+          id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+          type: user_avatar
+          attributes:
+            avatar_key: avatar_key
+      properties:
+        data:
+          $ref: "#/components/schemas/DeleteUploadUserAvatar_data"
       required:
       - data
     QRConfirm:
@@ -844,6 +1169,10 @@ components:
           id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
           type: user
           attributes:
+            username: username
+            pseudonym: pseudonym
+            description: description
+            avatar_url: https://openapi-generator.tech
             role: role
             version: 0
             created_at: 2000-01-23T04:56:07.000+00:00
@@ -867,7 +1196,7 @@ components:
             created_at: 2000-01-23T04:56:07.000+00:00
       properties:
         data:
-          $ref: "#/components/schemas/User_data"
+          $ref: "#/components/schemas/UserData"
         included:
           items:
             $ref: "#/components/schemas/UserEmail"
@@ -875,6 +1204,125 @@ components:
           default: null
       required:
       - data
+    UserData:
+      example:
+        id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+        type: user
+        attributes:
+          username: username
+          pseudonym: pseudonym
+          description: description
+          avatar_url: https://openapi-generator.tech
+          role: role
+          version: 0
+          created_at: 2000-01-23T04:56:07.000+00:00
+          updated_at: 2000-01-23T04:56:07.000+00:00
+      properties:
+        id:
+          description: user id
+          format: uuid
+          type: string
+        type:
+          enum:
+          - user
+          type: string
+        attributes:
+          $ref: "#/components/schemas/UserData_attributes"
+      required:
+      - attributes
+      - id
+      - type
+    UsersCollection:
+      example:
+        data:
+        - id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+          type: user
+          attributes:
+            username: username
+            pseudonym: pseudonym
+            description: description
+            avatar_url: https://openapi-generator.tech
+            role: role
+            version: 0
+            created_at: 2000-01-23T04:56:07.000+00:00
+            updated_at: 2000-01-23T04:56:07.000+00:00
+        - id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+          type: user
+          attributes:
+            username: username
+            pseudonym: pseudonym
+            description: description
+            avatar_url: https://openapi-generator.tech
+            role: role
+            version: 0
+            created_at: 2000-01-23T04:56:07.000+00:00
+            updated_at: 2000-01-23T04:56:07.000+00:00
+        links:
+          self: https://openapi-generator.tech
+          first: https://openapi-generator.tech
+          last: https://openapi-generator.tech
+          prev: https://openapi-generator.tech
+          next: https://openapi-generator.tech
+      properties:
+        data:
+          items:
+            $ref: "#/components/schemas/UserData"
+          type: array
+          default: null
+        links:
+          $ref: "#/components/schemas/PaginationData"
+      required:
+      - data
+      - links
+    UploadUserMediaLinks:
+      example:
+        data:
+          id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+          type: user_upload_links
+          attributes:
+            avatar:
+              key: key
+              upload_url: https://openapi-generator.tech
+              preload_url: https://openapi-generator.tech
+          relationships:
+            user:
+              data:
+                id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+                type: user
+        included:
+        - id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+          type: user
+          attributes:
+            username: username
+            pseudonym: pseudonym
+            description: description
+            avatar_url: https://openapi-generator.tech
+            role: role
+            version: 0
+            created_at: 2000-01-23T04:56:07.000+00:00
+            updated_at: 2000-01-23T04:56:07.000+00:00
+        - id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+          type: user
+          attributes:
+            username: username
+            pseudonym: pseudonym
+            description: description
+            avatar_url: https://openapi-generator.tech
+            role: role
+            version: 0
+            created_at: 2000-01-23T04:56:07.000+00:00
+            updated_at: 2000-01-23T04:56:07.000+00:00
+      properties:
+        data:
+          $ref: "#/components/schemas/UploadUserMediaLinks_data"
+        included:
+          items:
+            $ref: "#/components/schemas/UserData"
+          type: array
+          default: null
+      required:
+      - data
+      - included
     UserEmail:
       example:
         id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
@@ -1102,6 +1550,102 @@ components:
       required:
       - attributes
       - type
+    UpdateProfile_data_attributes:
+      example:
+        pseudonym: pseudonym
+        description: description
+        avatar_key: avatar_key
+      properties:
+        pseudonym:
+          description: pseudonym
+          type: string
+        description:
+          description: description
+          type: string
+        avatar_key:
+          description: avatar media key
+          type: string
+    UpdateProfile_data:
+      example:
+        id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+        type: user_profile
+        attributes:
+          pseudonym: pseudonym
+          description: description
+          avatar_key: avatar_key
+      properties:
+        id:
+          description: user id
+          format: uuid
+          type: string
+        type:
+          enum:
+          - user_profile
+          type: string
+        attributes:
+          $ref: "#/components/schemas/UpdateProfile_data_attributes"
+      required:
+      - attributes
+      - id
+      - type
+    UpdateUsername_data_attributes:
+      example:
+        username: username
+      properties:
+        username:
+          description: new username
+          type: string
+      required:
+      - username
+    UpdateUsername_data:
+      example:
+        id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+        type: user_username
+        attributes:
+          username: username
+      properties:
+        id:
+          description: user id
+          format: uuid
+          type: string
+        type:
+          enum:
+          - user_username
+          type: string
+        attributes:
+          $ref: "#/components/schemas/UpdateUsername_data_attributes"
+      required:
+      - attributes
+      - id
+      - type
+    DeleteUploadUserAvatar_data_attributes:
+      example:
+        avatar_key: avatar_key
+      properties:
+        avatar_key:
+          description: avatar media key
+          type: string
+    DeleteUploadUserAvatar_data:
+      example:
+        id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+        type: user_avatar
+        attributes:
+          avatar_key: avatar_key
+      properties:
+        id:
+          description: user id
+          format: uuid
+          type: string
+        type:
+          enum:
+          - user_avatar
+          type: string
+        attributes:
+          $ref: "#/components/schemas/DeleteUploadUserAvatar_data_attributes"
+      required:
+      - attributes
+      - id
+      - type
     QRConfirm_data_attributes:
       example:
         qr_token: 550e8400-e29b-41d4-a716-446655440000
@@ -1205,13 +1749,30 @@ components:
       required:
       - attributes
       - type
-    User_data_attributes:
+    UserData_attributes:
       example:
+        username: username
+        pseudonym: pseudonym
+        description: description
+        avatar_url: https://openapi-generator.tech
         role: role
         version: 0
         created_at: 2000-01-23T04:56:07.000+00:00
         updated_at: 2000-01-23T04:56:07.000+00:00
       properties:
+        username:
+          description: unique username
+          type: string
+        pseudonym:
+          description: display name
+          type: string
+        description:
+          description: user bio
+          type: string
+        avatar_url:
+          description: "resolved URL of the user's avatar, if one is set"
+          format: uri
+          type: string
         role:
           description: The role assigned to the user
           type: string
@@ -1230,30 +1791,106 @@ components:
       - created_at
       - role
       - updated_at
+      - username
       - version
-    User_data:
+    UploadUserMediaLinks_data_attributes_avatar:
+      example:
+        key: key
+        upload_url: https://openapi-generator.tech
+        preload_url: https://openapi-generator.tech
+      properties:
+        key:
+          description: Key for the avatar in the storage service
+          type: string
+        upload_url:
+          description: Pre-signed URL for uploading the avatar
+          format: uri
+          type: string
+        preload_url:
+          description: URL for preloading the avatar after upload
+          format: uri
+          type: string
+      required:
+      - key
+      - preload_url
+      - upload_url
+    UploadUserMediaLinks_data_attributes:
+      example:
+        avatar:
+          key: key
+          upload_url: https://openapi-generator.tech
+          preload_url: https://openapi-generator.tech
+      properties:
+        avatar:
+          $ref: "#/components/schemas/UploadUserMediaLinks_data_attributes_avatar"
+      required:
+      - avatar
+    UploadUserMediaLinks_data_relationships_user_data:
       example:
         id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
         type: user
-        attributes:
-          role: role
-          version: 0
-          created_at: 2000-01-23T04:56:07.000+00:00
-          updated_at: 2000-01-23T04:56:07.000+00:00
       properties:
         id:
-          description: user ID
+          description: User id
           format: uuid
           type: string
         type:
           enum:
           - user
           type: string
+      required:
+      - id
+      - type
+    UploadUserMediaLinks_data_relationships_user:
+      example:
+        data:
+          id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+          type: user
+      properties:
+        data:
+          $ref: "#/components/schemas/UploadUserMediaLinks_data_relationships_user_data"
+      required:
+      - data
+    UploadUserMediaLinks_data_relationships:
+      example:
+        user:
+          data:
+            id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+            type: user
+      properties:
+        user:
+          $ref: "#/components/schemas/UploadUserMediaLinks_data_relationships_user"
+    UploadUserMediaLinks_data:
+      example:
+        id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+        type: user_upload_links
         attributes:
-          $ref: "#/components/schemas/User_data_attributes"
+          avatar:
+            key: key
+            upload_url: https://openapi-generator.tech
+            preload_url: https://openapi-generator.tech
+        relationships:
+          user:
+            data:
+              id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+              type: user
+      properties:
+        id:
+          description: user id
+          format: uuid
+          type: string
+        type:
+          enum:
+          - user_upload_links
+          type: string
+        attributes:
+          $ref: "#/components/schemas/UploadUserMediaLinks_data_attributes"
+        relationships:
+          $ref: "#/components/schemas/UploadUserMediaLinks_data_relationships"
       required:
       - attributes
       - id
+      - relationships
       - type
     UserEmail_attributes:
       example:

@@ -15,6 +15,7 @@ import (
 	pkglog "github.com/netbill/auth-svc/pkg/log"
 	"github.com/netbill/auth-svc/pkg/passmanager"
 	"github.com/netbill/auth-svc/pkg/tokenmanager"
+	"github.com/netbill/auth-svc/pkg/username"
 	"github.com/netbill/auth-svc/tests/testutil"
 	"github.com/netbill/pgdbx"
 	"github.com/redis/go-redis/v9"
@@ -113,6 +114,7 @@ func newServices(t *testing.T, db *pgdbx.DB, rc *redis.Client) (*user.Service, *
 		SessionsCache: sessionCache,
 		PassManager:   passMgr,
 		Messenger:     &noopMessenger{},
+		Username:      username.NewValidator(),
 	})
 
 	sessionSvc := session.New(session.ServiceDeps{
@@ -139,5 +141,9 @@ func (n *noopMessenger) WriteUserCreated(_ context.Context, _ models.User, _ mod
 }
 
 func (n *noopMessenger) WriteUserDeleted(_ context.Context, _ models.User, _ models.UserEmail) error {
+	return nil
+}
+
+func (n *noopMessenger) WriteUserUpdated(_ context.Context, _ models.User) error {
 	return nil
 }

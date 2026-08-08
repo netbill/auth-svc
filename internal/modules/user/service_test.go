@@ -34,6 +34,8 @@ type UserServiceSuite struct {
 	sessionsCache *mockSessionsCache
 	passManager   *mockPasswordManager
 	messenger     *mockMessenger
+	bucket        *mockMedia
+	username      *mockUsernameGenerator
 
 	svc *Service
 }
@@ -50,6 +52,8 @@ func (s *UserServiceSuite) SetupTest() {
 	s.sessionsCache = newMockSessionsCache(s.T())
 	s.passManager = newMockPasswordManager(s.T())
 	s.messenger = newMockMessenger(s.T())
+	s.bucket = newMockMedia(s.T())
+	s.username = newMockUsernameGenerator(s.T())
 
 	s.svc = New(ServiceDeps{
 		Auth:          s.auth,
@@ -64,6 +68,8 @@ func (s *UserServiceSuite) SetupTest() {
 		SessionsCache: s.sessionsCache,
 		PassManager:   s.passManager,
 		Messenger:     s.messenger,
+		Bucket:        s.bucket,
+		Username:      s.username,
 	})
 }
 
@@ -88,7 +94,8 @@ func (s *UserServiceSuite) TestRegistration_HappyPath() {
 	password := models.UserPassword{UserID: userID, Hash: "hash"}
 
 	s.passManager.On("GenerateHash", params.Password).Return("hash", nil)
-	s.userRepo.On("Create", mock.Anything, params).Return(user, nil)
+	s.username.On("Generate").Return("testuser123")
+	s.userRepo.On("Create", mock.Anything, params, "testuser123").Return(user, nil)
 	s.emailRepo.On("Create", mock.Anything, models.UserEmail{UserID: userID, Email: params.Email}).Return(email, nil)
 	s.passwordRepo.On("Create", mock.Anything, models.UserPassword{UserID: userID, Hash: "hash"}).Return(password, nil)
 	s.messenger.On("WriteUserCreated", mock.Anything, user, email).Return(nil)
@@ -148,7 +155,8 @@ func (s *UserServiceSuite) TestRegistration_GenerateHashError() {
 func (s *UserServiceSuite) TestRegistration_UserRepoError() {
 	repoErr := errors.New("db error")
 	s.passManager.On("GenerateHash", mock.Anything).Return("hash", nil)
-	s.userRepo.On("Create", mock.Anything, mock.Anything).Return(models.User{}, repoErr)
+	s.username.On("Generate").Return("testuser123")
+	s.userRepo.On("Create", mock.Anything, mock.Anything, mock.Anything).Return(models.User{}, repoErr)
 
 	_, err := s.svc.Registration(context.Background(), RegistrationParams{
 		Role:     "user",
@@ -163,7 +171,8 @@ func (s *UserServiceSuite) TestRegistration_EmailRepoError() {
 	repoErr := errors.New("db error")
 	user := models.User{ID: uuid.New()}
 	s.passManager.On("GenerateHash", mock.Anything).Return("hash", nil)
-	s.userRepo.On("Create", mock.Anything, mock.Anything).Return(user, nil)
+	s.username.On("Generate").Return("testuser123")
+	s.userRepo.On("Create", mock.Anything, mock.Anything, mock.Anything).Return(user, nil)
 	s.emailRepo.On("Create", mock.Anything, mock.Anything).Return(models.UserEmail{}, repoErr)
 
 	_, err := s.svc.Registration(context.Background(), RegistrationParams{
@@ -180,7 +189,8 @@ func (s *UserServiceSuite) TestRegistration_PasswordRepoError() {
 	user := models.User{ID: uuid.New()}
 	email := models.UserEmail{UserID: user.ID}
 	s.passManager.On("GenerateHash", mock.Anything).Return("hash", nil)
-	s.userRepo.On("Create", mock.Anything, mock.Anything).Return(user, nil)
+	s.username.On("Generate").Return("testuser123")
+	s.userRepo.On("Create", mock.Anything, mock.Anything, mock.Anything).Return(user, nil)
 	s.emailRepo.On("Create", mock.Anything, mock.Anything).Return(email, nil)
 	s.passwordRepo.On("Create", mock.Anything, mock.Anything).Return(models.UserPassword{}, repoErr)
 
@@ -199,7 +209,8 @@ func (s *UserServiceSuite) TestRegistration_MessengerError() {
 	email := models.UserEmail{UserID: user.ID}
 	password := models.UserPassword{UserID: user.ID}
 	s.passManager.On("GenerateHash", mock.Anything).Return("hash", nil)
-	s.userRepo.On("Create", mock.Anything, mock.Anything).Return(user, nil)
+	s.username.On("Generate").Return("testuser123")
+	s.userRepo.On("Create", mock.Anything, mock.Anything, mock.Anything).Return(user, nil)
 	s.emailRepo.On("Create", mock.Anything, mock.Anything).Return(email, nil)
 	s.passwordRepo.On("Create", mock.Anything, mock.Anything).Return(password, nil)
 	s.messenger.On("WriteUserCreated", mock.Anything, user, email).Return(msgErr)

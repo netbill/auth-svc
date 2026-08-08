@@ -9,6 +9,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/netbill/auth-svc/internal/errx"
 	"github.com/netbill/auth-svc/internal/models"
+	"github.com/netbill/restkit/pagi"
 	"github.com/netbill/restkit/tokens"
 )
 
@@ -63,6 +64,9 @@ type Service struct {
 	passManager passwordManager
 
 	messenger messenger
+
+	bucket   media
+	username usernameGenerator
 }
 
 type ServiceDeps struct {
@@ -83,6 +87,9 @@ type ServiceDeps struct {
 	PassManager passwordManager
 
 	Messenger messenger
+
+	Bucket   media
+	Username usernameGenerator
 }
 
 func New(deps ServiceDeps) *Service {
@@ -99,6 +106,8 @@ func New(deps ServiceDeps) *Service {
 		sessionsCache: deps.SessionsCache,
 		passManager:   deps.PassManager,
 		messenger:     deps.Messenger,
+		bucket:        deps.Bucket,
+		username:      deps.Username,
 	}
 }
 
@@ -111,6 +120,7 @@ type passwordManager interface {
 //go:generate mockery --name=messenger --inpackage
 type messenger interface {
 	WriteUserCreated(ctx context.Context, user models.User, email models.UserEmail) error
+	WriteUserUpdated(ctx context.Context, user models.User) error
 	WriteUserDeleted(ctx context.Context, user models.User, email models.UserEmail) error
 }
 
@@ -137,12 +147,14 @@ func (s *Service) Registration(
 		return models.User{}, err
 	}
 
+	candidate := s.username.Generate()
+
 	var user models.User
 	var email models.UserEmail
 	var password models.UserPassword
 
 	if err = s.tx.Transaction(ctx, func(ctx context.Context) error {
-		user, err = s.userRepo.Create(ctx, params)
+		user, err = s.userRepo.Create(ctx, params, candidate)
 		if err != nil {
 			return err
 		}
@@ -210,6 +222,177 @@ func (s *Service) GetMyEmailByID(
 	go s.emailCache.Set(context.WithoutCancel(ctx), email)
 
 	return email, nil
+}
+
+// GetUserByID is the public (non-"me") lookup used for profile pages —
+// unlike GetMyUserByID it is not cached under the actor's session.
+func (s *Service) GetUserByID(
+	ctx context.Context,
+	userID uuid.UUID,
+) (models.User, error) {
+	return s.userRepo.GetByID(ctx, userID)
+}
+
+func (s *Service) GetByUsername(
+	ctx context.Context,
+	username string,
+) (models.User, error) {
+	return s.userRepo.GetByUsername(ctx, username)
+}
+
+type FilterParams struct {
+	Text *string
+}
+
+func (s *Service) GetList(
+	ctx context.Context,
+	params FilterParams,
+	limit, offset uint,
+) (pagi.Page[[]models.User], error) {
+	return s.userRepo.Filter(ctx, params, limit, offset)
+}
+
+type UpdateParams struct {
+	AvatarKey   *string
+	Pseudonym   *string
+	Description *string
+}
+
+func (p UpdateParams) HasChanges(m models.User) bool {
+	return !ptrEqual(p.AvatarKey, m.AvatarKey) ||
+		!ptrEqual(p.Pseudonym, m.Pseudonym) ||
+		!ptrEqual(p.Description, m.Description)
+}
+
+func ptrEqual[T comparable](a, b *T) bool {
+	if a == nil || b == nil {
+		return a == b
+	}
+	return *a == *b
+}
+
+func (s *Service) Update(
+	ctx context.Context,
+	actor models.UserActor,
+	params UpdateParams,
+) (u models.User, err error) {
+	u, err = s.userRepo.GetByID(ctx, actor.ID)
+	if err != nil {
+		return models.User{}, err
+	}
+
+	if !params.HasChanges(u) {
+		return u, nil
+	}
+
+	switch {
+	case params.AvatarKey != nil && *params.AvatarKey == "" && u.AvatarKey != nil:
+		if err := s.bucket.DeleteUserAvatar(ctx, actor.ID, *u.AvatarKey); err != nil {
+			return models.User{}, fmt.Errorf("failed to delete user avatar: %w", err)
+		}
+		params.AvatarKey = nil
+	case params.AvatarKey != nil:
+		avatarKey, err := s.bucket.UpdateUserAvatar(ctx, actor.ID, *params.AvatarKey)
+		if err != nil {
+			return models.User{}, fmt.Errorf("failed to update user avatar: %w", err)
+		}
+		params.AvatarKey = &avatarKey
+	}
+
+	if err = s.tx.Transaction(ctx, func(ctx context.Context) error {
+		u, err = s.userRepo.Update(ctx, actor.ID, params)
+		if err != nil {
+			return err
+		}
+
+		return s.messenger.WriteUserUpdated(ctx, u)
+	}); err != nil {
+		return models.User{}, err
+	}
+
+	go s.userCache.Set(context.WithoutCancel(ctx), u)
+
+	return u, nil
+}
+
+func (s *Service) UpdateUsername(
+	ctx context.Context,
+	actor models.UserActor,
+	newUsername string,
+) (models.User, error) {
+	if err := s.username.Validate(newUsername); err != nil {
+		return models.User{}, err
+	}
+
+	current, err := s.userRepo.GetByID(ctx, actor.ID)
+	if err != nil {
+		return models.User{}, err
+	}
+
+	if current.Username == newUsername {
+		return current, nil
+	}
+
+	unavailable, err := s.userRepo.ExistByUsername(ctx, newUsername)
+	if err != nil {
+		return models.User{}, err
+	}
+	if unavailable {
+		return models.User{}, errx.ErrorUsernameTaken
+	}
+
+	var u models.User
+	if err = s.tx.Transaction(ctx, func(ctx context.Context) error {
+		u, err = s.userRepo.UpdateUsername(ctx, actor.ID, newUsername)
+		if err != nil {
+			return err
+		}
+
+		return s.messenger.WriteUserUpdated(ctx, u)
+	}); err != nil {
+		return models.User{}, err
+	}
+
+	go s.userCache.Set(context.WithoutCancel(ctx), u)
+
+	return u, nil
+}
+
+func (s *Service) CreateUploadMediaLinks(
+	ctx context.Context,
+	actor models.UserActor,
+) (models.User, models.UploadUserMediaLinks, error) {
+	u, err := s.userRepo.GetByID(ctx, actor.ID)
+	if err != nil {
+		return models.User{}, models.UploadUserMediaLinks{}, err
+	}
+
+	links, err := s.bucket.CreateUserAvatarUploadMediaLinks(ctx, actor.ID)
+	if err != nil {
+		return models.User{}, models.UploadUserMediaLinks{}, err
+	}
+
+	return u, models.UploadUserMediaLinks{
+		Avatar: links,
+	}, nil
+}
+
+type DeleteUploadMediaParams struct {
+	Avatar *string
+}
+
+func (s *Service) DeleteUploadMedia(
+	ctx context.Context,
+	actor models.UserActor,
+	params DeleteUploadMediaParams,
+) error {
+	if params.Avatar != nil {
+		if err := s.bucket.DeleteUploadUserAvatar(ctx, actor.ID, *params.Avatar); err != nil {
+			return fmt.Errorf("failed to delete upload user avatar: %w", err)
+		}
+	}
+
+	return nil
 }
 
 func (s *Service) UpdatePassword(

@@ -6,9 +6,13 @@ CREATE TYPE "user_role" AS ENUM (
 );
 
 CREATE TABLE users (
-    id         UUID         PRIMARY KEY DEFAULT uuid_generate_v4(),
-    role       user_role NOT NULL DEFAULT 'user',
-    version    INTEGER      NOT NULL DEFAULT 1 CHECK ( version > 0 ),
+    id          UUID      PRIMARY KEY DEFAULT uuid_generate_v4(),
+    role        user_role NOT NULL DEFAULT 'user',
+    username    VARCHAR(32) NOT NULL UNIQUE,
+    pseudonym   VARCHAR(128),
+    description VARCHAR(255),
+    avatar_key  TEXT,
+    version     INTEGER      NOT NULL DEFAULT 1 CHECK ( version > 0 ),
 
     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),

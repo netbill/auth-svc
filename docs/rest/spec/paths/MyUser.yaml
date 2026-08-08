@@ -53,6 +53,60 @@ get:
           schema:
             $ref: '../components/schemas/responses/Errors.yaml'
 
+patch:
+  tags:
+    - users
+  summary: Update my user profile
+  description: >
+    Updates the profile fields (pseudonym, description, avatar) of the authenticated user.
+    The request body must contain the same `data.id` as the authenticated user id.
+
+  security:
+    - BearerAuth: [ ]
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: '../components/schemas/requests/UpdateProfile.yaml'
+  responses:
+    '200':
+      description: User profile successfully updated
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/responses/User.yaml'
+
+    '400':
+      description: Bad request (validation error / invalid avatar key).
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/responses/Errors.yaml'
+
+    '401':
+      description: >
+        Unauthorized. The session is invalid or does not belong to the authenticated user.
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/responses/Errors.yaml'
+
+    '404':
+      description: >
+        User not found.
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/responses/Errors.yaml'
+
+    '500':
+      description: Internal Server Error
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/responses/Errors.yaml'
+
 delete:
   tags:
     - users

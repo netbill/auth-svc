@@ -3,10 +3,14 @@ package controller
 import (
 	"context"
 	"errors"
+	"fmt"
 	"net/http"
 	"slices"
+	"strings"
 
+	"github.com/go-chi/chi/v5"
 	validation "github.com/go-ozzo/ozzo-validation/v4"
+	"github.com/google/uuid"
 	"github.com/netbill/auth-svc/internal/api/rest/requests"
 	"github.com/netbill/auth-svc/internal/api/rest/responses"
 	"github.com/netbill/auth-svc/internal/api/rest/scope"
@@ -14,6 +18,7 @@ import (
 	"github.com/netbill/auth-svc/internal/models"
 	"github.com/netbill/auth-svc/internal/modules/user"
 	"github.com/netbill/restkit"
+	"github.com/netbill/restkit/pagi"
 	"github.com/netbill/restkit/problems"
 	"github.com/netbill/restkit/render"
 	"github.com/netbill/restkit/tokens"
@@ -25,7 +30,17 @@ type userCore interface {
 	GetMyUserByID(ctx context.Context, actor models.UserActor) (models.User, error)
 	GetMyEmailByID(ctx context.Context, actor models.UserActor) (models.UserEmail, error)
 
+	GetUserByID(ctx context.Context, userID uuid.UUID) (models.User, error)
+	GetByUsername(ctx context.Context, username string) (models.User, error)
+	GetList(ctx context.Context, params user.FilterParams, limit, offset uint) (pagi.Page[[]models.User], error)
+
+	Update(ctx context.Context, actor models.UserActor, params user.UpdateParams) (models.User, error)
+	UpdateUsername(ctx context.Context, actor models.UserActor, username string) (models.User, error)
+
 	UpdatePassword(ctx context.Context, actor models.UserActor, oldPassword, newPassword string) error
+
+	CreateUploadMediaLinks(ctx context.Context, actor models.UserActor) (models.User, models.UploadUserMediaLinks, error)
+	DeleteUploadMedia(ctx context.Context, actor models.UserActor, params user.DeleteUploadMediaParams) error
 
 	DeleteMyUser(ctx context.Context, actor models.UserActor) error
 }
@@ -121,7 +136,7 @@ func (c *UserController) RegistrationByAdmin(w http.ResponseWriter, r *http.Requ
 		render.ResponseError(w, problems.InternalError())
 	default:
 		log.Info("user registered successfully by admin")
-		render.Response(w, http.StatusCreated, responses.User(u))
+		render.Response(w, http.StatusCreated, responses.User(r, u))
 	}
 }
 
@@ -170,7 +185,150 @@ func (c *UserController) GetMyUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	log.Info("user retrieved")
-	render.Response(w, http.StatusOK, responses.User(res, opts...))
+	render.Response(w, http.StatusOK, responses.User(r, res, opts...))
+}
+
+const operationGetUserByID = "get_user_by_id"
+
+func (c *UserController) GetUserByID(w http.ResponseWriter, r *http.Request) {
+	log := scope.Log(r).WithOperation(operationGetUserByID)
+
+	userID, err := uuid.Parse(chi.URLParam(r, "user_id"))
+	if err != nil {
+		log.WithError(err).Warn("invalid user id")
+		render.ResponseError(w, problems.BadRequest(validation.Errors{
+			"path": fmt.Errorf("invalid user id: %s", chi.URLParam(r, "user_id")),
+		})...)
+		return
+	}
+
+	log = log.With("target_user_id", userID)
+
+	res, err := c.users.GetUserByID(r.Context(), userID)
+	switch {
+	case errors.Is(err, errx.ErrorUserNotFound):
+		log.WithError(err).Warn("user does not exist")
+		render.ResponseError(w, problems.NotFound("user does not exist"))
+	case err != nil:
+		log.WithError(err).Error("unexpected error")
+		render.ResponseError(w, problems.InternalError())
+	default:
+		render.Response(w, http.StatusOK, responses.User(r, res))
+	}
+}
+
+const operationGetUserByUsername = "get_user_by_username"
+
+func (c *UserController) GetUserByUsername(w http.ResponseWriter, r *http.Request) {
+	log := scope.Log(r).WithOperation(operationGetUserByUsername)
+
+	username := chi.URLParam(r, "username")
+	log = log.With("username", username)
+
+	res, err := c.users.GetByUsername(r.Context(), username)
+	switch {
+	case errors.Is(err, errx.ErrorUserNotFound):
+		log.WithError(err).Warn("user does not exist")
+		render.ResponseError(w, problems.NotFound("user does not exist"))
+	case err != nil:
+		log.WithError(err).Error("unexpected error")
+		render.ResponseError(w, problems.InternalError())
+	default:
+		render.Response(w, http.StatusOK, responses.User(r, res))
+	}
+}
+
+const operationFilterUsers = "filter_users"
+
+func (c *UserController) FilterUsers(w http.ResponseWriter, r *http.Request) {
+	log := scope.Log(r).WithOperation(operationFilterUsers)
+
+	limit, offset := pagi.GetPagination(r)
+
+	filters := user.FilterParams{}
+
+	q := r.URL.Query()
+	if text := strings.TrimSpace(q.Get("text")); text != "" {
+		filters.Text = &text
+	}
+
+	res, err := c.users.GetList(r.Context(), filters, limit, offset)
+	switch {
+	case err != nil:
+		log.WithError(err).Error("unexpected error")
+		render.ResponseError(w, problems.InternalError())
+	default:
+		render.Response(w, http.StatusOK, responses.UserCollection(r, res))
+	}
+}
+
+const operationUpdateMyUser = "update_my_user"
+
+func (c *UserController) UpdateMyUser(w http.ResponseWriter, r *http.Request) {
+	log := scope.Log(r).WithOperation(operationUpdateMyUser)
+
+	req, err := requests.UpdateProfile(r)
+	if err != nil {
+		log.WithError(err).Warn("invalid request body")
+		render.ResponseError(w, problems.BadRequest(err)...)
+		return
+	}
+
+	res, err := c.users.Update(r.Context(), scope.UserActor(r), user.UpdateParams{
+		AvatarKey:   req.Data.Attributes.AvatarKey,
+		Pseudonym:   req.Data.Attributes.Pseudonym,
+		Description: req.Data.Attributes.Description,
+	})
+	switch {
+	case errors.Is(err, errx.ErrorUserNotFound):
+		log.WithError(err).Warn("user not found")
+		render.ResponseError(w, problems.NotFound("user not found"))
+	case errors.Is(err, errx.ErrorUserUploadedAvatarInvalid):
+		log.WithError(err).Warn("invalid avatar content")
+		render.ResponseError(w, problems.BadRequest(validation.Errors{
+			"avatar": err,
+		})...)
+	case err != nil:
+		log.WithError(err).Error("failed to update user profile")
+		render.ResponseError(w, problems.InternalError())
+	default:
+		log.Debug("user profile updated")
+		render.Response(w, http.StatusOK, responses.User(r, res))
+	}
+}
+
+const operationUpdateMyUsername = "update_my_username"
+
+func (c *UserController) UpdateUsername(w http.ResponseWriter, r *http.Request) {
+	log := scope.Log(r).WithOperation(operationUpdateMyUsername)
+
+	req, err := requests.UpdateUsername(r)
+	if err != nil {
+		log.WithError(err).Warn("invalid request body")
+		render.ResponseError(w, problems.BadRequest(err)...)
+		return
+	}
+
+	res, err := c.users.UpdateUsername(r.Context(), scope.UserActor(r), req.Data.Attributes.Username)
+	switch {
+	case errors.Is(err, errx.ErrorUserNotFound):
+		log.WithError(err).Warn("user not found")
+		render.ResponseError(w, problems.NotFound("user not found"))
+	case errors.Is(err, errx.ErrorUsernameNotValid):
+		log.WithError(err).Warn("username is invalid")
+		render.ResponseError(w, problems.BadRequest(validation.Errors{
+			"username": err,
+		})...)
+	case errors.Is(err, errx.ErrorUsernameTaken):
+		log.WithError(err).Warn("username is already taken")
+		render.ResponseError(w, problems.Conflict("username is already taken"))
+	case err != nil:
+		log.WithError(err).Error("failed to update username")
+		render.ResponseError(w, problems.InternalError())
+	default:
+		log.Debug("username updated")
+		render.Response(w, http.StatusOK, responses.User(r, res))
+	}
 }
 
 const operationUpdatePassword = "update_password"

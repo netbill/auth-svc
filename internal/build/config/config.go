@@ -11,6 +11,7 @@ import (
 	"github.com/exaring/otelpgx"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/netbill/auth-svc/pkg/log"
+	"github.com/netbill/awsx"
 	"github.com/redis/go-redis/v9"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
@@ -107,6 +108,37 @@ type OTELConfig struct {
 	SamplingRatio     float64
 }
 
+type S3AwsConfig struct {
+	Region          string
+	BucketName      string
+	AccessKeyID     string
+	SecretAccessKey string
+	SessionToken    string
+	BaseURL         string
+}
+
+type S3MediaUserConfig struct {
+	Avatar awsx.ImageValidator
+}
+
+type S3MediaResourcesConfig struct {
+	User S3MediaUserConfig
+}
+
+type S3MediaLinkConfig struct {
+	TTL time.Duration
+}
+
+type S3MediaConfig struct {
+	Link      S3MediaLinkConfig
+	Resources S3MediaResourcesConfig
+}
+
+type S3Config struct {
+	Aws   S3AwsConfig
+	Media S3MediaConfig
+}
+
 type Config struct {
 	Service  ServiceCfg
 	Log      LogConfig
@@ -114,6 +146,7 @@ type Config struct {
 	Rest     RestConfig
 	GRPC     GRPCConfig
 	Auth     AuthConfig
+	S3       S3Config
 	Kafka    KafkaConfig
 	OTEL     OTELConfig
 }
@@ -184,6 +217,35 @@ func LoadConfig() *Config {
 				},
 			},
 		},
+		S3: S3Config{
+			Aws: S3AwsConfig{
+				Region:          mustEnv("S3_AWS_REGION"),
+				BucketName:      mustEnv("S3_AWS_BUCKET_NAME"),
+				AccessKeyID:     mustEnv("S3_AWS_ACCESS_KEY_ID"),
+				SecretAccessKey: mustEnv("S3_AWS_SECRET_ACCESS_KEY"),
+				SessionToken:    envOr("S3_AWS_SESSION_TOKEN", ""),
+				BaseURL:         mustEnv("S3_AWS_BASE_URL"),
+			},
+			Media: S3MediaConfig{
+				Link: S3MediaLinkConfig{
+					TTL: envDurationOr("S3_MEDIA_LINK_TTL", 24*time.Hour),
+				},
+				Resources: S3MediaResourcesConfig{
+					User: S3MediaUserConfig{
+						Avatar: awsx.ImageValidator{
+							AllowedFormats: envListOr(
+								"S3_MEDIA_USER_AVATAR_ALLOWED_FORMATS", []string{"jpeg", "jpg", "png", "gif"},
+							),
+							MaxWidth:       envIntOr("S3_MEDIA_USER_AVATAR_MAX_WIDTH", 512),
+							MinWidth:       envIntOr("S3_MEDIA_USER_AVATAR_MIN_WIDTH", 512),
+							MaxHeight:      envIntOr("S3_MEDIA_USER_AVATAR_MAX_HEIGHT", 512),
+							MinHeight:      envIntOr("S3_MEDIA_USER_AVATAR_MIN_HEIGHT", 512),
+							ContentSizeMax: envInt64Or("S3_MEDIA_USER_AVATAR_CONTENT_SIZE_MAX", 5242880),
+						},
+					},
+				},
+			},
+		},
 		Kafka: KafkaConfig{
 			// Not read by this service yet — Debezium publishes the outbox
 			// table to Kafka independently. Identity is only used as the
@@ -219,6 +281,18 @@ func envList(key string) []string {
 		return nil
 	}
 
+	return splitList(v)
+}
+
+func envListOr(key string, def []string) []string {
+	v, ok := os.LookupEnv(key)
+	if !ok || v == "" {
+		return def
+	}
+	return splitList(v)
+}
+
+func splitList(v string) []string {
 	parts := strings.Split(v, ",")
 	out := make([]string, 0, len(parts))
 	for _, p := range parts {
@@ -236,6 +310,19 @@ func envIntOr(key string, def int) int {
 	}
 
 	n, err := strconv.Atoi(v)
+	if err != nil {
+		panic(fmt.Errorf("invalid int value for %s: %w", key, err))
+	}
+	return n
+}
+
+func envInt64Or(key string, def int64) int64 {
+	v, ok := os.LookupEnv(key)
+	if !ok || v == "" {
+		return def
+	}
+
+	n, err := strconv.ParseInt(v, 10, 64)
 	if err != nil {
 		panic(fmt.Errorf("invalid int value for %s: %w", key, err))
 	}

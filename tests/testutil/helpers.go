@@ -11,3 +11,8 @@ func RandomUUID() uuid.UUID {
 func UniqueEmail() string {
 	return "test_" + uuid.New().String()[:8] + "@example.com"
 }
+
+// UniqueUsername returns a username guaranteed to be unique per call.
+func UniqueUsername() string {
+	return "testuser" + uuid.New().String()[:8]
+}
