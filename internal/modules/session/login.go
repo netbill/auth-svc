@@ -32,22 +32,6 @@ func (s *Service) LoginByEmail(
 	return s.createSession(ctx, account)
 }
 
-func (s *Service) LoginByUsername(
-	ctx context.Context,
-	username, password string,
-) (models.TokensPair, error) {
-	account, err := s.accountRepo.GetByUsername(ctx, username)
-	if err != nil {
-		return models.TokensPair{}, err
-	}
-
-	if err = s.checkPassword(ctx, account.ID, password); err != nil {
-		return models.TokensPair{}, err
-	}
-
-	return s.createSession(ctx, account)
-}
-
 func (s *Service) checkPassword(ctx context.Context, accountID uuid.UUID, password string) error {
 	pwd, err := s.passwordCache.Get(ctx, accountID)
 	if err != nil {

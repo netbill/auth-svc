@@ -16,7 +16,6 @@ type transaction interface {
 //go:generate mockery --name=accountRepo --inpackage
 type accountRepo interface {
 	GetByID(ctx context.Context, accountID uuid.UUID) (models.Account, error)
-	GetByUsername(ctx context.Context, username string) (models.Account, error)
 }
 
 //go:generate mockery --name=emailRepo --inpackage

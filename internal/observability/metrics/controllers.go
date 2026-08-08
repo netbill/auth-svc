@@ -14,13 +14,6 @@ func (m *Metrics) RecordEmailLogin(ctx context.Context, err *error) {
 	))
 }
 
-func (m *Metrics) RecordUsernameLogin(ctx context.Context, err *error) {
-	m.logins.Add(ctx, 1, metric.WithAttributes(
-		attribute.String("method", "username"),
-		attribute.String("status", statusFromErr(err)),
-	))
-}
-
 func (m *Metrics) RecordGoogleLogin(ctx context.Context, err *error) {
 	m.logins.Add(ctx, 1, metric.WithAttributes(
 		attribute.String("method", "google"),

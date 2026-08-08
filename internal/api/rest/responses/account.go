@@ -34,7 +34,6 @@ func Account(
 		Type: "account",
 		Attributes: oapi.AccountDataAttributes{
 			Role:      m.Role,
-			Username:  m.Username,
 			Version:   m.Version,
 			CreatedAt: m.CreatedAt,
 			UpdatedAt: m.UpdatedAt,

@@ -6,7 +6,7 @@
 ## Что это
 
 `auth-svc` — сервис аутентификации/авторизации в микросервисной экосистеме **netbill**.
-Владеет аккаунтами, email/паролями, сессиями и логином (email/username, Google OAuth, QR).
+Владеет аккаунтами, email/паролями, сессиями и логином (email, Google OAuth, QR).
 Отдаёт наружу REST, gRPC и SSE. Публикует доменные события в Kafka через transactional
 outbox (Postgres → Debezium), сам Kafka не трогает напрямую.
 
@@ -47,8 +47,8 @@ internal/
       scope/, reponses/     аналоги REST-scope/responses для gRPC
 
   modules/               бизнес-логика, транспорт-агностична
-    account/                 регистрация, профиль, смена username/пароля, удаление
-    session/                 логин (email/username/google/qr), сессии, refresh, QR-токены
+    account/                 регистрация, профиль, смена пароля, удаление
+    session/                 логин (email/google/qr), сессии, refresh, QR-токены
     auth/                    ValidateSession — общий для REST и gRPC гейт авторизации
 
   repo/

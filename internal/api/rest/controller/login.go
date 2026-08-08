@@ -19,37 +19,6 @@ import (
 	"golang.org/x/oauth2"
 )
 
-const operationLoginByUsername = "login_by_username"
-
-func (c *SessionController) LoginByUsername(w http.ResponseWriter, r *http.Request) {
-	log := scope.Log(r).WithOperation(operationLoginByUsername)
-
-	req, err := requests.LoginByUsername(r)
-	if err != nil {
-		log.WithError(err).Info("invalid login request")
-		render.ResponseError(w, problems.BadRequest(err)...)
-		return
-	}
-
-	log = log.WithField("username", req.Data.Attributes.Username)
-
-	defer c.metrics.RecordUsernameLogin(r.Context(), &err)
-	token, err := c.sessions.LoginByUsername(r.Context(), req.Data.Attributes.Username, req.Data.Attributes.Password)
-	switch {
-	case errors.Is(err, errx.ErrorPasswordInvalid),
-		errors.Is(err, errx.ErrorAccountNotFound),
-		errors.Is(err, errx.ErrorAccountDeleted):
-		log.WithError(err).Warn("invalid login or password")
-		render.ResponseError(w, problems.Unauthorized())
-	case err != nil:
-		log.WithError(err).Error("unexpected error")
-		render.ResponseError(w, problems.InternalError())
-	default:
-		log.Info("login by username successful")
-		render.Response(w, http.StatusOK, responses.TokensPair(token))
-	}
-}
-
 const operationLoginByEmail = "login_by_email"
 
 func (c *SessionController) LoginByEmail(w http.ResponseWriter, r *http.Request) {

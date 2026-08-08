@@ -24,8 +24,6 @@ var _ MappedNullable = &AccountDataAttributes{}
 type AccountDataAttributes struct {
 	// The role assigned to the account
 	Role string `json:"role"`
-	// The username of the account
-	Username string `json:"username"`
 	// The version number of the account record
 	Version int32 `json:"version"`
 	// The date and time when the account was created
@@ -40,10 +38,9 @@ type _AccountDataAttributes AccountDataAttributes
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewAccountDataAttributes(role string, username string, version int32, createdAt time.Time, updatedAt time.Time) *AccountDataAttributes {
+func NewAccountDataAttributes(role string, version int32, createdAt time.Time, updatedAt time.Time) *AccountDataAttributes {
 	this := AccountDataAttributes{}
 	this.Role = role
-	this.Username = username
 	this.Version = version
 	this.CreatedAt = createdAt
 	this.UpdatedAt = updatedAt
@@ -80,30 +77,6 @@ func (o *AccountDataAttributes) GetRoleOk() (*string, bool) {
 // SetRole sets field value
 func (o *AccountDataAttributes) SetRole(v string) {
 	o.Role = v
-}
-
-// GetUsername returns the Username field value
-func (o *AccountDataAttributes) GetUsername() string {
-	if o == nil {
-		var ret string
-		return ret
-	}
-
-	return o.Username
-}
-
-// GetUsernameOk returns a tuple with the Username field value
-// and a boolean to check if the value has been set.
-func (o *AccountDataAttributes) GetUsernameOk() (*string, bool) {
-	if o == nil {
-		return nil, false
-	}
-	return &o.Username, true
-}
-
-// SetUsername sets field value
-func (o *AccountDataAttributes) SetUsername(v string) {
-	o.Username = v
 }
 
 // GetVersion returns the Version field value
@@ -189,7 +162,6 @@ func (o AccountDataAttributes) MarshalJSON() ([]byte, error) {
 func (o AccountDataAttributes) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
 	toSerialize["role"] = o.Role
-	toSerialize["username"] = o.Username
 	toSerialize["version"] = o.Version
 	toSerialize["created_at"] = o.CreatedAt
 	toSerialize["updated_at"] = o.UpdatedAt
@@ -202,7 +174,6 @@ func (o *AccountDataAttributes) UnmarshalJSON(data []byte) (err error) {
 	// that every required field exists as a key in the generic map.
 	requiredProperties := []string{
 		"role",
-		"username",
 		"version",
 		"created_at",
 		"updated_at",

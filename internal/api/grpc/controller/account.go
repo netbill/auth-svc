@@ -20,7 +20,6 @@ type AccountCore interface {
 	Registration(ctx context.Context, params account.RegistrationParams) (models.Account, error)
 	GetMyAccountByID(ctx context.Context, actor models.AccountActor) (models.Account, error)
 	GetMyEmailByID(ctx context.Context, actor models.AccountActor) (models.AccountEmail, error)
-	UpdateUsername(ctx context.Context, actor models.AccountActor, newUsername string) (models.Account, error)
 	UpdatePassword(ctx context.Context, actor models.AccountActor, oldPassword, newPassword string) error
 	DeleteMyAccount(ctx context.Context, actor models.AccountActor) error
 }
@@ -47,7 +46,6 @@ func (s *AccountServer) CreateAccount(ctx context.Context, req *pb.CreateAccount
 
 	acc, err := s.accounts.Registration(ctx, account.RegistrationParams{
 		Email:    req.Email,
-		Username: req.Username,
 		Password: req.Password,
 		Role:     tokens.RoleSystemUser,
 	})
@@ -55,12 +53,6 @@ func (s *AccountServer) CreateAccount(ctx context.Context, req *pb.CreateAccount
 	case errors.Is(err, errx.ErrorEmailAlreadyExist):
 		log.Warn("email already exists", "error", err)
 		return nil, status.Error(codes.AlreadyExists, "email already exists")
-	case errors.Is(err, errx.ErrorUsernameAlreadyTaken):
-		log.Warn("username already taken", "error", err)
-		return nil, status.Error(codes.AlreadyExists, "username already taken")
-	case errors.Is(err, errx.ErrorUsernameIsNotAllowed):
-		log.Warn("username is not allowed", "error", err)
-		return nil, status.Error(codes.InvalidArgument, "username is not allowed")
 	case errors.Is(err, errx.ErrorPasswordIsNotAllowed):
 		log.Warn("password is not allowed", "error", err)
 		return nil, status.Error(codes.InvalidArgument, "password is not allowed")
@@ -109,31 +101,6 @@ func (s *AccountServer) GetMyEmail(ctx context.Context, _ *pb.GetMyEmailRequest)
 	default:
 		log.Info("email retrieved")
 		return &pb.GetMyEmailResponse{Email: reponses.AccountEmail(email)}, nil
-	}
-}
-
-const operationUpdateUsername = "update_username"
-
-func (s *AccountServer) UpdateUsername(ctx context.Context, req *pb.UpdateUsernameRequest) (*pb.UpdateUsernameResponse, error) {
-	log := scope.Log(ctx).WithOperation(operationUpdateUsername)
-
-	acc, err := s.accounts.UpdateUsername(ctx, scope.AccountActor(ctx), req.NewUsername)
-	switch {
-	case errors.Is(err, errx.ErrorUsernameAlreadyTaken):
-		log.Warn("username already taken", "error", err)
-		return nil, status.Error(codes.AlreadyExists, "username already taken")
-	case errors.Is(err, errx.ErrorUsernameIsNotAllowed):
-		log.Warn("username is not allowed", "error", err)
-		return nil, status.Error(codes.InvalidArgument, "username is not allowed")
-	case errors.Is(err, errx.ErrorAccountInvalidSession):
-		log.Warn("invalid session", "error", err)
-		return nil, status.Error(codes.Unauthenticated, "invalid session")
-	case err != nil:
-		log.Error("unexpected error", "error", err)
-		return nil, status.Error(codes.Internal, "internal error")
-	default:
-		log.Info("username updated")
-		return &pb.UpdateUsernameResponse{Account: reponses.Account(acc)}, nil
 	}
 }
 

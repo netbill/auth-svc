@@ -13,10 +13,9 @@ type AccountActor struct {
 }
 
 type Account struct {
-	ID       uuid.UUID `json:"id"`
-	Username string    `json:"username"`
-	Role     string    `json:"role"`
-	Version  int32     `json:"version"`
+	ID      uuid.UUID `json:"id"`
+	Role    string    `json:"role"`
+	Version int32     `json:"version"`
 
 	CreatedAt time.Time  `json:"created_at"`
 	UpdatedAt time.Time  `json:"updated_at"`

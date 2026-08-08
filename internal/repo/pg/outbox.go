@@ -60,21 +60,6 @@ func (r *OutboxRepo) WriteAccountCreated(
 	)
 }
 
-func (r *OutboxRepo) WriteAccountUsernameUpdated(
-	ctx context.Context,
-	account models.Account,
-) error {
-	return r.write(
-		ctx,
-		evtypes.AccountsTopicV1,
-		account.ID.String(),
-		evtypes.AccountUsernameUpdatedEvent,
-		evtypes.AccountUsernameUpdatedPayload{
-			Account: toEvAccount(account),
-		},
-	)
-}
-
 func (r *OutboxRepo) WriteAccountDeleted(
 	ctx context.Context,
 	account models.Account,
@@ -95,7 +80,6 @@ func (r *OutboxRepo) WriteAccountDeleted(
 func toEvAccount(a models.Account) evtypes.Account {
 	return evtypes.Account{
 		ID:        a.ID,
-		Username:  a.Username,
 		Role:      a.Role,
 		Version:   a.Version,
 		CreatedAt: a.CreatedAt,

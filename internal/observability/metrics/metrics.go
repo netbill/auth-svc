@@ -23,7 +23,7 @@ func New() (*Metrics, error) {
 	meter := otel.GetMeterProvider().Meter("auth-svc")
 
 	logins, err := meter.Int64Counter("auth.logins_total",
-		metric.WithDescription("Login attempts by method (email|username|google|qr) and status (ok|fail)"),
+		metric.WithDescription("Login attempts by method (email|google|qr) and status (ok|fail)"),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("create logins counter: %w", err)

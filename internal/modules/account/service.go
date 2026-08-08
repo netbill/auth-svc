@@ -111,13 +111,11 @@ type passwordManager interface {
 //go:generate mockery --name=messenger --inpackage
 type messenger interface {
 	WriteAccountCreated(ctx context.Context, account models.Account, email models.AccountEmail) error
-	WriteAccountUsernameUpdated(ctx context.Context, account models.Account) error
 	WriteAccountDeleted(ctx context.Context, account models.Account, email models.AccountEmail) error
 }
 
 type RegistrationParams struct {
 	Email    string
-	Username string
 	Password string
 	Role     string
 }
@@ -128,10 +126,6 @@ func (s *Service) Registration(
 ) (models.Account, error) {
 	if err := tokens.ValidateUserSystemRole(params.Role); err != nil {
 		return models.Account{}, errx.ErrorRoleNotSupported.Raise(err)
-	}
-
-	if err := s.checkUsernameRequirements(params.Username); err != nil {
-		return models.Account{}, err
 	}
 
 	if err := s.checkPasswordRequirements(params.Password); err != nil {
@@ -216,41 +210,6 @@ func (s *Service) GetMyEmailByID(
 	go s.emailCache.Set(context.WithoutCancel(ctx), email)
 
 	return email, nil
-}
-
-func (s *Service) UpdateUsername(
-	ctx context.Context,
-	actor models.AccountActor,
-	newUsername string,
-) (models.Account, error) {
-	if err := s.checkUsernameRequirements(newUsername); err != nil {
-		return models.Account{}, err
-	}
-
-	current, err := s.accountRepo.GetByID(ctx, actor.ID)
-	if err != nil {
-		return models.Account{}, err
-	}
-
-	if current.Username == newUsername {
-		return current, nil
-	}
-
-	var updated models.Account
-	if err = s.tx.Transaction(ctx, func(ctx context.Context) error {
-		updated, err = s.accountRepo.UpdateUsername(ctx, actor.ID, newUsername, current.Version)
-		if err != nil {
-			return err
-		}
-
-		return s.messenger.WriteAccountUsernameUpdated(ctx, updated)
-	}); err != nil {
-		return models.Account{}, err
-	}
-
-	go s.accountCache.Set(context.WithoutCancel(ctx), updated)
-
-	return updated, nil
 }
 
 func (s *Service) UpdatePassword(
@@ -340,24 +299,6 @@ func (s *Service) DeleteMyAccount(
 
 	for _, id := range sessionIDs {
 		go s.sessionsCache.Delete(detached, id)
-	}
-
-	return nil
-}
-
-func (s *Service) checkUsernameRequirements(username string) error {
-	if len(username) < 3 || len(username) > 32 {
-		return errx.ErrorUsernameIsNotAllowed.Raise(
-			fmt.Errorf("username must be between 3 and 32 characters"),
-		)
-	}
-
-	for _, r := range username {
-		if !(unicode.IsLetter(r) || unicode.IsDigit(r) || r == '_' || r == '-') {
-			return errx.ErrorUsernameIsNotAllowed.Raise(
-				fmt.Errorf("username contains invalid characters %s", string(r)),
-			)
-		}
 	}
 
 	return nil

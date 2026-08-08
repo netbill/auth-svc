@@ -25,7 +25,7 @@ func TestEmailRepo_Create(t *testing.T) {
 	accRepo, emailRepo := newEmailRepo(t)
 	ctx := context.Background()
 
-	acc, err := accRepo.Create(ctx, account.RegistrationParams{Username: testutil.UniqueUsername(), Role: "user"})
+	acc, err := accRepo.Create(ctx, account.RegistrationParams{Role: "user"})
 	require.NoError(t, err)
 
 	email, err := emailRepo.Create(ctx, models.AccountEmail{
@@ -42,9 +42,9 @@ func TestEmailRepo_Create_DuplicateEmail(t *testing.T) {
 	accRepo, emailRepo := newEmailRepo(t)
 	ctx := context.Background()
 
-	acc1, err := accRepo.Create(ctx, account.RegistrationParams{Username: testutil.UniqueUsername(), Role: "user"})
+	acc1, err := accRepo.Create(ctx, account.RegistrationParams{Role: "user"})
 	require.NoError(t, err)
-	acc2, err := accRepo.Create(ctx, account.RegistrationParams{Username: testutil.UniqueUsername(), Role: "user"})
+	acc2, err := accRepo.Create(ctx, account.RegistrationParams{Role: "user"})
 	require.NoError(t, err)
 
 	_, err = emailRepo.Create(ctx, models.AccountEmail{AccountID: acc1.ID, Email: "dup@example.com"})
@@ -58,7 +58,7 @@ func TestEmailRepo_GetByID_Active(t *testing.T) {
 	accRepo, emailRepo := newEmailRepo(t)
 	ctx := context.Background()
 
-	acc, err := accRepo.Create(ctx, account.RegistrationParams{Username: testutil.UniqueUsername(), Role: "user"})
+	acc, err := accRepo.Create(ctx, account.RegistrationParams{Role: "user"})
 	require.NoError(t, err)
 
 	_, err = emailRepo.Create(ctx, models.AccountEmail{AccountID: acc.ID, Email: "bob@example.com"})
@@ -80,7 +80,7 @@ func TestEmailRepo_GetByID_WithDeletedFilter(t *testing.T) {
 	accRepo, emailRepo := newEmailRepo(t)
 	ctx := context.Background()
 
-	acc, err := accRepo.Create(ctx, account.RegistrationParams{Username: testutil.UniqueUsername(), Role: "user"})
+	acc, err := accRepo.Create(ctx, account.RegistrationParams{Role: "user"})
 	require.NoError(t, err)
 
 	_, err = emailRepo.Create(ctx, models.AccountEmail{AccountID: acc.ID, Email: "charlie@example.com"})
@@ -104,7 +104,7 @@ func TestEmailRepo_GetByEmail(t *testing.T) {
 	accRepo, emailRepo := newEmailRepo(t)
 	ctx := context.Background()
 
-	acc, err := accRepo.Create(ctx, account.RegistrationParams{Username: testutil.UniqueUsername(), Role: "user"})
+	acc, err := accRepo.Create(ctx, account.RegistrationParams{Role: "user"})
 	require.NoError(t, err)
 
 	_, err = emailRepo.Create(ctx, models.AccountEmail{AccountID: acc.ID, Email: "dave@example.com"})

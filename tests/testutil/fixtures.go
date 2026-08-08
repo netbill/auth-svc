@@ -17,7 +17,7 @@ const TestPassword = "Test@pass1"
 
 // CreateAccount inserts a full account (account + email + password) directly into the DB.
 // Returns the created account and its plain-text password.
-func CreateAccount(t *testing.T, db *pgdbx.DB, username, email string) (models.Account, models.AccountEmail, string) {
+func CreateAccount(t *testing.T, db *pgdbx.DB, email string) (models.Account, models.AccountEmail, string) {
 	t.Helper()
 
 	ctx := context.Background()
@@ -27,8 +27,7 @@ func CreateAccount(t *testing.T, db *pgdbx.DB, username, email string) (models.A
 	passwordRepo := pg.NewPasswordRepo(db)
 
 	acc, err := accountRepo.Create(ctx, account.RegistrationParams{
-		Username: username,
-		Role:     "user",
+		Role: "user",
 	})
 	require.NoError(t, err)
 

@@ -9,7 +9,6 @@ import (
 	"github.com/netbill/auth-svc/internal/modules/account"
 	"github.com/netbill/auth-svc/internal/modules/session"
 	"github.com/netbill/auth-svc/internal/repo/pg"
-	"github.com/netbill/auth-svc/tests/testutil"
 	"github.com/netbill/pgdbx"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -25,8 +24,7 @@ func newSessionRepos(t *testing.T) (*pg.AccountRepo, *pg.SessionRepo) {
 func createAccountForSession(t *testing.T, accRepo *pg.AccountRepo) uuid.UUID {
 	t.Helper()
 	acc, err := accRepo.Create(context.Background(), account.RegistrationParams{
-		Username: testutil.UniqueUsername(),
-		Role:     "user",
+		Role: "user",
 	})
 	require.NoError(t, err)
 	return acc.ID

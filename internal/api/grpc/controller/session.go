@@ -20,7 +20,6 @@ import (
 type SessionCore interface {
 	LoginByEmail(ctx context.Context, email, password string) (models.TokensPair, error)
 	LoginByGoogle(ctx context.Context, email string) (models.TokensPair, error)
-	LoginByUsername(ctx context.Context, username, password string) (models.TokensPair, error)
 	Refresh(ctx context.Context, oldRefreshToken string) (models.TokensPair, error)
 	GetMySession(ctx context.Context, actor models.AccountActor, sessionID uuid.UUID) (models.Session, error)
 	GetMySessions(ctx context.Context, actor models.AccountActor, opts ...session.ListSessionsOption) (pagi.Page[[]models.Session], error)
@@ -31,7 +30,6 @@ type SessionCore interface {
 
 type SessionMetrics interface {
 	RecordEmailLogin(ctx context.Context, err *error)
-	RecordUsernameLogin(ctx context.Context, err *error)
 	RecordGoogleLogin(ctx context.Context, err *error)
 	RecordTokenRefresh(ctx context.Context, err *error)
 	RecordSessionDeleted(ctx context.Context, scope string, err *error)
@@ -61,30 +59,6 @@ func (s *SessionServer) LoginByEmail(ctx context.Context, req *pb.LoginByEmailRe
 	defer s.metrics.RecordEmailLogin(ctx, &err)
 
 	pair, err := s.sessions.LoginByEmail(ctx, req.Email, req.Password)
-	switch {
-	case errors.Is(err, errx.ErrorAccountNotFound),
-		errors.Is(err, errx.ErrorAccountDeleted):
-		log.Warn("account not found", "error", err)
-		return nil, status.Error(codes.Unauthenticated, "invalid credentials")
-	case errors.Is(err, errx.ErrorPasswordInvalid):
-		log.Warn("invalid password", "error", err)
-		return nil, status.Error(codes.Unauthenticated, "invalid credentials")
-	case err != nil:
-		log.Error("unexpected error", "error", err)
-		return nil, status.Error(codes.Internal, "internal error")
-	default:
-		log.Info("login successful")
-		return &pb.LoginResponse{Tokens: reponses.TokensPair(pair)}, nil
-	}
-}
-
-const operationLoginByUsername = "login_by_username"
-
-func (s *SessionServer) LoginByUsername(ctx context.Context, req *pb.LoginByUsernameRequest) (_ *pb.LoginResponse, err error) {
-	log := scope.Log(ctx).WithOperation(operationLoginByUsername)
-	defer s.metrics.RecordUsernameLogin(ctx, &err)
-
-	pair, err := s.sessions.LoginByUsername(ctx, req.Username, req.Password)
 	switch {
 	case errors.Is(err, errx.ErrorAccountNotFound),
 		errors.Is(err, errx.ErrorAccountDeleted):

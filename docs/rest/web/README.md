@@ -74,11 +74,9 @@ Class | Method | HTTP request | Description
 *AccountsAPI* | [**AuthSvcV1MeDelete**](docs/AccountsAPI.md#authsvcv1medelete) | **Delete** /auth-svc/v1/me | Delete my account
 *AccountsAPI* | [**AuthSvcV1MeGet**](docs/AccountsAPI.md#authsvcv1meget) | **Get** /auth-svc/v1/me | Get my account
 *AccountsAPI* | [**AuthSvcV1MePasswordPatch**](docs/AccountsAPI.md#authsvcv1mepasswordpatch) | **Patch** /auth-svc/v1/me/password | Update password
-*AccountsAPI* | [**AuthSvcV1MeUsernamePatch**](docs/AccountsAPI.md#authsvcv1meusernamepatch) | **Patch** /auth-svc/v1/me/username | Update username
 *LoginAPI* | [**AuthSvcV1LoginEmailPost**](docs/LoginAPI.md#authsvcv1loginemailpost) | **Post** /auth-svc/v1/login/email | Login by email
 *LoginAPI* | [**AuthSvcV1LoginGoogleCallbackGet**](docs/LoginAPI.md#authsvcv1logingooglecallbackget) | **Get** /auth-svc/v1/login/google/callback | Google OAuth callback
 *LoginAPI* | [**AuthSvcV1LoginGooglePost**](docs/LoginAPI.md#authsvcv1logingooglepost) | **Post** /auth-svc/v1/login/google | Start Google OAuth login
-*LoginAPI* | [**AuthSvcV1LoginUsernamePost**](docs/LoginAPI.md#authsvcv1loginusernamepost) | **Post** /auth-svc/v1/login/username | Login by username
 *QrAPI* | [**AuthSvcV1LoginQrConfirmPost**](docs/QrAPI.md#authsvcv1loginqrconfirmpost) | **Post** /auth-svc/v1/login/qr/confirm | Confirm QR token
 *QrAPI* | [**AuthSvcV1LoginQrGet**](docs/QrAPI.md#authsvcv1loginqrget) | **Get** /auth-svc/v1/login/qr | Connect to QR login session
 *RegistrationAPI* | [**AuthSvcV1RegistrationAdminPost**](docs/RegistrationAPI.md#authsvcv1registrationadminpost) | **Post** /auth-svc/v1/registration/admin | Register a new admin account
@@ -110,9 +108,6 @@ Class | Method | HTTP request | Description
  - [LoginByEmail](docs/LoginByEmail.md)
  - [LoginByEmailData](docs/LoginByEmailData.md)
  - [LoginByEmailDataAttributes](docs/LoginByEmailDataAttributes.md)
- - [LoginByUsername](docs/LoginByUsername.md)
- - [LoginByUsernameData](docs/LoginByUsernameData.md)
- - [LoginByUsernameDataAttributes](docs/LoginByUsernameDataAttributes.md)
  - [PaginationData](docs/PaginationData.md)
  - [QRConfirm](docs/QRConfirm.md)
  - [QRConfirmData](docs/QRConfirmData.md)
@@ -128,16 +123,12 @@ Class | Method | HTTP request | Description
  - [RegistrationAdminData](docs/RegistrationAdminData.md)
  - [RegistrationAdminDataAttributes](docs/RegistrationAdminDataAttributes.md)
  - [RegistrationData](docs/RegistrationData.md)
- - [RegistrationDataAttributes](docs/RegistrationDataAttributes.md)
  - [TokensPair](docs/TokensPair.md)
  - [TokensPairData](docs/TokensPairData.md)
  - [TokensPairDataAttributes](docs/TokensPairDataAttributes.md)
  - [UpdatePassword](docs/UpdatePassword.md)
  - [UpdatePasswordData](docs/UpdatePasswordData.md)
  - [UpdatePasswordDataAttributes](docs/UpdatePasswordDataAttributes.md)
- - [UpdateUsername](docs/UpdateUsername.md)
- - [UpdateUsernameData](docs/UpdateUsernameData.md)
- - [UpdateUsernameDataAttributes](docs/UpdateUsernameDataAttributes.md)
 
 
 ## Documentation For Authorization

@@ -19,7 +19,6 @@ func TestAccountCache_SetAndGet(t *testing.T) {
 
 	acc := models.Account{
 		ID:        testutil.RandomUUID(),
-		Username:  "alice",
 		Role:      "user",
 		Version:   1,
 		CreatedAt: time.Now().UTC().Truncate(time.Second),
@@ -31,7 +30,6 @@ func TestAccountCache_SetAndGet(t *testing.T) {
 	got, err := cache.Get(ctx, acc.ID)
 	require.NoError(t, err)
 	assert.Equal(t, acc.ID, got.ID)
-	assert.Equal(t, acc.Username, got.Username)
 	assert.Equal(t, acc.Role, got.Role)
 }
 
@@ -50,9 +48,8 @@ func TestAccountCache_Delete(t *testing.T) {
 	ctx := context.Background()
 
 	acc := models.Account{
-		ID:       testutil.RandomUUID(),
-		Username: "bob",
-		Role:     "user",
+		ID:   testutil.RandomUUID(),
+		Role: "user",
 	}
 
 	err := cache.Set(ctx, acc)
@@ -81,24 +78,23 @@ func TestAccountCache_Overwrite(t *testing.T) {
 	ctx := context.Background()
 
 	acc := models.Account{
-		ID:       testutil.RandomUUID(),
-		Username: "charlie",
-		Role:     "user",
-		Version:  1,
+		ID:      testutil.RandomUUID(),
+		Role:    "user",
+		Version: 1,
 	}
 
 	err := cache.Set(ctx, acc)
 	require.NoError(t, err)
 
 	// Overwrite with updated version
-	acc.Username = "charlie_updated"
+	acc.Role = "admin"
 	acc.Version = 2
 	err = cache.Set(ctx, acc)
 	require.NoError(t, err)
 
 	got, err := cache.Get(ctx, acc.ID)
 	require.NoError(t, err)
-	assert.Equal(t, "charlie_updated", got.Username)
+	assert.Equal(t, "admin", got.Role)
 	assert.Equal(t, int32(2), got.Version)
 }
 
@@ -107,17 +103,17 @@ func TestAccountCache_MultipleAccounts(t *testing.T) {
 	cache := newAccountCache(t)
 	ctx := context.Background()
 
-	acc1 := models.Account{ID: testutil.RandomUUID(), Username: "user1", Role: "user"}
-	acc2 := models.Account{ID: testutil.RandomUUID(), Username: "user2", Role: "user"}
+	acc1 := models.Account{ID: testutil.RandomUUID(), Role: "user"}
+	acc2 := models.Account{ID: testutil.RandomUUID(), Role: "admin"}
 
 	require.NoError(t, cache.Set(ctx, acc1))
 	require.NoError(t, cache.Set(ctx, acc2))
 
 	got1, err := cache.Get(ctx, acc1.ID)
 	require.NoError(t, err)
-	assert.Equal(t, "user1", got1.Username)
+	assert.Equal(t, "user", got1.Role)
 
 	got2, err := cache.Get(ctx, acc2.ID)
 	require.NoError(t, err)
-	assert.Equal(t, "user2", got2.Username)
+	assert.Equal(t, "admin", got2.Role)
 }

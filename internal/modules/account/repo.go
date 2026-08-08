@@ -16,12 +16,6 @@ type transaction interface {
 type accountRepo interface {
 	Create(ctx context.Context, params RegistrationParams) (models.Account, error)
 	GetByID(ctx context.Context, accountID uuid.UUID) (models.Account, error)
-	UpdateUsername(
-		ctx context.Context,
-		accountID uuid.UUID,
-		newUsername string,
-		version int32,
-	) (models.Account, error)
 	Delete(ctx context.Context, accountID uuid.UUID) (models.Account, error)
 }
 

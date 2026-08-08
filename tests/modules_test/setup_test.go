@@ -138,10 +138,6 @@ func (n *noopMessenger) WriteAccountCreated(_ context.Context, _ models.Account,
 	return nil
 }
 
-func (n *noopMessenger) WriteAccountUsernameUpdated(_ context.Context, _ models.Account) error {
-	return nil
-}
-
 func (n *noopMessenger) WriteAccountDeleted(_ context.Context, _ models.Account, _ models.AccountEmail) error {
 	return nil
 }

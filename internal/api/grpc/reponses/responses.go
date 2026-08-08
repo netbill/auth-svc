@@ -9,7 +9,6 @@ import (
 func Account(a models.Account) *pb.Account {
 	out := &pb.Account{
 		Id:        a.ID.String(),
-		Username:  a.Username,
 		Role:      a.Role,
 		Version:   a.Version,
 		CreatedAt: timestamppb.New(a.CreatedAt),

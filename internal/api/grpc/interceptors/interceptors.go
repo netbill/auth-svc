@@ -14,12 +14,11 @@ import (
 )
 
 var publicMethods = map[string]struct{}{
-	"/auth.v1.AccountService/CreateAccount":   {},
-	"/auth.v1.SessionService/LoginByEmail":    {},
-	"/auth.v1.SessionService/LoginByUsername": {},
-	"/auth.v1.SessionService/LoginByGoogle":   {},
-	"/auth.v1.SessionService/Refresh":         {},
-	"/auth.v1.AuthService/ValidateSession":    {},
+	"/auth.v1.AccountService/CreateAccount": {},
+	"/auth.v1.SessionService/LoginByEmail":  {},
+	"/auth.v1.SessionService/LoginByGoogle": {},
+	"/auth.v1.SessionService/Refresh":       {},
+	"/auth.v1.AuthService/ValidateSession":  {},
 }
 
 type TokenParser interface {

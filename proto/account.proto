@@ -15,8 +15,8 @@ service AccountService {
   // CreateAccount registers a new user account.
   //
   // Errors:
-  //   ALREADY_EXISTS      — email or username is already taken
-  //   INVALID_ARGUMENT    — username or password does not meet requirements
+  //   ALREADY_EXISTS      — email is already taken
+  //   INVALID_ARGUMENT    — password does not meet requirements
   rpc CreateAccount(CreateAccountRequest) returns (CreateAccountResponse);
 
   // GetMyAccount returns the authenticated account's profile.
@@ -30,15 +30,6 @@ service AccountService {
   // Errors:
   //   NOT_FOUND           — account does not exist
   rpc GetMyEmail(GetMyEmailRequest) returns (GetMyEmailResponse);
-
-  // UpdateUsername changes the username of the authenticated account.
-  // If the new username is identical to the current one, the call succeeds without any changes.
-  //
-  // Errors:
-  //   ALREADY_EXISTS      — username is taken by another account
-  //   INVALID_ARGUMENT    — username does not meet requirements
-  //   UNAUTHENTICATED     — session is invalid or expired
-  rpc UpdateUsername(UpdateUsernameRequest) returns (UpdateUsernameResponse);
 
   // UpdatePassword changes the password of the authenticated account.
   // The old password must be provided for verification.
@@ -61,10 +52,6 @@ message CreateAccountRequest {
   // Valid email address. Must be unique across all accounts.
   string email = 1;
 
-  // Desired username. 3–32 characters, letters/digits/underscore/hyphen only.
-  // Must be unique across all accounts.
-  string username = 2;
-
   // Password. 8–32 characters, must contain at least one uppercase letter,
   // one lowercase letter, one digit and one special character (-.!#$%&?,@).
   string password = 3;
@@ -84,16 +71,6 @@ message GetMyEmailRequest {}
 
 message GetMyEmailResponse {
   AccountEmail email = 1;
-}
-
-message UpdateUsernameRequest {
-  // New username. Same rules as CreateAccountRequest.username.
-  string new_username = 1;
-}
-
-message UpdateUsernameResponse {
-  // Updated account with the new username and incremented version.
-  Account account = 1;
 }
 
 message UpdatePasswordRequest {

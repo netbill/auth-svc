@@ -72,7 +72,7 @@ paths:
                 $ref: '#/components/schemas/Errors'
         '409':
           description: |
-            Conflict. Email or username is already taken. Check the `detail` field in the response for more information.
+            Conflict. Email is already taken. Check the `detail` field in the response for more information.
           content:
             application/json:
               schema:
@@ -106,38 +106,6 @@ paths:
         '401':
           description: |
             Unauthorized: Invalid email or password.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Errors'
-        '500':
-          description: Internal server error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Errors'
-  /auth-svc/v1/login/username:
-    post:
-      tags:
-        - login
-      summary: Login by username
-      description: Endpoint to login a user using their username and password.
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/LoginByUsername'
-      responses:
-        '200':
-          description: Successful login
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/TokensPair'
-        '401':
-          description: |
-            Unauthorized: Invalid username or password. Check the 'detail' field in the response for more information.
           content:
             application/json:
               schema:
@@ -378,63 +346,6 @@ paths:
         '401':
           description: |
             Unauthorized. The session is invalid, does not belong to the authenticated account, or the old password is incorrect.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Errors'
-        '500':
-          description: Internal Server Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Errors'
-  /auth-svc/v1/me/username:
-    patch:
-      tags:
-        - accounts
-      summary: Update username
-      description: |
-        Updates the username of the authenticated account.
-        **401 Unauthorized** is returned when the account is deleted. **404 Not Found** is returned when the account does not exist. **409 Conflict** is returned when the requested username is already taken.
-      security:
-        - BearerAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/UpdateUsername'
-      responses:
-        '200':
-          description: Username successfully updated
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Account'
-        '400':
-          description: |
-            Bad Request. Request body is invalid. Check the `errors` array for details.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Errors'
-        '401':
-          description: |
-            Unauthorized. The account is deleted and can no longer be used.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Errors'
-        '404':
-          description: |
-            Account not found.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Errors'
-        '409':
-          description: |
-            Conflict. The requested username is already taken. Check the `detail` field in the response for more information.
           content:
             application/json:
               schema:
@@ -712,36 +623,6 @@ components:
                   format: password
                   description: The account's password.
                   example: StrongP@ssw0rd!
-    LoginByUsername:
-      type: object
-      required:
-        - data
-      properties:
-        data:
-          type: object
-          required:
-            - type
-            - attributes
-          properties:
-            type:
-              type: string
-              enum:
-                - account_session
-            attributes:
-              type: object
-              required:
-                - username
-                - password
-              properties:
-                username:
-                  type: string
-                  description: The account's username.
-                  example: example
-                password:
-                  type: string
-                  format: password
-                  description: The account's password.
-                  example: StrongP@ssw0rd!
     Registration:
       type: object
       required:
@@ -761,7 +642,6 @@ components:
               type: object
               required:
                 - email
-                - username
                 - password
               properties:
                 email:
@@ -769,10 +649,6 @@ components:
                   format: email
                   description: The account's email address.
                   example: example@gmail.com
-                username:
-                  type: string
-                  description: The account's username.
-                  example: user123
                 password:
                   type: string
                   format: password
@@ -797,7 +673,6 @@ components:
               type: object
               required:
                 - email
-                - username
                 - password
                 - role
               properties:
@@ -806,10 +681,6 @@ components:
                   format: email
                   description: The account's email address.
                   example: example1312@gmail.com
-                username:
-                  type: string
-                  description: The account's username.
-                  example: adminUser
                 password:
                   type: string
                   format: password
@@ -877,29 +748,6 @@ components:
                   format: password
                   description: The account's password.
                   example: StrongP@ssw0rd!
-    UpdateUsername:
-      type: object
-      required:
-        - data
-      properties:
-        data:
-          type: object
-          required:
-            - type
-            - attributes
-          properties:
-            type:
-              type: string
-              enum:
-                - account
-            attributes:
-              type: object
-              required:
-                - username
-              properties:
-                username:
-                  type: string
-                  description: The account's username.
     QRConfirm:
       type: object
       required:
@@ -1099,7 +947,6 @@ components:
               type: object
               required:
                 - role
-                - username
                 - version
                 - created_at
                 - updated_at
@@ -1107,9 +954,6 @@ components:
                 role:
                   type: string
                   description: The role assigned to the account
-                username:
-                  type: string
-                  description: The username of the account
                 version:
                   type: integer
                   description: The version number of the account record

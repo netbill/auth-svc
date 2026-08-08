@@ -50,24 +50,6 @@ func (_m *mockMessenger) WriteAccountDeleted(ctx context.Context, account models
 	return r0
 }
 
-// WriteAccountUsernameUpdated provides a mock function with given fields: ctx, account
-func (_m *mockMessenger) WriteAccountUsernameUpdated(ctx context.Context, account models.Account) error {
-	ret := _m.Called(ctx, account)
-
-	if len(ret) == 0 {
-		panic("no return value specified for WriteAccountUsernameUpdated")
-	}
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, models.Account) error); ok {
-		r0 = rf(ctx, account)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
 // newMockMessenger creates a new instance of mockMessenger. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
 // The first argument is typically a *testing.T value.
 func newMockMessenger(t interface {

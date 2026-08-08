@@ -19,7 +19,6 @@ type registerRequest struct {
 		Attributes struct {
 			Email    string `json:"email"`
 			Password string `json:"password"`
-			Username string `json:"username"`
 		} `json:"attributes"`
 	} `json:"data"`
 }
@@ -55,13 +54,12 @@ func TestRegistrationAndLogin(t *testing.T) {
 
 	for i := range n {
 		email := fmt.Sprintf("test_%s@example.com", uuid.New().String()[:8])
-		username := fmt.Sprintf("user_%s", uuid.New().String()[:8])
 
 		t.Run(fmt.Sprintf("account_%d", i+1), func(t *testing.T) {
 			t.Parallel()
 
 			// — регистрация —
-			register(t, base, email, username)
+			register(t, base, email)
 
 			// — логин —
 			tokens := login(t, base, email)
@@ -71,14 +69,13 @@ func TestRegistrationAndLogin(t *testing.T) {
 	}
 }
 
-func register(t *testing.T, base, email, username string) {
+func register(t *testing.T, base, email string) {
 	t.Helper()
 
 	var body registerRequest
 	body.Data.Type = "account"
 	body.Data.Attributes.Email = email
 	body.Data.Attributes.Password = testPassword
-	body.Data.Attributes.Username = username
 
 	resp := do(t, http.MethodPost, base+"/auth-svc/v1/registration", body)
 	defer resp.Body.Close()

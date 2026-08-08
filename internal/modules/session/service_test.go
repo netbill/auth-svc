@@ -476,56 +476,6 @@ func (s *SessionServiceSuite) TestLoginByEmail_HappyPath() {
 	assert.Equal(s.T(), "access", pair.Access)
 }
 
-// ─── LoginByUsername ─────────────────────────────────────────────────────────
-
-func (s *SessionServiceSuite) TestLoginByUsername_AccountRepoError() {
-	repoErr := errors.New("not found")
-	s.accountRepo.On("GetByUsername", mock.Anything, "john_doe").Return(models.Account{}, repoErr)
-
-	_, err := s.svc.LoginByUsername(context.Background(), "john_doe", "Password1!")
-
-	require.Error(s.T(), err)
-	assert.ErrorIs(s.T(), err, repoErr)
-}
-
-func (s *SessionServiceSuite) TestLoginByUsername_WrongPassword() {
-	accountID := uuid.New()
-	account := models.Account{ID: accountID}
-	pwd := models.AccountPassword{AccountID: accountID, Hash: "hash"}
-	checkErr := errors.New("password mismatch")
-
-	s.accountRepo.On("GetByUsername", mock.Anything, "john_doe").Return(account, nil)
-	s.passwordCache.On("Get", mock.Anything, accountID).Return(pwd, nil)
-	s.passManager.On("CheckMatch", "wrongpass", pwd.Hash).Return(checkErr)
-
-	_, err := s.svc.LoginByUsername(context.Background(), "john_doe", "wrongpass")
-
-	require.Error(s.T(), err)
-	assert.ErrorIs(s.T(), err, checkErr)
-}
-
-func (s *SessionServiceSuite) TestLoginByUsername_HappyPath() {
-	accountID := uuid.New()
-	account := models.Account{ID: accountID}
-	pwd := models.AccountPassword{AccountID: accountID, Hash: "hash"}
-	session := models.Session{ID: uuid.New(), AccountID: accountID}
-
-	s.accountRepo.On("GetByUsername", mock.Anything, "john_doe").Return(account, nil)
-	s.passwordCache.On("Get", mock.Anything, accountID).Return(pwd, nil)
-	s.passManager.On("CheckMatch", "Password1!", pwd.Hash).Return(nil)
-	s.tokenManager.On("GenerateRefresh", account, mock.Anything).Return("refresh", nil)
-	s.tokenManager.On("HashRefresh", "refresh").Return("hash", nil)
-	s.sessionRepo.On("Create", mock.Anything, mock.Anything, accountID, "hash").Return(session, nil)
-	s.tokenManager.On("GenerateAccess", account, session.ID).Return("access", nil)
-	s.accountCache.On("Set", mock.Anything, account).Return(nil).Maybe()
-	s.sessionsCache.On("Set", mock.Anything, session).Return(nil).Maybe()
-
-	pair, err := s.svc.LoginByUsername(context.Background(), "john_doe", "Password1!")
-
-	require.NoError(s.T(), err)
-	assert.Equal(s.T(), "refresh", pair.Refresh)
-}
-
 // ─── LoginByGoogle ───────────────────────────────────────────────────────────
 
 func (s *SessionServiceSuite) TestLoginByGoogle_EmailRepoError() {

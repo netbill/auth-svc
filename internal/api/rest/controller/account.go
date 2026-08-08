@@ -26,7 +26,6 @@ type accountCore interface {
 	GetMyEmailByID(ctx context.Context, actor models.AccountActor) (models.AccountEmail, error)
 
 	UpdatePassword(ctx context.Context, actor models.AccountActor, oldPassword, newPassword string) error
-	UpdateUsername(ctx context.Context, actor models.AccountActor, newUsername string) (models.Account, error)
 
 	DeleteMyAccount(ctx context.Context, actor models.AccountActor) error
 }
@@ -60,21 +59,12 @@ func (c *AccountController) Registration(w http.ResponseWriter, r *http.Request)
 	_, err = c.accounts.Registration(r.Context(), account.RegistrationParams{
 		Email:    req.Data.Attributes.Email,
 		Password: req.Data.Attributes.Password,
-		Username: req.Data.Attributes.Username,
 		Role:     tokens.RoleSystemUser,
 	})
 	switch {
 	case errors.Is(err, errx.ErrorEmailAlreadyExist):
 		log.WithError(err).Warn("email already exists")
 		render.ResponseError(w, problems.Conflict("user with this email already exists"))
-	case errors.Is(err, errx.ErrorUsernameAlreadyTaken):
-		log.WithError(err).Warn("username already taken")
-		render.ResponseError(w, problems.Conflict("user with this username already exists"))
-	case errors.Is(err, errx.ErrorUsernameIsNotAllowed):
-		log.WithError(err).Warn("username is not allowed")
-		render.ResponseError(w, problems.BadRequest(validation.Errors{
-			"data/attributes/username": err,
-		})...)
 	case errors.Is(err, errx.ErrorPasswordIsNotAllowed):
 		log.WithError(err).Warn("password is not allowed")
 		render.ResponseError(w, problems.BadRequest(validation.Errors{
@@ -102,15 +92,13 @@ func (c *AccountController) RegistrationByAdmin(w http.ResponseWriter, r *http.R
 	}
 
 	log = log.WithFields(map[string]interface{}{
-		"email":    req.Data.Attributes.Email,
-		"username": req.Data.Attributes.Username,
-		"role":     req.Data.Attributes.Role,
+		"email": req.Data.Attributes.Email,
+		"role":  req.Data.Attributes.Role,
 	})
 
 	defer c.metrics.RecordRegistration(r.Context(), &err)
 	u, err := c.accounts.Registration(r.Context(), account.RegistrationParams{
 		Email:    req.Data.Attributes.Email,
-		Username: req.Data.Attributes.Username,
 		Password: req.Data.Attributes.Password,
 		Role:     req.Data.Attributes.Role,
 	})
@@ -118,14 +106,6 @@ func (c *AccountController) RegistrationByAdmin(w http.ResponseWriter, r *http.R
 	case errors.Is(err, errx.ErrorEmailAlreadyExist):
 		log.WithError(err).Warn("email already exists")
 		render.ResponseError(w, problems.Conflict("user with this email already exists"))
-	case errors.Is(err, errx.ErrorUsernameAlreadyTaken):
-		log.WithError(err).Warn("username already taken")
-		render.ResponseError(w, problems.Conflict("user with this username already exists"))
-	case errors.Is(err, errx.ErrorUsernameIsNotAllowed):
-		log.WithError(err).Warn("username is not allowed")
-		render.ResponseError(w, problems.BadRequest(validation.Errors{
-			"data/attributes/username": err,
-		})...)
 	case errors.Is(err, errx.ErrorPasswordIsNotAllowed):
 		log.WithError(err).Warn("password is not allowed")
 		render.ResponseError(w, problems.BadRequest(validation.Errors{

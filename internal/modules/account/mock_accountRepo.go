@@ -100,34 +100,6 @@ func (_m *mockAccountRepo) GetByID(ctx context.Context, accountID uuid.UUID) (mo
 	return r0, r1
 }
 
-// UpdateUsername provides a mock function with given fields: ctx, accountID, newUsername, version
-func (_m *mockAccountRepo) UpdateUsername(ctx context.Context, accountID uuid.UUID, newUsername string, version int32) (models.Account, error) {
-	ret := _m.Called(ctx, accountID, newUsername, version)
-
-	if len(ret) == 0 {
-		panic("no return value specified for UpdateUsername")
-	}
-
-	var r0 models.Account
-	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID, string, int32) (models.Account, error)); ok {
-		return rf(ctx, accountID, newUsername, version)
-	}
-	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID, string, int32) models.Account); ok {
-		r0 = rf(ctx, accountID, newUsername, version)
-	} else {
-		r0 = ret.Get(0).(models.Account)
-	}
-
-	if rf, ok := ret.Get(1).(func(context.Context, uuid.UUID, string, int32) error); ok {
-		r1 = rf(ctx, accountID, newUsername, version)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
 // newMockAccountRepo creates a new instance of mockAccountRepo. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
 // The first argument is typically a *testing.T value.
 func newMockAccountRepo(t interface {

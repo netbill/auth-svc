@@ -79,12 +79,11 @@ func (s *AccountServiceSuite) TestRegistration_HappyPath() {
 
 	params := RegistrationParams{
 		Email:    "user@example.com",
-		Username: "john_doe",
 		Password: "Password1!",
 		Role:     "user",
 	}
 
-	account := models.Account{ID: accountID, Username: params.Username}
+	account := models.Account{ID: accountID}
 	email := models.AccountEmail{AccountID: accountID, Email: params.Email}
 	password := models.AccountPassword{AccountID: accountID, Hash: "hash"}
 
@@ -106,7 +105,6 @@ func (s *AccountServiceSuite) TestRegistration_HappyPath() {
 func (s *AccountServiceSuite) TestRegistration_InvalidRole() {
 	_, err := s.svc.Registration(context.Background(), RegistrationParams{
 		Role:     "superadmin",
-		Username: "john_doe",
 		Password: "Password1!",
 	})
 
@@ -114,32 +112,9 @@ func (s *AccountServiceSuite) TestRegistration_InvalidRole() {
 	assert.ErrorIs(s.T(), err, errx.ErrorRoleNotSupported)
 }
 
-func (s *AccountServiceSuite) TestRegistration_InvalidUsername_TooShort() {
-	_, err := s.svc.Registration(context.Background(), RegistrationParams{
-		Role:     "user",
-		Username: "ab",
-		Password: "Password1!",
-	})
-
-	require.Error(s.T(), err)
-	assert.ErrorIs(s.T(), err, errx.ErrorUsernameIsNotAllowed)
-}
-
-func (s *AccountServiceSuite) TestRegistration_InvalidUsername_InvalidChars() {
-	_, err := s.svc.Registration(context.Background(), RegistrationParams{
-		Role:     "user",
-		Username: "john doe",
-		Password: "Password1!",
-	})
-
-	require.Error(s.T(), err)
-	assert.ErrorIs(s.T(), err, errx.ErrorUsernameIsNotAllowed)
-}
-
 func (s *AccountServiceSuite) TestRegistration_InvalidPassword_TooShort() {
 	_, err := s.svc.Registration(context.Background(), RegistrationParams{
 		Role:     "user",
-		Username: "john_doe",
 		Password: "Ab1!",
 	})
 
@@ -150,7 +125,6 @@ func (s *AccountServiceSuite) TestRegistration_InvalidPassword_TooShort() {
 func (s *AccountServiceSuite) TestRegistration_InvalidPassword_MissingSpecial() {
 	_, err := s.svc.Registration(context.Background(), RegistrationParams{
 		Role:     "user",
-		Username: "john_doe",
 		Password: "Password1",
 	})
 
@@ -164,7 +138,6 @@ func (s *AccountServiceSuite) TestRegistration_GenerateHashError() {
 
 	_, err := s.svc.Registration(context.Background(), RegistrationParams{
 		Role:     "user",
-		Username: "john_doe",
 		Password: "Password1!",
 	})
 
@@ -179,7 +152,6 @@ func (s *AccountServiceSuite) TestRegistration_AccountRepoError() {
 
 	_, err := s.svc.Registration(context.Background(), RegistrationParams{
 		Role:     "user",
-		Username: "john_doe",
 		Password: "Password1!",
 	})
 
@@ -196,7 +168,6 @@ func (s *AccountServiceSuite) TestRegistration_EmailRepoError() {
 
 	_, err := s.svc.Registration(context.Background(), RegistrationParams{
 		Role:     "user",
-		Username: "john_doe",
 		Password: "Password1!",
 	})
 
@@ -215,7 +186,6 @@ func (s *AccountServiceSuite) TestRegistration_PasswordRepoError() {
 
 	_, err := s.svc.Registration(context.Background(), RegistrationParams{
 		Role:     "user",
-		Username: "john_doe",
 		Password: "Password1!",
 	})
 
@@ -236,7 +206,6 @@ func (s *AccountServiceSuite) TestRegistration_MessengerError() {
 
 	_, err := s.svc.Registration(context.Background(), RegistrationParams{
 		Role:     "user",
-		Username: "john_doe",
 		Password: "Password1!",
 	})
 
@@ -324,85 +293,6 @@ func (s *AccountServiceSuite) TestGetMyEmailByID_CacheMiss_RepoError() {
 
 	require.Error(s.T(), err)
 	assert.ErrorIs(s.T(), err, repoErr)
-}
-
-// ─── UpdateUsername ──────────────────────────────────────────────────────────
-
-func (s *AccountServiceSuite) TestUpdateUsername_InvalidUsername() {
-	_, err := s.svc.UpdateUsername(context.Background(), models.AccountActor{}, "ab")
-
-	require.Error(s.T(), err)
-	assert.ErrorIs(s.T(), err, errx.ErrorUsernameIsNotAllowed)
-}
-
-func (s *AccountServiceSuite) TestUpdateUsername_RepoGetError() {
-	accountID := uuid.New()
-	repoErr := errors.New("db error")
-
-	s.accountRepo.On("GetByID", mock.Anything, accountID).Return(models.Account{}, repoErr)
-
-	_, err := s.svc.UpdateUsername(context.Background(), models.AccountActor{ID: accountID}, "new_name")
-
-	require.Error(s.T(), err)
-	assert.ErrorIs(s.T(), err, repoErr)
-}
-
-func (s *AccountServiceSuite) TestUpdateUsername_SameUsername() {
-	accountID := uuid.New()
-	current := models.Account{ID: accountID, Username: "same_name"}
-
-	s.accountRepo.On("GetByID", mock.Anything, accountID).Return(current, nil)
-
-	got, err := s.svc.UpdateUsername(context.Background(), models.AccountActor{ID: accountID}, "same_name")
-
-	require.NoError(s.T(), err)
-	assert.Equal(s.T(), current, got)
-}
-
-func (s *AccountServiceSuite) TestUpdateUsername_UpdateRepoError() {
-	accountID := uuid.New()
-	repoErr := errors.New("username taken")
-	current := models.Account{ID: accountID, Username: "old_name"}
-
-	s.accountRepo.On("GetByID", mock.Anything, accountID).Return(current, nil)
-	s.accountRepo.On("UpdateUsername", mock.Anything, accountID, "new_name", current.Version).Return(models.Account{}, repoErr)
-
-	_, err := s.svc.UpdateUsername(context.Background(), models.AccountActor{ID: accountID}, "new_name")
-
-	require.Error(s.T(), err)
-	assert.ErrorIs(s.T(), err, repoErr)
-}
-
-func (s *AccountServiceSuite) TestUpdateUsername_MessengerError() {
-	accountID := uuid.New()
-	msgErr := errors.New("kafka error")
-	current := models.Account{ID: accountID, Username: "old_name"}
-	updated := models.Account{ID: accountID, Username: "new_name"}
-
-	s.accountRepo.On("GetByID", mock.Anything, accountID).Return(current, nil)
-	s.accountRepo.On("UpdateUsername", mock.Anything, accountID, "new_name", current.Version).Return(updated, nil)
-	s.messenger.On("WriteAccountUsernameUpdated", mock.Anything, updated).Return(msgErr)
-
-	_, err := s.svc.UpdateUsername(context.Background(), models.AccountActor{ID: accountID}, "new_name")
-
-	require.Error(s.T(), err)
-	assert.ErrorIs(s.T(), err, msgErr)
-}
-
-func (s *AccountServiceSuite) TestUpdateUsername_HappyPath() {
-	accountID := uuid.New()
-	current := models.Account{ID: accountID, Username: "old_name"}
-	updated := models.Account{ID: accountID, Username: "new_name"}
-
-	s.accountRepo.On("GetByID", mock.Anything, accountID).Return(current, nil)
-	s.accountRepo.On("UpdateUsername", mock.Anything, accountID, "new_name", current.Version).Return(updated, nil)
-	s.messenger.On("WriteAccountUsernameUpdated", mock.Anything, updated).Return(nil)
-	s.accountCache.On("Set", mock.Anything, updated).Return(nil).Maybe()
-
-	got, err := s.svc.UpdateUsername(context.Background(), models.AccountActor{ID: accountID}, "new_name")
-
-	require.NoError(s.T(), err)
-	assert.Equal(s.T(), updated, got)
 }
 
 // ─── UpdatePassword ──────────────────────────────────────────────────────────

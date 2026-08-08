@@ -20,13 +20,6 @@ service SessionService {
   //   UNAUTHENTICATED     — email not found, account deleted, or password is incorrect
   rpc LoginByEmail(LoginByEmailRequest) returns (LoginResponse);
 
-  // LoginByUsername authenticates a user by username and password.
-  // Returns a token pair on success.
-  //
-  // Errors:
-  //   UNAUTHENTICATED     — username not found, account deleted, or password is incorrect
-  rpc LoginByUsername(LoginByUsernameRequest) returns (LoginResponse);
-
   // LoginByGoogle authenticates a user via a Google ID token.
   // The account must already exist with the email from the Google token.
   //
@@ -79,11 +72,6 @@ service SessionService {
 
 message LoginByEmailRequest {
   string email    = 1;
-  string password = 2;
-}
-
-message LoginByUsernameRequest {
-  string username = 1;
   string password = 2;
 }
 

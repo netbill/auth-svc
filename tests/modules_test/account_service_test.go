@@ -18,7 +18,6 @@ func TestAccountService_Registration(t *testing.T) {
 	ctx := context.Background()
 
 	acc, err := accountSvc.Registration(ctx, account.RegistrationParams{
-		Username: testutil.UniqueUsername(),
 		Email:    testutil.UniqueEmail(),
 		Password: testutil.TestPassword,
 		Role:     "user",
@@ -26,30 +25,6 @@ func TestAccountService_Registration(t *testing.T) {
 	require.NoError(t, err)
 	assert.NotEmpty(t, acc.ID)
 	assert.Equal(t, "user", acc.Role)
-}
-
-func TestAccountService_Registration_DuplicateUsername(t *testing.T) {
-	db, rc := setup(t)
-	accountSvc, _ := newServices(t, db, rc)
-	ctx := context.Background()
-
-	username := testutil.UniqueUsername()
-
-	_, err := accountSvc.Registration(ctx, account.RegistrationParams{
-		Username: username,
-		Email:    testutil.UniqueEmail(),
-		Password: testutil.TestPassword,
-		Role:     "user",
-	})
-	require.NoError(t, err)
-
-	_, err = accountSvc.Registration(ctx, account.RegistrationParams{
-		Username: username,
-		Email:    testutil.UniqueEmail(),
-		Password: testutil.TestPassword,
-		Role:     "user",
-	})
-	assert.ErrorIs(t, err, errx.ErrorUsernameAlreadyTaken)
 }
 
 func TestAccountService_Registration_DuplicateEmail(t *testing.T) {
@@ -60,7 +35,6 @@ func TestAccountService_Registration_DuplicateEmail(t *testing.T) {
 	email := testutil.UniqueEmail()
 
 	_, err := accountSvc.Registration(ctx, account.RegistrationParams{
-		Username: testutil.UniqueUsername(),
 		Email:    email,
 		Password: testutil.TestPassword,
 		Role:     "user",
@@ -68,7 +42,6 @@ func TestAccountService_Registration_DuplicateEmail(t *testing.T) {
 	require.NoError(t, err)
 
 	_, err = accountSvc.Registration(ctx, account.RegistrationParams{
-		Username: testutil.UniqueUsername(),
 		Email:    email,
 		Password: testutil.TestPassword,
 		Role:     "user",
@@ -82,7 +55,6 @@ func TestAccountService_Registration_WeakPassword(t *testing.T) {
 	ctx := context.Background()
 
 	_, err := accountSvc.Registration(ctx, account.RegistrationParams{
-		Username: testutil.UniqueUsername(),
 		Email:    testutil.UniqueEmail(),
 		Password: "weak",
 		Role:     "user",
@@ -90,28 +62,12 @@ func TestAccountService_Registration_WeakPassword(t *testing.T) {
 	assert.ErrorIs(t, err, errx.ErrorPasswordIsNotAllowed)
 }
 
-func TestAccountService_Registration_InvalidUsername(t *testing.T) {
-	db, rc := setup(t)
-	accountSvc, _ := newServices(t, db, rc)
-	ctx := context.Background()
-
-	_, err := accountSvc.Registration(ctx, account.RegistrationParams{
-		Username: "a b", // space not allowed
-		Email:    testutil.UniqueEmail(),
-		Password: testutil.TestPassword,
-		Role:     "user",
-	})
-	assert.ErrorIs(t, err, errx.ErrorUsernameIsNotAllowed)
-}
-
 func TestAccountService_GetMyAccountByID(t *testing.T) {
 	db, rc := setup(t)
 	accountSvc, _ := newServices(t, db, rc)
 	ctx := context.Background()
 
-	username := testutil.UniqueUsername()
 	created, err := accountSvc.Registration(ctx, account.RegistrationParams{
-		Username: username,
 		Email:    testutil.UniqueEmail(),
 		Password: testutil.TestPassword,
 		Role:     "user",
@@ -123,70 +79,6 @@ func TestAccountService_GetMyAccountByID(t *testing.T) {
 	got, err := accountSvc.GetMyAccountByID(ctx, actor)
 	require.NoError(t, err)
 	assert.Equal(t, created.ID, got.ID)
-	assert.Equal(t, username, got.Username)
-}
-
-func TestAccountService_UpdateUsername(t *testing.T) {
-	db, rc := setup(t)
-	accountSvc, _ := newServices(t, db, rc)
-	ctx := context.Background()
-
-	created, err := accountSvc.Registration(ctx, account.RegistrationParams{
-		Username: testutil.UniqueUsername(),
-		Email:    testutil.UniqueEmail(),
-		Password: testutil.TestPassword,
-		Role:     "user",
-	})
-	require.NoError(t, err)
-
-	actor := models.AccountActor{ID: created.ID, Role: created.Role}
-	newName := testutil.UniqueUsername()
-
-	updated, err := accountSvc.UpdateUsername(ctx, actor, newName)
-	require.NoError(t, err)
-	assert.Equal(t, newName, updated.Username)
-}
-
-func TestAccountService_UpdateUsername_SameName(t *testing.T) {
-	db, rc := setup(t)
-	accountSvc, _ := newServices(t, db, rc)
-	ctx := context.Background()
-
-	username := testutil.UniqueUsername()
-	created, err := accountSvc.Registration(ctx, account.RegistrationParams{
-		Username: username,
-		Email:    testutil.UniqueEmail(),
-		Password: testutil.TestPassword,
-		Role:     "user",
-	})
-	require.NoError(t, err)
-
-	actor := models.AccountActor{ID: created.ID, Role: created.Role}
-
-	// Update to the same username — should succeed and return the same account
-	got, err := accountSvc.UpdateUsername(ctx, actor, username)
-	require.NoError(t, err)
-	assert.Equal(t, username, got.Username)
-	assert.Equal(t, created.Version, got.Version, "version should not increment on no-op update")
-}
-
-func TestAccountService_UpdateUsername_InvalidChars(t *testing.T) {
-	db, rc := setup(t)
-	accountSvc, _ := newServices(t, db, rc)
-	ctx := context.Background()
-
-	created, err := accountSvc.Registration(ctx, account.RegistrationParams{
-		Username: testutil.UniqueUsername(),
-		Email:    testutil.UniqueEmail(),
-		Password: testutil.TestPassword,
-		Role:     "user",
-	})
-	require.NoError(t, err)
-
-	actor := models.AccountActor{ID: created.ID, Role: created.Role}
-
-	_, err = accountSvc.UpdateUsername(ctx, actor, "bad name!")
-	assert.ErrorIs(t, err, errx.ErrorUsernameIsNotAllowed)
 }
 
 func TestAccountService_UpdatePassword(t *testing.T) {
@@ -196,7 +88,6 @@ func TestAccountService_UpdatePassword(t *testing.T) {
 
 	email := testutil.UniqueEmail()
 	created, err := accountSvc.Registration(ctx, account.RegistrationParams{
-		Username: testutil.UniqueUsername(),
 		Email:    email,
 		Password: testutil.TestPassword,
 		Role:     "user",

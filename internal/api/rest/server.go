@@ -19,13 +19,11 @@ type AccountController interface {
 
 	GetMyAccount(w http.ResponseWriter, r *http.Request)
 	UpdatePassword(w http.ResponseWriter, r *http.Request)
-	UpdateUsername(w http.ResponseWriter, r *http.Request)
 	DeleteMyAccount(w http.ResponseWriter, r *http.Request)
 }
 
 type SessionController interface {
 	LoginByEmail(w http.ResponseWriter, r *http.Request)
-	LoginByUsername(w http.ResponseWriter, r *http.Request)
 	LoginByGoogleOAuth(w http.ResponseWriter, r *http.Request)
 	LoginByGoogleOAuthCallback(w http.ResponseWriter, r *http.Request)
 
@@ -102,7 +100,6 @@ func (s *Server) Run(ctx context.Context, cfg Config) {
 
 			r.Route("/login", func(r chi.Router) {
 				r.Post("/email", s.sessions.LoginByEmail)
-				r.Post("/username", s.sessions.LoginByUsername)
 
 				r.Route("/google", func(r chi.Router) {
 					r.Post("/", s.sessions.LoginByGoogleOAuth)
@@ -123,7 +120,6 @@ func (s *Server) Run(ctx context.Context, cfg Config) {
 
 				r.Post("/logout", s.sessions.Logout)
 				r.Patch("/password", s.accounts.UpdatePassword)
-				r.Patch("/username", s.accounts.UpdateUsername)
 
 				r.Route("/sessions", func(r chi.Router) {
 					r.Get("/", s.sessions.GetMySessions)

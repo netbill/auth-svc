@@ -11,9 +11,6 @@ message Account {
   // Unique account identifier (UUID).
   string id = 1;
 
-  // Unique username. 3–32 characters, letters/digits/underscore/hyphen only.
-  string username = 2;
-
   // Account role. Possible values: "user", "system_admin".
   string role = 3;
 

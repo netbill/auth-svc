@@ -71,7 +71,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/Errors"
           description: |
-            Conflict. Email or username is already taken. Check the `detail` field in the response for more information.
+            Conflict. Email is already taken. Check the `detail` field in the response for more information.
         "500":
           content:
             application/json:
@@ -114,38 +114,6 @@ paths:
                 $ref: "#/components/schemas/Errors"
           description: Internal server error
       summary: Login by email
-      tags:
-      - login
-  /auth-svc/v1/login/username:
-    post:
-      description: Endpoint to login a user using their username and password.
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/LoginByUsername"
-        required: true
-      responses:
-        "200":
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/TokensPair"
-          description: Successful login
-        "401":
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Errors"
-          description: |
-            Unauthorized: Invalid username or password. Check the 'detail' field in the response for more information.
-        "500":
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Errors"
-          description: Internal server error
-      summary: Login by username
       tags:
       - login
   /auth-svc/v1/login/google:
@@ -391,63 +359,6 @@ paths:
       security:
       - BearerAuth: []
       summary: Update password
-      tags:
-      - accounts
-  /auth-svc/v1/me/username:
-    patch:
-      description: |
-        Updates the username of the authenticated account.
-        **401 Unauthorized** is returned when the account is deleted. **404 Not Found** is returned when the account does not exist. **409 Conflict** is returned when the requested username is already taken.
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/UpdateUsername"
-        required: true
-      responses:
-        "200":
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Account"
-          description: Username successfully updated
-        "400":
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Errors"
-          description: |
-            Bad Request. Request body is invalid. Check the `errors` array for details.
-        "401":
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Errors"
-          description: |
-            Unauthorized. The account is deleted and can no longer be used.
-        "404":
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Errors"
-          description: |
-            Account not found.
-        "409":
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Errors"
-          description: |
-            Conflict. The requested username is already taken. Check the `detail` field in the response for more information.
-        "500":
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Errors"
-          description: Internal Server Error
-      security:
-      - BearerAuth: []
-      summary: Update username
       tags:
       - accounts
   /auth-svc/v1/me/sessions:
@@ -724,25 +635,12 @@ components:
           $ref: "#/components/schemas/LoginByEmail_data"
       required:
       - data
-    LoginByUsername:
-      example:
-        data:
-          type: account_session
-          attributes:
-            username: example
-            password: StrongP@ssw0rd!
-      properties:
-        data:
-          $ref: "#/components/schemas/LoginByUsername_data"
-      required:
-      - data
     Registration:
       example:
         data:
           type: account
           attributes:
             email: example@gmail.com
-            username: user123
             password: StrongP@ssw0rd!
       properties:
         data:
@@ -755,7 +653,6 @@ components:
           type: account
           attributes:
             email: example1312@gmail.com
-            username: adminUser
             password: StrongP@ssw0rd!
             role: admin
       properties:
@@ -784,17 +681,6 @@ components:
       properties:
         data:
           $ref: "#/components/schemas/UpdatePassword_data"
-      required:
-      - data
-    UpdateUsername:
-      example:
-        data:
-          type: account
-          attributes:
-            username: username
-      properties:
-        data:
-          $ref: "#/components/schemas/UpdateUsername_data"
       required:
       - data
     QRConfirm:
@@ -959,7 +845,6 @@ components:
           type: account
           attributes:
             role: role
-            username: username
             version: 0
             created_at: 2000-01-23T04:56:07.000+00:00
             updated_at: 2000-01-23T04:56:07.000+00:00
@@ -1098,69 +983,11 @@ components:
       required:
       - attributes
       - type
-    LoginByUsername_data_attributes:
-      example:
-        username: example
-        password: StrongP@ssw0rd!
-      properties:
-        username:
-          description: The account's username.
-          example: example
-          type: string
-        password:
-          description: The account's password.
-          example: StrongP@ssw0rd!
-          format: password
-          type: string
-      required:
-      - password
-      - username
-    LoginByUsername_data:
-      example:
-        type: account_session
-        attributes:
-          username: example
-          password: StrongP@ssw0rd!
-      properties:
-        type:
-          enum:
-          - account_session
-          type: string
-        attributes:
-          $ref: "#/components/schemas/LoginByUsername_data_attributes"
-      required:
-      - attributes
-      - type
-    Registration_data_attributes:
-      example:
-        email: example@gmail.com
-        username: user123
-        password: StrongP@ssw0rd!
-      properties:
-        email:
-          description: The account's email address.
-          example: example@gmail.com
-          format: email
-          type: string
-        username:
-          description: The account's username.
-          example: user123
-          type: string
-        password:
-          description: The account's password.
-          example: StrongP@ssw0rd!
-          format: password
-          type: string
-      required:
-      - email
-      - password
-      - username
     Registration_data:
       example:
         type: account
         attributes:
           email: example@gmail.com
-          username: user123
           password: StrongP@ssw0rd!
       properties:
         type:
@@ -1168,14 +995,13 @@ components:
           - account
           type: string
         attributes:
-          $ref: "#/components/schemas/Registration_data_attributes"
+          $ref: "#/components/schemas/LoginByEmail_data_attributes"
       required:
       - attributes
       - type
     RegistrationAdmin_data_attributes:
       example:
         email: example1312@gmail.com
-        username: adminUser
         password: StrongP@ssw0rd!
         role: admin
       properties:
@@ -1183,10 +1009,6 @@ components:
           description: The account's email address.
           example: example1312@gmail.com
           format: email
-          type: string
-        username:
-          description: The account's username.
-          example: adminUser
           type: string
         password:
           description: The account's password.
@@ -1204,13 +1026,11 @@ components:
       - email
       - password
       - role
-      - username
     RegistrationAdmin_data:
       example:
         type: account
         attributes:
           email: example1312@gmail.com
-          username: adminUser
           password: StrongP@ssw0rd!
           role: admin
       properties:
@@ -1279,30 +1099,6 @@ components:
           type: string
         attributes:
           $ref: "#/components/schemas/UpdatePassword_data_attributes"
-      required:
-      - attributes
-      - type
-    UpdateUsername_data_attributes:
-      example:
-        username: username
-      properties:
-        username:
-          description: The account's username.
-          type: string
-      required:
-      - username
-    UpdateUsername_data:
-      example:
-        type: account
-        attributes:
-          username: username
-      properties:
-        type:
-          enum:
-          - account
-          type: string
-        attributes:
-          $ref: "#/components/schemas/UpdateUsername_data_attributes"
       required:
       - attributes
       - type
@@ -1412,16 +1208,12 @@ components:
     Account_data_attributes:
       example:
         role: role
-        username: username
         version: 0
         created_at: 2000-01-23T04:56:07.000+00:00
         updated_at: 2000-01-23T04:56:07.000+00:00
       properties:
         role:
           description: The role assigned to the account
-          type: string
-        username:
-          description: The username of the account
           type: string
         version:
           description: The version number of the account record
@@ -1438,7 +1230,6 @@ components:
       - created_at
       - role
       - updated_at
-      - username
       - version
     Account_data:
       example:
@@ -1446,7 +1237,6 @@ components:
         type: account
         attributes:
           role: role
-          username: username
           version: 0
           created_at: 2000-01-23T04:56:07.000+00:00
           updated_at: 2000-01-23T04:56:07.000+00:00

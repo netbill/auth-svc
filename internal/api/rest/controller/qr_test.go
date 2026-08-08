@@ -35,10 +35,6 @@ func (f *fakeQRSessions) LoginByGoogle(context.Context, string) (models.TokensPa
 	panic("not used by this test")
 }
 
-func (f *fakeQRSessions) LoginByUsername(context.Context, string, string) (models.TokensPair, error) {
-	panic("not used by this test")
-}
-
 func (f *fakeQRSessions) Refresh(context.Context, string) (models.TokensPair, error) {
 	panic("not used by this test")
 }

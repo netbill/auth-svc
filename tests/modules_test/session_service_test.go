@@ -20,13 +20,12 @@ func registerAndLogin(
 	sessionSvc interface {
 		LoginByEmail(ctx context.Context, email, password string) (models.TokensPair, error)
 	},
-) (models.Account, models.TokensPair) {
+) (models.Account, models.TokensPair, string) {
 	t.Helper()
 	ctx := context.Background()
 
 	email := testutil.UniqueEmail()
 	acc, err := accountSvc.Registration(ctx, account.RegistrationParams{
-		Username: testutil.UniqueUsername(),
 		Email:    email,
 		Password: testutil.TestPassword,
 		Role:     "user",
@@ -36,7 +35,7 @@ func registerAndLogin(
 	tokens, err := sessionSvc.LoginByEmail(ctx, email, testutil.TestPassword)
 	require.NoError(t, err)
 
-	return acc, tokens
+	return acc, tokens, email
 }
 
 func TestSessionService_LoginByEmail(t *testing.T) {
@@ -46,7 +45,6 @@ func TestSessionService_LoginByEmail(t *testing.T) {
 
 	email := testutil.UniqueEmail()
 	_, err := accountSvc.Registration(ctx, account.RegistrationParams{
-		Username: testutil.UniqueUsername(),
 		Email:    email,
 		Password: testutil.TestPassword,
 		Role:     "user",
@@ -67,7 +65,6 @@ func TestSessionService_LoginByEmail_WrongPassword(t *testing.T) {
 
 	email := testutil.UniqueEmail()
 	_, err := accountSvc.Registration(ctx, account.RegistrationParams{
-		Username: testutil.UniqueUsername(),
 		Email:    email,
 		Password: testutil.TestPassword,
 		Role:     "user",
@@ -86,32 +83,12 @@ func TestSessionService_LoginByEmail_NotFound(t *testing.T) {
 	assert.ErrorIs(t, err, errx.ErrorAccountNotFound)
 }
 
-func TestSessionService_LoginByUsername(t *testing.T) {
-	db, rc := setup(t)
-	accountSvc, sessionSvc := newServices(t, db, rc)
-	ctx := context.Background()
-
-	username := testutil.UniqueUsername()
-	_, err := accountSvc.Registration(ctx, account.RegistrationParams{
-		Username: username,
-		Email:    testutil.UniqueEmail(),
-		Password: testutil.TestPassword,
-		Role:     "user",
-	})
-	require.NoError(t, err)
-
-	tokens, err := sessionSvc.LoginByUsername(ctx, username, testutil.TestPassword)
-	require.NoError(t, err)
-	assert.NotEmpty(t, tokens.Access)
-	assert.NotEmpty(t, tokens.Refresh)
-}
-
 func TestSessionService_GetMySession(t *testing.T) {
 	db, rc := setup(t)
 	accountSvc, sessionSvc := newServices(t, db, rc)
 	ctx := context.Background()
 
-	acc, tokens := registerAndLogin(t, accountSvc, sessionSvc)
+	acc, tokens, _ := registerAndLogin(t, accountSvc, sessionSvc)
 
 	actor := models.AccountActor{
 		ID:        acc.ID,
@@ -130,9 +107,8 @@ func TestSessionService_GetMySession_WrongAccount(t *testing.T) {
 	accountSvc, sessionSvc := newServices(t, db, rc)
 	ctx := context.Background()
 
-	_, tokens1 := registerAndLogin(t, accountSvc, sessionSvc)
-	acc2, tokens2 := registerAndLogin(t, accountSvc, sessionSvc)
-	_ = tokens2
+	_, tokens1, _ := registerAndLogin(t, accountSvc, sessionSvc)
+	acc2, tokens2, _ := registerAndLogin(t, accountSvc, sessionSvc)
 
 	// acc2 tries to read acc1's session
 	actor2 := models.AccountActor{
@@ -150,7 +126,7 @@ func TestSessionService_Logout(t *testing.T) {
 	accountSvc, sessionSvc := newServices(t, db, rc)
 	ctx := context.Background()
 
-	acc, tokens := registerAndLogin(t, accountSvc, sessionSvc)
+	acc, tokens, _ := registerAndLogin(t, accountSvc, sessionSvc)
 
 	actor := models.AccountActor{
 		ID:        acc.ID,
@@ -173,7 +149,7 @@ func TestSessionService_Refresh(t *testing.T) {
 	accountSvc, sessionSvc := newServices(t, db, rc)
 	ctx := context.Background()
 
-	_, tokens := registerAndLogin(t, accountSvc, sessionSvc)
+	_, tokens, _ := registerAndLogin(t, accountSvc, sessionSvc)
 
 	// Wait >1s so the new refresh token gets a different ExpiresAt (second-precision JWT)
 	time.Sleep(1100 * time.Millisecond)
@@ -194,28 +170,10 @@ func TestSessionService_DeleteMySession(t *testing.T) {
 	accountSvc, sessionSvc := newServices(t, db, rc)
 	ctx := context.Background()
 
-	acc, tokens := registerAndLogin(t, accountSvc, sessionSvc)
-
-	// Create a second session
-	email := testutil.UniqueEmail()
-	_, err := accountSvc.Registration(ctx, account.RegistrationParams{
-		Username: testutil.UniqueUsername(),
-		Email:    email,
-		Password: testutil.TestPassword,
-		Role:     "user",
-	})
-	// Use the existing account's second login to create a second session
-	email2 := testutil.UniqueEmail()
-	acc2, err := accountSvc.Registration(ctx, account.RegistrationParams{
-		Username: testutil.UniqueUsername(),
-		Email:    email2,
-		Password: testutil.TestPassword,
-		Role:     "user",
-	})
-	require.NoError(t, err)
+	acc, tokens, email := registerAndLogin(t, accountSvc, sessionSvc)
 
 	// Login again as acc to get a second session
-	tokens2, err := sessionSvc.LoginByUsername(ctx, acc.Username, testutil.TestPassword)
+	tokens2, err := sessionSvc.LoginByEmail(ctx, email, testutil.TestPassword)
 	require.NoError(t, err)
 
 	actor := models.AccountActor{
@@ -237,8 +195,6 @@ func TestSessionService_DeleteMySession(t *testing.T) {
 	session, err := sessionSvc.GetMySession(ctx, actor, tokens2.SessionID)
 	assert.NoError(t, err)
 	assert.NotNil(t, session.DeletedAt)
-
-	_ = acc2
 }
 
 func TestSessionService_DeleteMySessions(t *testing.T) {
@@ -246,12 +202,12 @@ func TestSessionService_DeleteMySessions(t *testing.T) {
 	accountSvc, sessionSvc := newServices(t, db, rc)
 	ctx := context.Background()
 
-	acc, tokens := registerAndLogin(t, accountSvc, sessionSvc)
+	acc, tokens, email := registerAndLogin(t, accountSvc, sessionSvc)
 
 	// Create additional sessions
-	tokens2, err := sessionSvc.LoginByUsername(ctx, acc.Username, testutil.TestPassword)
+	tokens2, err := sessionSvc.LoginByEmail(ctx, email, testutil.TestPassword)
 	require.NoError(t, err)
-	tokens3, err := sessionSvc.LoginByUsername(ctx, acc.Username, testutil.TestPassword)
+	tokens3, err := sessionSvc.LoginByEmail(ctx, email, testutil.TestPassword)
 	require.NoError(t, err)
 
 	// Use the first session as the actor for the DeleteMySessions call

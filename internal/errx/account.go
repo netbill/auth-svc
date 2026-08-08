@@ -10,9 +10,7 @@ var (
 
 	ErrorAccountInvalidSession = ape.DeclareError("ACCOUNT_INVALID_SESSION")
 
-	ErrorUsernameAlreadyTaken = ape.DeclareError("USERNAME_ALREADY_TAKEN")
-	ErrorUsernameIsNotAllowed = ape.DeclareError("USERNAME_IS_NOT_ALLOWED")
-	ErrorEmailAlreadyExist    = ape.DeclareError("EMAIL_ALREADY_EXIST")
+	ErrorEmailAlreadyExist = ape.DeclareError("EMAIL_ALREADY_EXIST")
 
 	ErrorPasswordInvalid         = ape.DeclareError("PASSWORD_INVALID")
 	ErrorPasswordIsNotAllowed    = ape.DeclareError("PASSWORD_IS_NOT_ALLOWED")
