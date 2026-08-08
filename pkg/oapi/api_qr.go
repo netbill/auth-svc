@@ -40,7 +40,7 @@ func (r ApiAuthSvcV1LoginQrConfirmPostRequest) Execute() (*http.Response, error)
 /*
 AuthSvcV1LoginQrConfirmPost Confirm QR token
 
-Confirms a pending QR token. The mobile client (already authenticated) scans the QR code and calls this endpoint. The server creates a new session and pushes the tokens to the waiting desktop WebSocket connection.
+Confirms a pending QR token. The mobile client (already authenticated) scans the QR code and calls this endpoint. The server creates a new session and pushes the tokens to the desktop's SSE stream opened via GET /auth-svc/v1/login/qr.
 
 
  @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
@@ -181,14 +181,23 @@ type ApiAuthSvcV1LoginQrGetRequest struct {
 	ApiService *QrAPIService
 }
 
-func (r ApiAuthSvcV1LoginQrGetRequest) Execute() (*http.Response, error) {
+func (r ApiAuthSvcV1LoginQrGetRequest) Execute() (string, *http.Response, error) {
 	return r.ApiService.AuthSvcV1LoginQrGetExecute(r)
 }
 
 /*
 AuthSvcV1LoginQrGet Connect to QR login session
 
-Upgrades the connection to WebSocket. Upon connection the server generates a QR token and sends it as the first message. The client renders it as a QR code. When the mobile client confirms the token via POST /auth-svc/v1/qr/confirm, the server pushes the session tokens through this WebSocket and closes the connection. The connection expires after 2 minutes if not confirmed.
+Opens a Server-Sent Events (text/event-stream) connection. Upon connecting, the server generates a QR token and sends it as the first event. The client renders it as a QR code. When the mobile client confirms the token via POST /auth-svc/v1/login/qr/confirm, the server pushes the session tokens through this same stream and closes it. The stream closes with an `error` event if the token isn't confirmed within 5 minutes.
+
+Events sent as SSE `event:`/`data:` frames, each shaped like a normal JSON:API response body for this API:
+  - `qr_token` — body shaped like the `QRToken` schema. Sent once, immediately
+    after connecting.
+  - `tokens` — body shaped like the `TokensPair` schema, same as every other
+    login endpoint. Sent once the QR token is confirmed; the stream closes
+    right after.
+  - `error` — body shaped like the `Errors` schema. Sent if the token isn't
+    confirmed in time; the stream closes right after.
 
 
  @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
@@ -202,16 +211,18 @@ func (a *QrAPIService) AuthSvcV1LoginQrGet(ctx context.Context) ApiAuthSvcV1Logi
 }
 
 // Execute executes the request
-func (a *QrAPIService) AuthSvcV1LoginQrGetExecute(r ApiAuthSvcV1LoginQrGetRequest) (*http.Response, error) {
+//  @return string
+func (a *QrAPIService) AuthSvcV1LoginQrGetExecute(r ApiAuthSvcV1LoginQrGetRequest) (string, *http.Response, error) {
 	var (
 		localVarHTTPMethod   = http.MethodGet
 		localVarPostBody     interface{}
 		formFiles            []formFile
+		localVarReturnValue  string
 	)
 
 	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "QrAPIService.AuthSvcV1LoginQrGet")
 	if err != nil {
-		return nil, &GenericOpenAPIError{error: err.Error()}
+		return localVarReturnValue, nil, &GenericOpenAPIError{error: err.Error()}
 	}
 
 	localVarPath := localBasePath + "/auth-svc/v1/login/qr"
@@ -230,7 +241,7 @@ func (a *QrAPIService) AuthSvcV1LoginQrGetExecute(r ApiAuthSvcV1LoginQrGetReques
 	}
 
 	// to determine the Accept header
-	localVarHTTPHeaderAccepts := []string{"application/json"}
+	localVarHTTPHeaderAccepts := []string{"text/event-stream", "application/json"}
 
 	// set Accept header
 	localVarHTTPHeaderAccept := selectHeaderAccept(localVarHTTPHeaderAccepts)
@@ -239,19 +250,19 @@ func (a *QrAPIService) AuthSvcV1LoginQrGetExecute(r ApiAuthSvcV1LoginQrGetReques
 	}
 	req, err := a.client.prepareRequest(r.ctx, localVarPath, localVarHTTPMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, formFiles)
 	if err != nil {
-		return nil, err
+		return localVarReturnValue, nil, err
 	}
 
 	localVarHTTPResponse, err := a.client.callAPI(req)
 	if err != nil || localVarHTTPResponse == nil {
-		return localVarHTTPResponse, err
+		return localVarReturnValue, localVarHTTPResponse, err
 	}
 
 	localVarBody, err := io.ReadAll(localVarHTTPResponse.Body)
 	localVarHTTPResponse.Body.Close()
 	localVarHTTPResponse.Body = io.NopCloser(bytes.NewBuffer(localVarBody))
 	if err != nil {
-		return localVarHTTPResponse, err
+		return localVarReturnValue, localVarHTTPResponse, err
 	}
 
 	if localVarHTTPResponse.StatusCode >= 300 {
@@ -264,13 +275,22 @@ func (a *QrAPIService) AuthSvcV1LoginQrGetExecute(r ApiAuthSvcV1LoginQrGetReques
 			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
 			if err != nil {
 				newErr.error = err.Error()
-				return localVarHTTPResponse, newErr
+				return localVarReturnValue, localVarHTTPResponse, newErr
 			}
 					newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
 					newErr.model = v
 		}
-		return localVarHTTPResponse, newErr
+		return localVarReturnValue, localVarHTTPResponse, newErr
 	}
 
-	return localVarHTTPResponse, nil
+	err = a.client.decode(&localVarReturnValue, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+	if err != nil {
+		newErr := &GenericOpenAPIError{
+			body:  localVarBody,
+			error: err.Error(),
+		}
+		return localVarReturnValue, localVarHTTPResponse, newErr
+	}
+
+	return localVarReturnValue, localVarHTTPResponse, nil
 }

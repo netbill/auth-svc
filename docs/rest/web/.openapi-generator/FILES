@@ -35,6 +35,9 @@ docs/PaginationData.md
 docs/QRConfirm.md
 docs/QRConfirmData.md
 docs/QRConfirmDataAttributes.md
+docs/QRToken.md
+docs/QRTokenData.md
+docs/QRTokenDataAttributes.md
 docs/QrAPI.md
 docs/RefreshSession.md
 docs/RefreshSessionData.md
@@ -83,6 +86,9 @@ model_pagination_data.go
 model_qr_confirm.go
 model_qr_confirm_data.go
 model_qr_confirm_data_attributes.go
+model_qr_token.go
+model_qr_token_data.go
+model_qr_token_data_attributes.go
 model_refresh_session.go
 model_refresh_session_data.go
 model_refresh_session_data_attributes.go

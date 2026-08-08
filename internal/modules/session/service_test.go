@@ -621,7 +621,7 @@ func (s *SessionServiceSuite) TestCheckPassword_CacheMiss_RepoError() {
 
 func (s *SessionServiceSuite) TestCreateQRToken_RepoError() {
 	repoErr := errors.New("redis error")
-	s.qrRepo.On("Set", mock.Anything, mock.Anything, "pending", qrTokenTTL).Return(repoErr)
+	s.qrRepo.On("Set", mock.Anything, mock.Anything, "pending", QRTokenTTL).Return(repoErr)
 
 	_, err := s.svc.CreateQRToken(context.Background())
 
@@ -630,7 +630,7 @@ func (s *SessionServiceSuite) TestCreateQRToken_RepoError() {
 }
 
 func (s *SessionServiceSuite) TestCreateQRToken_HappyPath() {
-	s.qrRepo.On("Set", mock.Anything, mock.Anything, "pending", qrTokenTTL).Return(nil)
+	s.qrRepo.On("Set", mock.Anything, mock.Anything, "pending", QRTokenTTL).Return(nil)
 
 	token, err := s.svc.CreateQRToken(context.Background())
 

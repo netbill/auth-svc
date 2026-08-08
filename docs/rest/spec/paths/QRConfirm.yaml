@@ -5,7 +5,7 @@ post:
   description: >
     Confirms a pending QR token. The mobile client (already authenticated) scans the QR code
     and calls this endpoint. The server creates a new session and pushes the tokens
-    to the waiting desktop WebSocket connection.
+    to the desktop's SSE stream opened via GET /auth-svc/v1/login/qr.
   security:
     - BearerAuth: []
   requestBody:
@@ -17,7 +17,7 @@ post:
 
   responses:
     '204':
-      description: QR token confirmed. Tokens are delivered to the desktop via WebSocket.
+      description: QR token confirmed. Tokens are delivered to the desktop via the SSE stream.
 
     '400':
       description: >
@@ -38,7 +38,7 @@ post:
 
     '404':
       description: >
-        QR token not found or expired (TTL 2 minutes).
+        QR token not found or expired (TTL 5 minutes).
       content:
         application/json:
           schema:

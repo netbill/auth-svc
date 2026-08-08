@@ -1,8 +1,0 @@
-name: QRExpired
-title: QR Expired
-summary: >
-  Sent when the QR token expires (TTL 2 minutes) without being confirmed.
-  Connection closes after this message.
-contentType: application/json
-payload:
-  $ref: '../schemas/QRExpiredPayload.yaml'

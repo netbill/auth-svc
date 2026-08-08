@@ -72,6 +72,8 @@ components:
     #responses
     TokensPair:
         $ref: './spec/components/schemas/responses/TokensPair.yaml'
+    QRToken:
+      $ref: './spec/components/schemas/responses/QRToken.yaml'
     AccessToken:
       $ref: './spec/components/schemas/responses/AccessToken.yaml'
     AccountSession:

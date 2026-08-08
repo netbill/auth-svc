@@ -321,6 +321,7 @@ func (a *SessionsAPIService) AuthSvcV1MeSessionsGetExecute(r ApiAuthSvcV1MeSessi
 		parameterAddToHeaderOrQuery(localVarQueryParams, "sort[last_used]", r.sortLastUsed, "form", "")
 	} else {
 		var defaultValue string = "desc"
+		parameterAddToHeaderOrQuery(localVarQueryParams, "sort[last_used]", defaultValue, "form", "")
 		r.sortLastUsed = &defaultValue
 	}
 	// to determine the Content-Type header

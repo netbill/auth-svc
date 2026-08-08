@@ -17,37 +17,37 @@ import (
 	"fmt"
 )
 
-// checks if the QRConfirmDataAttributes type satisfies the MappedNullable interface at compile time
-var _ MappedNullable = &QRConfirmDataAttributes{}
+// checks if the QRTokenDataAttributes type satisfies the MappedNullable interface at compile time
+var _ MappedNullable = &QRTokenDataAttributes{}
 
-// QRConfirmDataAttributes struct for QRConfirmDataAttributes
-type QRConfirmDataAttributes struct {
-	// The QR token received as the `qr_token` SSE event from GET /auth-svc/v1/login/qr.
+// QRTokenDataAttributes struct for QRTokenDataAttributes
+type QRTokenDataAttributes struct {
+	// Token to render as a QR code. Send it back via POST /auth-svc/v1/login/qr/confirm to complete the login. 
 	QrToken uuid.UUID `json:"qr_token"`
 }
 
-type _QRConfirmDataAttributes QRConfirmDataAttributes
+type _QRTokenDataAttributes QRTokenDataAttributes
 
-// NewQRConfirmDataAttributes instantiates a new QRConfirmDataAttributes object
+// NewQRTokenDataAttributes instantiates a new QRTokenDataAttributes object
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewQRConfirmDataAttributes(qrToken uuid.UUID) *QRConfirmDataAttributes {
-	this := QRConfirmDataAttributes{}
+func NewQRTokenDataAttributes(qrToken uuid.UUID) *QRTokenDataAttributes {
+	this := QRTokenDataAttributes{}
 	this.QrToken = qrToken
 	return &this
 }
 
-// NewQRConfirmDataAttributesWithDefaults instantiates a new QRConfirmDataAttributes object
+// NewQRTokenDataAttributesWithDefaults instantiates a new QRTokenDataAttributes object
 // This constructor will only assign default values to properties that have it defined,
 // but it doesn't guarantee that properties required by API are set
-func NewQRConfirmDataAttributesWithDefaults() *QRConfirmDataAttributes {
-	this := QRConfirmDataAttributes{}
+func NewQRTokenDataAttributesWithDefaults() *QRTokenDataAttributes {
+	this := QRTokenDataAttributes{}
 	return &this
 }
 
 // GetQrToken returns the QrToken field value
-func (o *QRConfirmDataAttributes) GetQrToken() uuid.UUID {
+func (o *QRTokenDataAttributes) GetQrToken() uuid.UUID {
 	if o == nil {
 		var ret uuid.UUID
 		return ret
@@ -58,7 +58,7 @@ func (o *QRConfirmDataAttributes) GetQrToken() uuid.UUID {
 
 // GetQrTokenOk returns a tuple with the QrToken field value
 // and a boolean to check if the value has been set.
-func (o *QRConfirmDataAttributes) GetQrTokenOk() (*uuid.UUID, bool) {
+func (o *QRTokenDataAttributes) GetQrTokenOk() (*uuid.UUID, bool) {
 	if o == nil {
 		return nil, false
 	}
@@ -66,11 +66,11 @@ func (o *QRConfirmDataAttributes) GetQrTokenOk() (*uuid.UUID, bool) {
 }
 
 // SetQrToken sets field value
-func (o *QRConfirmDataAttributes) SetQrToken(v uuid.UUID) {
+func (o *QRTokenDataAttributes) SetQrToken(v uuid.UUID) {
 	o.QrToken = v
 }
 
-func (o QRConfirmDataAttributes) MarshalJSON() ([]byte, error) {
+func (o QRTokenDataAttributes) MarshalJSON() ([]byte, error) {
 	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
@@ -78,13 +78,13 @@ func (o QRConfirmDataAttributes) MarshalJSON() ([]byte, error) {
 	return json.Marshal(toSerialize)
 }
 
-func (o QRConfirmDataAttributes) ToMap() (map[string]interface{}, error) {
+func (o QRTokenDataAttributes) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
 	toSerialize["qr_token"] = o.QrToken
 	return toSerialize, nil
 }
 
-func (o *QRConfirmDataAttributes) UnmarshalJSON(data []byte) (err error) {
+func (o *QRTokenDataAttributes) UnmarshalJSON(data []byte) (err error) {
 	// This validates that all required properties are included in the JSON object
 	// by unmarshalling the object into a generic map with string keys and checking
 	// that every required field exists as a key in the generic map.
@@ -106,53 +106,53 @@ func (o *QRConfirmDataAttributes) UnmarshalJSON(data []byte) (err error) {
 		}
 	}
 
-	varQRConfirmDataAttributes := _QRConfirmDataAttributes{}
+	varQRTokenDataAttributes := _QRTokenDataAttributes{}
 
 	decoder := json.NewDecoder(bytes.NewReader(data))
 	decoder.DisallowUnknownFields()
-	err = decoder.Decode(&varQRConfirmDataAttributes)
+	err = decoder.Decode(&varQRTokenDataAttributes)
 
 	if err != nil {
 		return err
 	}
 
-	*o = QRConfirmDataAttributes(varQRConfirmDataAttributes)
+	*o = QRTokenDataAttributes(varQRTokenDataAttributes)
 
 	return err
 }
 
-type NullableQRConfirmDataAttributes struct {
-	value *QRConfirmDataAttributes
+type NullableQRTokenDataAttributes struct {
+	value *QRTokenDataAttributes
 	isSet bool
 }
 
-func (v NullableQRConfirmDataAttributes) Get() *QRConfirmDataAttributes {
+func (v NullableQRTokenDataAttributes) Get() *QRTokenDataAttributes {
 	return v.value
 }
 
-func (v *NullableQRConfirmDataAttributes) Set(val *QRConfirmDataAttributes) {
+func (v *NullableQRTokenDataAttributes) Set(val *QRTokenDataAttributes) {
 	v.value = val
 	v.isSet = true
 }
 
-func (v NullableQRConfirmDataAttributes) IsSet() bool {
+func (v NullableQRTokenDataAttributes) IsSet() bool {
 	return v.isSet
 }
 
-func (v *NullableQRConfirmDataAttributes) Unset() {
+func (v *NullableQRTokenDataAttributes) Unset() {
 	v.value = nil
 	v.isSet = false
 }
 
-func NewNullableQRConfirmDataAttributes(val *QRConfirmDataAttributes) *NullableQRConfirmDataAttributes {
-	return &NullableQRConfirmDataAttributes{value: val, isSet: true}
+func NewNullableQRTokenDataAttributes(val *QRTokenDataAttributes) *NullableQRTokenDataAttributes {
+	return &NullableQRTokenDataAttributes{value: val, isSet: true}
 }
 
-func (v NullableQRConfirmDataAttributes) MarshalJSON() ([]byte, error) {
+func (v NullableQRTokenDataAttributes) MarshalJSON() ([]byte, error) {
 	return json.Marshal(v.value)
 }
 
-func (v *NullableQRConfirmDataAttributes) UnmarshalJSON(src []byte) error {
+func (v *NullableQRTokenDataAttributes) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }

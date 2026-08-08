@@ -302,6 +302,7 @@ paths:
             - email
             type: string
           type: array
+          default: null
         style: form
       responses:
         "200":
@@ -629,10 +630,24 @@ paths:
   /auth-svc/v1/login/qr:
     get:
       description: |
-        Upgrades the connection to WebSocket. Upon connection the server generates a QR token and sends it as the first message. The client renders it as a QR code. When the mobile client confirms the token via POST /auth-svc/v1/qr/confirm, the server pushes the session tokens through this WebSocket and closes the connection. The connection expires after 2 minutes if not confirmed.
+        Opens a Server-Sent Events (text/event-stream) connection. Upon connecting, the server generates a QR token and sends it as the first event. The client renders it as a QR code. When the mobile client confirms the token via POST /auth-svc/v1/login/qr/confirm, the server pushes the session tokens through this same stream and closes it. The stream closes with an `error` event if the token isn't confirmed within 5 minutes.
+
+        Events sent as SSE `event:`/`data:` frames, each shaped like a normal JSON:API response body for this API:
+          - `qr_token` — body shaped like the `QRToken` schema. Sent once, immediately
+            after connecting.
+          - `tokens` — body shaped like the `TokensPair` schema, same as every other
+            login endpoint. Sent once the QR token is confirmed; the stream closes
+            right after.
+          - `error` — body shaped like the `Errors` schema. Sent if the token isn't
+            confirmed in time; the stream closes right after.
       responses:
-        "101":
-          description: Switching Protocols — connection upgraded to WebSocket.
+        "200":
+          content:
+            text/event-stream:
+              schema:
+                type: string
+          description: |
+            Event stream established. See the description above for the events sent over it.
         "500":
           content:
             application/json:
@@ -645,7 +660,7 @@ paths:
   /auth-svc/v1/login/qr/confirm:
     post:
       description: |
-        Confirms a pending QR token. The mobile client (already authenticated) scans the QR code and calls this endpoint. The server creates a new session and pushes the tokens to the waiting desktop WebSocket connection.
+        Confirms a pending QR token. The mobile client (already authenticated) scans the QR code and calls this endpoint. The server creates a new session and pushes the tokens to the desktop's SSE stream opened via GET /auth-svc/v1/login/qr.
       requestBody:
         content:
           application/json:
@@ -655,7 +670,7 @@ paths:
       responses:
         "204":
           description: QR token confirmed. Tokens are delivered to the desktop via
-            WebSocket.
+            the SSE stream.
         "400":
           content:
             application/json:
@@ -676,7 +691,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/Errors"
           description: |
-            QR token not found or expired (TTL 2 minutes).
+            QR token not found or expired (TTL 5 minutes).
         "409":
           content:
             application/json:
@@ -700,10 +715,10 @@ components:
     LoginByEmail:
       example:
         data:
-          attributes:
-            password: StrongP@ssw0rd!
-            email: example@gmail.com
           type: account_session
+          attributes:
+            email: example@gmail.com
+            password: StrongP@ssw0rd!
       properties:
         data:
           $ref: "#/components/schemas/LoginByEmail_data"
@@ -712,10 +727,10 @@ components:
     LoginByUsername:
       example:
         data:
-          attributes:
-            password: StrongP@ssw0rd!
-            username: example
           type: account_session
+          attributes:
+            username: example
+            password: StrongP@ssw0rd!
       properties:
         data:
           $ref: "#/components/schemas/LoginByUsername_data"
@@ -724,11 +739,11 @@ components:
     Registration:
       example:
         data:
+          type: account
           attributes:
-            password: StrongP@ssw0rd!
             email: example@gmail.com
             username: user123
-          type: account
+            password: StrongP@ssw0rd!
       properties:
         data:
           $ref: "#/components/schemas/Registration_data"
@@ -737,12 +752,12 @@ components:
     RegistrationAdmin:
       example:
         data:
+          type: account
           attributes:
-            password: StrongP@ssw0rd!
-            role: admin
             email: example1312@gmail.com
             username: adminUser
-          type: account
+            password: StrongP@ssw0rd!
+            role: admin
       properties:
         data:
           $ref: "#/components/schemas/RegistrationAdmin_data"
@@ -751,9 +766,9 @@ components:
     RefreshSession:
       example:
         data:
+          type: account_session
           attributes:
             refresh_token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
-          type: account_session
       properties:
         data:
           $ref: "#/components/schemas/RefreshSession_data"
@@ -762,10 +777,10 @@ components:
     UpdatePassword:
       example:
         data:
+          type: account_password
           attributes:
             old_password: OldP@ssw0rd!
             new_password: StrongP@ssw0rd!
-          type: account_password
       properties:
         data:
           $ref: "#/components/schemas/UpdatePassword_data"
@@ -774,9 +789,9 @@ components:
     UpdateUsername:
       example:
         data:
+          type: account
           attributes:
             username: username
-          type: account
       properties:
         data:
           $ref: "#/components/schemas/UpdateUsername_data"
@@ -785,9 +800,9 @@ components:
     QRConfirm:
       example:
         data:
+          type: qr_token
           attributes:
             qr_token: 550e8400-e29b-41d4-a716-446655440000
-          type: qr_token
       properties:
         data:
           $ref: "#/components/schemas/QRConfirm_data"
@@ -796,14 +811,20 @@ components:
     TokensPair:
       example:
         data:
+          id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+          type: tokens_pair
           attributes:
             access_token: access_token
             refresh_token: refresh_token
-          id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
-          type: tokens_pair
       properties:
         data:
           $ref: "#/components/schemas/TokensPair_data"
+      required:
+      - data
+    QRToken:
+      properties:
+        data:
+          $ref: "#/components/schemas/QRToken_data"
       required:
       - data
     AccessToken:
@@ -815,15 +836,15 @@ components:
     AccountSession:
       example:
         data:
-          attributes:
-            account_id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
-            updated_at: 2000-01-23T04:56:07.000+00:00
-            last_used: 2000-01-23T04:56:07.000+00:00
-            created_at: 2000-01-23T04:56:07.000+00:00
-            version: 0
-            deleted_at: 2000-01-23T04:56:07.000+00:00
           id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
           type: account_session
+          attributes:
+            account_id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+            created_at: 2000-01-23T04:56:07.000+00:00
+            version: 0
+            last_used: 2000-01-23T04:56:07.000+00:00
+            updated_at: 2000-01-23T04:56:07.000+00:00
+            deleted_at: 2000-01-23T04:56:07.000+00:00
       properties:
         data:
           $ref: "#/components/schemas/AccountSessionData"
@@ -831,15 +852,15 @@ components:
       - data
     AccountSessionData:
       example:
-        attributes:
-          account_id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
-          updated_at: 2000-01-23T04:56:07.000+00:00
-          last_used: 2000-01-23T04:56:07.000+00:00
-          created_at: 2000-01-23T04:56:07.000+00:00
-          version: 0
-          deleted_at: 2000-01-23T04:56:07.000+00:00
         id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
         type: account_session
+        attributes:
+          account_id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+          created_at: 2000-01-23T04:56:07.000+00:00
+          version: 0
+          last_used: 2000-01-23T04:56:07.000+00:00
+          updated_at: 2000-01-23T04:56:07.000+00:00
+          deleted_at: 2000-01-23T04:56:07.000+00:00
       properties:
         id:
           description: session id
@@ -858,10 +879,10 @@ components:
     AccountSessionAttributes:
       example:
         account_id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
-        updated_at: 2000-01-23T04:56:07.000+00:00
-        last_used: 2000-01-23T04:56:07.000+00:00
         created_at: 2000-01-23T04:56:07.000+00:00
         version: 0
+        last_used: 2000-01-23T04:56:07.000+00:00
+        updated_at: 2000-01-23T04:56:07.000+00:00
         deleted_at: 2000-01-23T04:56:07.000+00:00
       properties:
         account_id:
@@ -896,35 +917,36 @@ components:
     AccountSessionsCollection:
       example:
         data:
-        - attributes:
+        - id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+          type: account_session
+          attributes:
             account_id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
-            updated_at: 2000-01-23T04:56:07.000+00:00
-            last_used: 2000-01-23T04:56:07.000+00:00
             created_at: 2000-01-23T04:56:07.000+00:00
             version: 0
-            deleted_at: 2000-01-23T04:56:07.000+00:00
-          id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
-          type: account_session
-        - attributes:
-            account_id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
-            updated_at: 2000-01-23T04:56:07.000+00:00
             last_used: 2000-01-23T04:56:07.000+00:00
+            updated_at: 2000-01-23T04:56:07.000+00:00
+            deleted_at: 2000-01-23T04:56:07.000+00:00
+        - id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+          type: account_session
+          attributes:
+            account_id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
             created_at: 2000-01-23T04:56:07.000+00:00
             version: 0
+            last_used: 2000-01-23T04:56:07.000+00:00
+            updated_at: 2000-01-23T04:56:07.000+00:00
             deleted_at: 2000-01-23T04:56:07.000+00:00
-          id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
-          type: account_session
         links:
-          next: https://openapi-generator.tech
-          last: https://openapi-generator.tech
-          prev: https://openapi-generator.tech
           self: https://openapi-generator.tech
           first: https://openapi-generator.tech
+          last: https://openapi-generator.tech
+          prev: https://openapi-generator.tech
+          next: https://openapi-generator.tech
       properties:
         data:
           items:
             $ref: "#/components/schemas/AccountSessionData"
           type: array
+          default: null
         links:
           $ref: "#/components/schemas/PaginationData"
       required:
@@ -933,31 +955,31 @@ components:
     Account:
       example:
         data:
-          attributes:
-            role: role
-            updated_at: 2000-01-23T04:56:07.000+00:00
-            created_at: 2000-01-23T04:56:07.000+00:00
-            version: 0
-            username: username
           id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
           type: account
+          attributes:
+            role: role
+            username: username
+            version: 0
+            created_at: 2000-01-23T04:56:07.000+00:00
+            updated_at: 2000-01-23T04:56:07.000+00:00
         included:
-        - attributes:
-            updated_at: 2000-01-23T04:56:07.000+00:00
-            verified: true
-            created_at: 2000-01-23T04:56:07.000+00:00
-            version: 6
-            email: email
-          id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+        - id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
           type: account_email
-        - attributes:
-            updated_at: 2000-01-23T04:56:07.000+00:00
-            verified: true
-            created_at: 2000-01-23T04:56:07.000+00:00
-            version: 6
+          attributes:
             email: email
-          id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+            version: 6
+            verified: true
+            updated_at: 2000-01-23T04:56:07.000+00:00
+            created_at: 2000-01-23T04:56:07.000+00:00
+        - id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
           type: account_email
+          attributes:
+            email: email
+            version: 6
+            verified: true
+            updated_at: 2000-01-23T04:56:07.000+00:00
+            created_at: 2000-01-23T04:56:07.000+00:00
       properties:
         data:
           $ref: "#/components/schemas/Account_data"
@@ -965,18 +987,19 @@ components:
           items:
             $ref: "#/components/schemas/AccountEmail"
           type: array
+          default: null
       required:
       - data
     AccountEmail:
       example:
-        attributes:
-          updated_at: 2000-01-23T04:56:07.000+00:00
-          verified: true
-          created_at: 2000-01-23T04:56:07.000+00:00
-          version: 6
-          email: email
         id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
         type: account_email
+        attributes:
+          email: email
+          version: 6
+          verified: true
+          updated_at: 2000-01-23T04:56:07.000+00:00
+          created_at: 2000-01-23T04:56:07.000+00:00
       properties:
         id:
           description: account ID
@@ -996,11 +1019,11 @@ components:
       description: Standard JSON:API error
       example:
         errors:
-        - detail: Request body was expected
-          title: Bad Request
+        - title: Bad Request
+          detail: Request body was expected
           status: 400
-        - detail: Request body was expected
-          title: Bad Request
+        - title: Bad Request
+          detail: Request body was expected
           status: 400
       properties:
         errors:
@@ -1008,15 +1031,16 @@ components:
           items:
             $ref: "#/components/schemas/Errors_errors_inner"
           type: array
+          default: null
       required:
       - errors
     PaginationData:
       example:
-        next: https://openapi-generator.tech
-        last: https://openapi-generator.tech
-        prev: https://openapi-generator.tech
         self: https://openapi-generator.tech
         first: https://openapi-generator.tech
+        last: https://openapi-generator.tech
+        prev: https://openapi-generator.tech
+        next: https://openapi-generator.tech
       properties:
         self:
           description: link to the current page
@@ -1042,8 +1066,8 @@ components:
       - self
     LoginByEmail_data_attributes:
       example:
-        password: StrongP@ssw0rd!
         email: example@gmail.com
+        password: StrongP@ssw0rd!
       properties:
         email:
           description: The account's email address.
@@ -1060,10 +1084,10 @@ components:
       - password
     LoginByEmail_data:
       example:
-        attributes:
-          password: StrongP@ssw0rd!
-          email: example@gmail.com
         type: account_session
+        attributes:
+          email: example@gmail.com
+          password: StrongP@ssw0rd!
       properties:
         type:
           enum:
@@ -1076,8 +1100,8 @@ components:
       - type
     LoginByUsername_data_attributes:
       example:
-        password: StrongP@ssw0rd!
         username: example
+        password: StrongP@ssw0rd!
       properties:
         username:
           description: The account's username.
@@ -1093,10 +1117,10 @@ components:
       - username
     LoginByUsername_data:
       example:
-        attributes:
-          password: StrongP@ssw0rd!
-          username: example
         type: account_session
+        attributes:
+          username: example
+          password: StrongP@ssw0rd!
       properties:
         type:
           enum:
@@ -1109,9 +1133,9 @@ components:
       - type
     Registration_data_attributes:
       example:
-        password: StrongP@ssw0rd!
         email: example@gmail.com
         username: user123
+        password: StrongP@ssw0rd!
       properties:
         email:
           description: The account's email address.
@@ -1133,11 +1157,11 @@ components:
       - username
     Registration_data:
       example:
+        type: account
         attributes:
-          password: StrongP@ssw0rd!
           email: example@gmail.com
           username: user123
-        type: account
+          password: StrongP@ssw0rd!
       properties:
         type:
           enum:
@@ -1150,10 +1174,10 @@ components:
       - type
     RegistrationAdmin_data_attributes:
       example:
-        password: StrongP@ssw0rd!
-        role: admin
         email: example1312@gmail.com
         username: adminUser
+        password: StrongP@ssw0rd!
+        role: admin
       properties:
         email:
           description: The account's email address.
@@ -1183,12 +1207,12 @@ components:
       - username
     RegistrationAdmin_data:
       example:
+        type: account
         attributes:
-          password: StrongP@ssw0rd!
-          role: admin
           email: example1312@gmail.com
           username: adminUser
-        type: account
+          password: StrongP@ssw0rd!
+          role: admin
       properties:
         type:
           enum:
@@ -1211,9 +1235,9 @@ components:
       - refresh_token
     RefreshSession_data:
       example:
+        type: account_session
         attributes:
           refresh_token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
-        type: account_session
       properties:
         type:
           enum:
@@ -1244,10 +1268,10 @@ components:
       - old_password
     UpdatePassword_data:
       example:
+        type: account_password
         attributes:
           old_password: OldP@ssw0rd!
           new_password: StrongP@ssw0rd!
-        type: account_password
       properties:
         type:
           enum:
@@ -1269,9 +1293,9 @@ components:
       - username
     UpdateUsername_data:
       example:
+        type: account
         attributes:
           username: username
-        type: account
       properties:
         type:
           enum:
@@ -1287,7 +1311,8 @@ components:
         qr_token: 550e8400-e29b-41d4-a716-446655440000
       properties:
         qr_token:
-          description: The QR token received from the WebSocket connection.
+          description: The QR token received as the `qr_token` SSE event from GET
+            /auth-svc/v1/login/qr.
           example: 550e8400-e29b-41d4-a716-446655440000
           format: uuid
           type: string
@@ -1295,9 +1320,9 @@ components:
       - qr_token
     QRConfirm_data:
       example:
+        type: qr_token
         attributes:
           qr_token: 550e8400-e29b-41d4-a716-446655440000
-        type: qr_token
       properties:
         type:
           enum:
@@ -1324,11 +1349,11 @@ components:
       - refresh_token
     TokensPair_data:
       example:
+        id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+        type: tokens_pair
         attributes:
           access_token: access_token
           refresh_token: refresh_token
-        id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
-        type: tokens_pair
       properties:
         id:
           description: account id
@@ -1343,6 +1368,27 @@ components:
       required:
       - attributes
       - id
+      - type
+    QRToken_data_attributes:
+      properties:
+        qr_token:
+          description: |
+            Token to render as a QR code. Send it back via POST /auth-svc/v1/login/qr/confirm to complete the login.
+          example: 550e8400-e29b-41d4-a716-446655440000
+          format: uuid
+          type: string
+      required:
+      - qr_token
+    QRToken_data:
+      properties:
+        type:
+          enum:
+          - qr_token
+          type: string
+        attributes:
+          $ref: "#/components/schemas/QRToken_data_attributes"
+      required:
+      - attributes
       - type
     AccessToken_data_attributes:
       properties:
@@ -1366,10 +1412,10 @@ components:
     Account_data_attributes:
       example:
         role: role
-        updated_at: 2000-01-23T04:56:07.000+00:00
-        created_at: 2000-01-23T04:56:07.000+00:00
-        version: 0
         username: username
+        version: 0
+        created_at: 2000-01-23T04:56:07.000+00:00
+        updated_at: 2000-01-23T04:56:07.000+00:00
       properties:
         role:
           description: The role assigned to the account
@@ -1396,14 +1442,14 @@ components:
       - version
     Account_data:
       example:
-        attributes:
-          role: role
-          updated_at: 2000-01-23T04:56:07.000+00:00
-          created_at: 2000-01-23T04:56:07.000+00:00
-          version: 0
-          username: username
         id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
         type: account
+        attributes:
+          role: role
+          username: username
+          version: 0
+          created_at: 2000-01-23T04:56:07.000+00:00
+          updated_at: 2000-01-23T04:56:07.000+00:00
       properties:
         id:
           description: account ID
@@ -1421,11 +1467,11 @@ components:
       - type
     AccountEmail_attributes:
       example:
-        updated_at: 2000-01-23T04:56:07.000+00:00
-        verified: true
-        created_at: 2000-01-23T04:56:07.000+00:00
-        version: 6
         email: email
+        version: 6
+        verified: true
+        updated_at: 2000-01-23T04:56:07.000+00:00
+        created_at: 2000-01-23T04:56:07.000+00:00
       properties:
         email:
           description: The email address associated with the account
@@ -1453,8 +1499,8 @@ components:
       - version
     Errors_errors_inner:
       example:
-        detail: Request body was expected
         title: Bad Request
+        detail: Request body was expected
         status: 400
       properties:
         title:

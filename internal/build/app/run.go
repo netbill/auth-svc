@@ -9,7 +9,6 @@ import (
 	"github.com/netbill/auth-svc/internal/api/rest"
 	"github.com/netbill/auth-svc/internal/api/rest/controller"
 	"github.com/netbill/auth-svc/internal/api/rest/middlewares"
-	"github.com/netbill/auth-svc/internal/api/ws"
 	"github.com/netbill/auth-svc/internal/bus"
 	"github.com/netbill/auth-svc/internal/modules/account"
 	authmodule "github.com/netbill/auth-svc/internal/modules/auth"
@@ -126,10 +125,8 @@ func (a *App) Run(ctx context.Context) error {
 		Bus:           broker,
 	})
 
-	asyncSvc := ws.NewService(sessionSvc, broker, a.log)
-
 	accountCtrl := controller.NewAccountController(accountSvc, svcMetrics)
-	sessionCtrl := controller.NewSessionController(sessionSvc, a.config.GoogleOAuth(), svcMetrics, asyncSvc)
+	sessionCtrl := controller.NewSessionController(sessionSvc, a.config.GoogleOAuth(), svcMetrics, broker)
 
 	mdll := middlewares.New(tokenMgr)
 	router := rest.New(rest.ServerDeps{

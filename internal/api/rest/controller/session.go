@@ -35,6 +35,7 @@ type sessionCore interface {
 		opts ...session.ListSessionsOption,
 	) (pagi.Page[[]models.Session], error)
 
+	CreateQRToken(ctx context.Context) (string, error)
 	ConfirmQRToken(
 		ctx context.Context,
 		actor models.AccountActor,
@@ -57,28 +58,31 @@ type SessionMetrics interface {
 	RecordQRLogin(ctx context.Context, err *error)
 }
 
-type handler interface {
-	LoginWithQR(w http.ResponseWriter, r *http.Request, h http.Header)
+// qrBus delivers the tokens pair published by whichever request confirmed
+// the QR token — possibly a different auth-svc replica than the one
+// streaming this response.
+type qrBus interface {
+	SubscribeQRToken(ctx context.Context, key string) (<-chan []byte, func())
 }
 
 type SessionController struct {
-	google    oauth2.Config
-	sessions  sessionCore
-	metrics   SessionMetrics
-	wsHandler handler
+	google   oauth2.Config
+	sessions sessionCore
+	metrics  SessionMetrics
+	bus      qrBus
 }
 
 func NewSessionController(
 	sessions sessionCore,
 	google oauth2.Config,
 	m SessionMetrics,
-	wsHandler handler,
+	bus qrBus,
 ) *SessionController {
 	return &SessionController{
-		google:    google,
-		sessions:  sessions,
-		metrics:   m,
-		wsHandler: wsHandler,
+		google:   google,
+		sessions: sessions,
+		metrics:  m,
+		bus:      bus,
 	}
 }
 

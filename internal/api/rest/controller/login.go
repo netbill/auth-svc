@@ -1,16 +1,19 @@
 package controller
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
+	"time"
 
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 	"github.com/netbill/auth-svc/internal/api/rest/requests"
 	"github.com/netbill/auth-svc/internal/api/rest/responses"
 	"github.com/netbill/auth-svc/internal/api/rest/scope"
 	"github.com/netbill/auth-svc/internal/errx"
+	"github.com/netbill/auth-svc/internal/modules/session"
 	"github.com/netbill/restkit/problems"
 	"github.com/netbill/restkit/render"
 	"golang.org/x/oauth2"
@@ -150,8 +153,66 @@ func (c *SessionController) LoginByGoogleOAuthCallback(w http.ResponseWriter, r 
 	}
 }
 
+const operationQRConnect = "qr_connect"
+
+// QRConnect streams the QR login flow to the client over Server-Sent
+// Events: it hands out a fresh QR token, then blocks until either the token
+// is confirmed elsewhere (the tokens pair arrives over the bus, possibly
+// published by a different auth-svc replica) or it expires.
+//
+// The server-wide http.Server.WriteTimeout is far shorter than this flow
+// needs, so the write deadline is extended per-request via
+// http.ResponseController rather than by raising the global timeout for
+// every other endpoint.
 func (c *SessionController) QRConnect(w http.ResponseWriter, r *http.Request) {
-	c.wsHandler.LoginWithQR(w, r, nil)
+	log := scope.Log(r).WithOperation(operationQRConnect)
+
+	rc := http.NewResponseController(w)
+	if err := rc.SetWriteDeadline(time.Now().Add(session.QRTokenTTL)); err != nil {
+		log.WithError(err).Error("sse: response writer does not support write deadlines")
+		render.ResponseError(w, problems.InternalError())
+		return
+	}
+
+	ctx, cancel := context.WithTimeout(r.Context(), session.QRTokenTTL)
+	defer cancel()
+
+	token, err := c.sessions.CreateQRToken(ctx)
+	if err != nil {
+		log.WithError(err).Error("failed to create qr token")
+		render.ResponseError(w, problems.InternalError())
+		return
+	}
+
+	msgCh, cleanup := c.bus.SubscribeQRToken(ctx, token)
+	defer cleanup()
+
+	render.SSEHeaders(w)
+	w.WriteHeader(http.StatusOK)
+
+	if err = render.WriteSSE(w, "qr_token", responses.QRTokenEvent(token)); err != nil {
+		log.WithError(err).Error("failed to send QR token")
+		return
+	}
+	if err = rc.Flush(); err != nil {
+		log.WithError(err).Error("sse: failed to flush QR token")
+		return
+	}
+
+	select {
+	case payload := <-msgCh:
+		if err = render.WriteRawSSE(w, "tokens", payload); err != nil {
+			log.WithError(err).Error("failed to write tokens pair")
+		}
+	case <-ctx.Done():
+		if err = render.WriteErrorSSE(w, "error", problems.NotFound("QR token expired")); err != nil {
+			log.WithError(err).Error("failed to write tokens expired error")
+		}
+	}
+
+	if err = rc.Flush(); err != nil {
+		log.WithError(err).Error("sse: failed to flush final event")
+	}
 }
 
 const operationQRConfirm = "qr_confirm"
@@ -186,7 +247,9 @@ func (c *SessionController) QRConfirm(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	payload, err := json.Marshal(pair)
+	// Marshal the same JSON:API-shaped body every other login endpoint returns,
+	// so the SSE "tokens" event isn't a special case for clients to parse.
+	payload, err := json.Marshal(responses.TokensPair(pair))
 	if err != nil {
 		log.WithError(err).Error("failed to marshal tokens pair")
 		render.ResponseError(w, problems.InternalError())

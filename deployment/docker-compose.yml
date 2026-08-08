@@ -58,16 +58,6 @@ services:
     networks:
       - netbill-net
 
-  auth-svc-async-doc:
-    image: nginx:alpine
-    container_name: auth-svc-ws-doc
-    volumes:
-      - ../docs/ws:/usr/share/nginx/html:ro
-    ports:
-      - "${ASYNC_DOC_PORT:-5003}:80"
-    networks:
-      - netbill-net
-
   auth-svc-grpc-doc:
     image: nginx:alpine
     container_name: auth-svc-grpc-doc

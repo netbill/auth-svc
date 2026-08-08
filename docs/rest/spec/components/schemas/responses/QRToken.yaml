@@ -19,5 +19,7 @@ properties:
           qr_token:
             type: string
             format: uuid
-            description: The QR token received as the `qr_token` SSE event from GET /auth-svc/v1/login/qr.
+            description: >
+              Token to render as a QR code. Send it back via
+              POST /auth-svc/v1/login/qr/confirm to complete the login.
             example: 550e8400-e29b-41d4-a716-446655440000

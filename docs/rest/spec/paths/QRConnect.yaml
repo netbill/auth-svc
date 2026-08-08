@@ -3,15 +3,33 @@ get:
     - qr
   summary: Connect to QR login session
   description: >
-    Upgrades the connection to WebSocket. Upon connection the server generates a QR token
-    and sends it as the first message. The client renders it as a QR code.
-    When the mobile client confirms the token via POST /auth-svc/v1/qr/confirm,
-    the server pushes the session tokens through this WebSocket and closes the connection.
-    The connection expires after 2 minutes if not confirmed.
+    Opens a Server-Sent Events (text/event-stream) connection. Upon connecting, the
+    server generates a QR token and sends it as the first event. The client renders
+    it as a QR code. When the mobile client confirms the token via
+    POST /auth-svc/v1/login/qr/confirm, the server pushes the session tokens through
+    this same stream and closes it. The stream closes with an `error` event if the
+    token isn't confirmed within 5 minutes.
+
+
+    Events sent as SSE `event:`/`data:` frames, each shaped like a normal JSON:API
+    response body for this API:
+      - `qr_token` — body shaped like the `QRToken` schema. Sent once, immediately
+        after connecting.
+      - `tokens` — body shaped like the `TokensPair` schema, same as every other
+        login endpoint. Sent once the QR token is confirmed; the stream closes
+        right after.
+      - `error` — body shaped like the `Errors` schema. Sent if the token isn't
+        confirmed in time; the stream closes right after.
 
   responses:
-    '101':
-      description: Switching Protocols — connection upgraded to WebSocket.
+    '200':
+      description: >
+        Event stream established. See the description above for the events sent
+        over it.
+      content:
+        text/event-stream:
+          schema:
+            type: string
     '500':
       description: Internal Server Error
       content:

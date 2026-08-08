@@ -119,10 +119,12 @@ func (s *Service) createSession(
 	}, nil
 }
 
-const (
-	qrTokenTTL     = 5 * time.Minute
-	qrConfirmedTTL = 30 * time.Second
-)
+// QRTokenTTL is how long a freshly created QR token stays pending.
+// The HTTP handler streaming the QR flow to the client uses the same value
+// as its write deadline, so both sides expire in lockstep.
+const QRTokenTTL = 5 * time.Minute
+
+const qrConfirmedTTL = 30 * time.Second
 
 //go:generate mockery --name=qrRepo --inpackage
 type qrRepo interface {
@@ -132,7 +134,7 @@ type qrRepo interface {
 
 func (s *Service) CreateQRToken(ctx context.Context) (string, error) {
 	token := uuid.New().String()
-	if err := s.qrRepo.Set(ctx, token, "pending", qrTokenTTL); err != nil {
+	if err := s.qrRepo.Set(ctx, token, "pending", QRTokenTTL); err != nil {
 		return "", err
 	}
 

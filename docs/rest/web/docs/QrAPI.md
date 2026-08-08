@@ -75,7 +75,7 @@ Name | Type | Description  | Notes
 
 ## AuthSvcV1LoginQrGet
 
-> AuthSvcV1LoginQrGet(ctx).Execute()
+> string AuthSvcV1LoginQrGet(ctx).Execute()
 
 Connect to QR login session
 
@@ -97,11 +97,13 @@ func main() {
 
 	configuration := openapiclient.NewConfiguration()
 	apiClient := openapiclient.NewAPIClient(configuration)
-	r, err := apiClient.QrAPI.AuthSvcV1LoginQrGet(context.Background()).Execute()
+	resp, r, err := apiClient.QrAPI.AuthSvcV1LoginQrGet(context.Background()).Execute()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error when calling `QrAPI.AuthSvcV1LoginQrGet``: %v\n", err)
 		fmt.Fprintf(os.Stderr, "Full HTTP response: %v\n", r)
 	}
+	// response from `AuthSvcV1LoginQrGet`: string
+	fmt.Fprintf(os.Stdout, "Response from `QrAPI.AuthSvcV1LoginQrGet`: %v\n", resp)
 }
 ```
 
@@ -116,7 +118,7 @@ Other parameters are passed through a pointer to a apiAuthSvcV1LoginQrGetRequest
 
 ### Return type
 
- (empty response body)
+**string**
 
 ### Authorization
 
@@ -125,7 +127,7 @@ No authorization required
 ### HTTP request headers
 
 - **Content-Type**: Not defined
-- **Accept**: application/json
+- **Accept**: text/event-stream, application/json
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints)
 [[Back to Model list]](../README.md#documentation-for-models)

@@ -1,9 +1,0 @@
-type: object
-required:
-  - qr_token
-properties:
-  qr_token:
-    type: string
-    format: uuid
-    description: The QR token to render as a QR code.
-    example: 550e8400-e29b-41d4-a716-446655440000

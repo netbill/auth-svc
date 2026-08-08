@@ -1,9 +1,0 @@
-type: object
-required:
-  - status
-properties:
-  status:
-    type: string
-    enum: [ expired ]
-    description: Indicates the QR session has expired without confirmation.
-    example: expired
