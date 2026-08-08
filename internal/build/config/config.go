@@ -4,128 +4,268 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/exaring/otelpgx"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/netbill/auth-svc/pkg/log"
 	"github.com/redis/go-redis/v9"
-	"github.com/spf13/viper"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
 )
 
 type ServiceCfg struct {
-	Name string `mapstructure:"name"`
+	Name string
 }
 
 type LogConfig struct {
-	Level  string `mapstructure:"level"`
-	Format string `mapstructure:"format"`
+	Level  string
+	Format string
+}
+
+type SQLConfig struct {
+	URL string
+}
+
+type RedisTTLConfig struct {
+	Account  time.Duration
+	Email    time.Duration
+	Password time.Duration
+	Session  time.Duration
+}
+
+type RedisConfig struct {
+	Addr     string
+	Password string
+	DB       int
+	TTL      RedisTTLConfig
 }
 
 type DatabaseConfig struct {
-	SQL struct {
-		URL string `mapstructure:"url"`
-	} `mapstructure:"sql"`
+	SQL   SQLConfig
+	Redis RedisConfig
+}
 
-	Redis struct {
-		Addr     string `mapstructure:"addr"`
-		Password string `mapstructure:"password"`
-		DB       int    `mapstructure:"db"`
-
-		TTL struct {
-			Account  time.Duration `mapstructure:"account"`
-			Email    time.Duration `mapstructure:"email"`
-			Password time.Duration `mapstructure:"password"`
-			Session  time.Duration `mapstructure:"session"`
-		} `mapstructure:"ttl"`
-	} `mapstructure:"redis"`
+type RestTimeouts struct {
+	Read       time.Duration
+	ReadHeader time.Duration
+	Write      time.Duration
+	Idle       time.Duration
 }
 
 type RestConfig struct {
-	Port     int `mapstructure:"port"`
-	Timeouts struct {
-		Read       time.Duration `mapstructure:"read"`
-		ReadHeader time.Duration `mapstructure:"read_header"`
-		Write      time.Duration `mapstructure:"write"`
-		Idle       time.Duration `mapstructure:"idle"`
-	} `mapstructure:"timeouts"`
+	Port     int
+	Timeouts RestTimeouts
+}
+
+type TokenConfig struct {
+	SecretKey string
+	TTL       time.Duration
+}
+
+type RefreshTokenConfig struct {
+	SecretKey string
+	HashKey   string
+	TTL       time.Duration
+}
+
+type AuthTokensConfig struct {
+	Issuer         string
+	AccountAccess  TokenConfig
+	AccountRefresh RefreshTokenConfig
+}
+
+type GoogleOAuthConfig struct {
+	ClientID     string
+	ClientSecret string
+	RedirectURL  string
+}
+
+type AuthOAuthConfig struct {
+	Google GoogleOAuthConfig
 }
 
 type AuthConfig struct {
-	Tokens struct {
-		Issuer        string `mapstructure:"issuer"`
-		AccountAccess struct {
-			SecretKey string        `mapstructure:"secret_key"`
-			TTL       time.Duration `mapstructure:"ttl"`
-		} `mapstructure:"account_access"`
-		AccountRefresh struct {
-			SecretKey string        `mapstructure:"secret_key"`
-			HashKey   string        `mapstructure:"hash_key"`
-			TTL       time.Duration `mapstructure:"ttl"`
-		} `mapstructure:"account_refresh"`
-	} `mapstructure:"tokens"`
-
-	OAuth struct {
-		Google struct {
-			ClientID     string `mapstructure:"client_id"`
-			ClientSecret string `mapstructure:"client_secret"`
-			RedirectURL  string `mapstructure:"redirect_url"`
-		} `mapstructure:"google"`
-	} `mapstructure:"oauth"`
-
-	PassBcryptCost int `mapstructure:"pass_bcrypt_cost"`
+	Tokens         AuthTokensConfig
+	OAuth          AuthOAuthConfig
+	PassBcryptCost int
 }
 
 type KafkaConfig struct {
-	Brokers  []string `mapstructure:"brokers"`
-	Identity string   `mapstructure:"identity"`
+	Brokers  []string
+	Identity string
 }
 
 type GRPCConfig struct {
-	Port int `mapstructure:"port"`
+	Port int
 }
 
 type OTELConfig struct {
-	CollectorEndpoint string  `mapstructure:"collector_endpoint"`
-	SamplingRatio     float64 `mapstructure:"sampling_ratio"`
+	CollectorEndpoint string
+	SamplingRatio     float64
 }
 
 type Config struct {
-	Service  ServiceCfg     `mapstructure:"service"`
-	Log      LogConfig      `mapstructure:"log"`
-	Database DatabaseConfig `mapstructure:"database"`
-	Rest     RestConfig     `mapstructure:"rest"`
-	GRPC     GRPCConfig     `mapstructure:"grpc"`
-	Auth     AuthConfig     `mapstructure:"auth"`
-	Kafka    KafkaConfig    `mapstructure:"kafka"`
-	OTEL     OTELConfig     `mapstructure:"otel"`
+	Service  ServiceCfg
+	Log      LogConfig
+	Database DatabaseConfig
+	Rest     RestConfig
+	GRPC     GRPCConfig
+	Auth     AuthConfig
+	Kafka    KafkaConfig
+	OTEL     OTELConfig
 }
 
+// LoadConfig builds the config entirely from environment variables — no
+// config file involved. Vars backing an actual secret or a connection the
+// service can't run without (DB, Redis, JWT keys) are required and panic if
+// missing; everything else falls back to the same defaults the old
+// config.example.yaml used to hardcode.
 func LoadConfig() *Config {
-	configPath := os.Getenv("KV_VIPER_FILE")
-	if configPath == "" {
-		panic(fmt.Errorf("KV_VIPER_FILE env var is not set"))
+	return &Config{
+		Service: ServiceCfg{
+			Name: envOr("SERVICE_NAME", "auth-svc"),
+		},
+		Log: LogConfig{
+			Level:  envOr("LOG_LEVEL", "debug"),
+			Format: envOr("LOG_FORMAT", "text"),
+		},
+		Rest: RestConfig{
+			Port: envIntOr("REST_PORT", 8001),
+			Timeouts: RestTimeouts{
+				Read:       envDurationOr("REST_READ_TIMEOUT", 15*time.Second),
+				ReadHeader: envDurationOr("REST_READ_HEADER_TIMEOUT", 15*time.Second),
+				Write:      envDurationOr("REST_WRITE_TIMEOUT", 15*time.Second),
+				Idle:       envDurationOr("REST_IDLE_TIMEOUT", 60*time.Second),
+			},
+		},
+		GRPC: GRPCConfig{
+			Port: envIntOr("GRPC_PORT", 9001),
+		},
+		Auth: AuthConfig{
+			Tokens: AuthTokensConfig{
+				Issuer: envOr("AUTH_TOKENS_ISSUER", "auth-svc"),
+				AccountAccess: TokenConfig{
+					SecretKey: mustEnv("AUTH_TOKENS_ACCOUNT_ACCESS_SECRET_KEY"),
+					TTL:       envDurationOr("AUTH_TOKENS_ACCOUNT_ACCESS_TTL", 720*time.Hour),
+				},
+				AccountRefresh: RefreshTokenConfig{
+					SecretKey: mustEnv("AUTH_TOKENS_ACCOUNT_REFRESH_SECRET_KEY"),
+					HashKey:   mustEnv("AUTH_TOKENS_ACCOUNT_REFRESH_HASH_KEY"),
+					TTL:       envDurationOr("AUTH_TOKENS_ACCOUNT_REFRESH_TTL", 720*time.Hour),
+				},
+			},
+			OAuth: AuthOAuthConfig{
+				// Optional: the service runs fine without Google login configured,
+				// it just won't be able to complete that specific flow.
+				Google: GoogleOAuthConfig{
+					ClientID:     envOr("AUTH_OAUTH_GOOGLE_CLIENT_ID", ""),
+					ClientSecret: envOr("AUTH_OAUTH_GOOGLE_CLIENT_SECRET", ""),
+					RedirectURL:  envOr("AUTH_OAUTH_GOOGLE_REDIRECT_URL", ""),
+				},
+			},
+			PassBcryptCost: envIntOr("AUTH_PASS_BCRYPT_COST", 11),
+		},
+		Database: DatabaseConfig{
+			SQL: SQLConfig{
+				URL: mustEnv("DATABASE_SQL_URL"),
+			},
+			Redis: RedisConfig{
+				Addr:     mustEnv("REDIS_ADDR"),
+				Password: envOr("REDIS_PASSWORD", ""),
+				DB:       envIntOr("DATABASE_REDIS_DB", 0),
+				TTL: RedisTTLConfig{
+					Account:  envDurationOr("DATABASE_REDIS_TTL_ACCOUNT", 5*time.Minute),
+					Email:    envDurationOr("DATABASE_REDIS_TTL_EMAIL", 5*time.Minute),
+					Password: envDurationOr("DATABASE_REDIS_TTL_PASSWORD", 5*time.Minute),
+					Session:  envDurationOr("DATABASE_REDIS_TTL_SESSION", 5*time.Minute),
+				},
+			},
+		},
+		Kafka: KafkaConfig{
+			// Not read by this service yet — Debezium publishes the outbox
+			// table to Kafka independently. Identity is only used as the
+			// outbox rows' producer label.
+			Brokers:  envList("KAFKA_BROKERS"),
+			Identity: envOr("KAFKA_IDENTITY", "auth-svc"),
+		},
+		OTEL: OTELConfig{
+			CollectorEndpoint: envOr("OTEL_COLLECTOR_ENDPOINT", ""),
+			SamplingRatio:     envFloatOr("OTEL_SAMPLING_RATIO", 1.0),
+		},
 	}
-	viper.SetConfigFile(configPath)
+}
 
-	if err := viper.ReadInConfig(); err != nil {
-		panic(fmt.Errorf("error reading config file: %s", err))
+func mustEnv(key string) string {
+	v, ok := os.LookupEnv(key)
+	if !ok || v == "" {
+		panic(fmt.Errorf("%s env var is not set", key))
+	}
+	return v
+}
+
+func envOr(key, def string) string {
+	if v, ok := os.LookupEnv(key); ok && v != "" {
+		return v
+	}
+	return def
+}
+
+func envList(key string) []string {
+	v, ok := os.LookupEnv(key)
+	if !ok || v == "" {
+		return nil
 	}
 
-	for _, key := range viper.AllKeys() {
-		if val, ok := viper.Get(key).(string); ok {
-			viper.Set(key, os.ExpandEnv(val))
+	parts := strings.Split(v, ",")
+	out := make([]string, 0, len(parts))
+	for _, p := range parts {
+		if p = strings.TrimSpace(p); p != "" {
+			out = append(out, p)
 		}
 	}
+	return out
+}
 
-	var config Config
-	if err := viper.Unmarshal(&config); err != nil {
-		panic(fmt.Errorf("error unmarshalling config: %s", err))
+func envIntOr(key string, def int) int {
+	v, ok := os.LookupEnv(key)
+	if !ok || v == "" {
+		return def
 	}
 
-	return &config
+	n, err := strconv.Atoi(v)
+	if err != nil {
+		panic(fmt.Errorf("invalid int value for %s: %w", key, err))
+	}
+	return n
+}
+
+func envFloatOr(key string, def float64) float64 {
+	v, ok := os.LookupEnv(key)
+	if !ok || v == "" {
+		return def
+	}
+
+	f, err := strconv.ParseFloat(v, 64)
+	if err != nil {
+		panic(fmt.Errorf("invalid float value for %s: %w", key, err))
+	}
+	return f
+}
+
+func envDurationOr(key string, def time.Duration) time.Duration {
+	v, ok := os.LookupEnv(key)
+	if !ok || v == "" {
+		return def
+	}
+
+	d, err := time.ParseDuration(v)
+	if err != nil {
+		panic(fmt.Errorf("invalid duration value for %s: %w", key, err))
+	}
+	return d
 }
 
 func (cfg *Config) Logger() *log.Logger {

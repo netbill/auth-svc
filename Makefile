@@ -1,5 +1,4 @@
 OPENAPI_GENERATOR := java -jar ~/openapi-generator-cli.jar
-CONFIG_FILE := ./config.yaml
 API_SRC := ./docs/rest/api.yaml
 API_BUNDLED := ./docs/rest/api-bundled.yaml
 DOCS_OUTPUT_DIR := ./docs/rest/web
@@ -27,19 +26,19 @@ bundle-oapi:
 	find $(RESOURCES_DIR) -type f -name "*_test.go" -delete
 
 build:
-	KV_VIPER_FILE=$(CONFIG_FILE) go build -o ./cmd/auth-svc/main ./cmd/auth-svc/main.go
+	go build -o ./cmd/auth-svc/main ./cmd/auth-svc/main.go
 
 migrate-up:
-	KV_VIPER_FILE=$(CONFIG_FILE) go build -o ./cmd/auth-svc/main ./cmd/auth-svc/main.go
-	set -a && . ./.env && set +a && KV_VIPER_FILE=$(CONFIG_FILE) ./cmd/auth-svc/main migrate up
+	go build -o ./cmd/auth-svc/main ./cmd/auth-svc/main.go
+	set -a && . ./.env && set +a && ./cmd/auth-svc/main migrate up
 
 migrate-down:
-	KV_VIPER_FILE=$(CONFIG_FILE) go build -o ./cmd/auth-svc/main ./cmd/auth-svc/main.go
-	set -a && . ./.env && set +a && KV_VIPER_FILE=$(CONFIG_FILE) ./cmd/auth-svc/main migrate down
+	go build -o ./cmd/auth-svc/main ./cmd/auth-svc/main.go
+	set -a && . ./.env && set +a && ./cmd/auth-svc/main migrate down
 
 run-server:
-	KV_VIPER_FILE=$(CONFIG_FILE) go build -o ./cmd/auth-svc/main ./cmd/auth-svc/main.go
-	set -a && . ./.env && set +a && KV_VIPER_FILE=$(CONFIG_FILE) ./cmd/auth-svc/main run service
+	go build -o ./cmd/auth-svc/main ./cmd/auth-svc/main.go
+	set -a && . ./.env && set +a && ./cmd/auth-svc/main run service
 
 docker-up:
 	docker compose -f deployment/docker-compose.yml up -d --build
