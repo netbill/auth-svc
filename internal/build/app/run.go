@@ -18,6 +18,7 @@ import (
 	"github.com/netbill/auth-svc/internal/observability/telemetry"
 	"github.com/netbill/auth-svc/internal/repo/chache"
 	"github.com/netbill/auth-svc/internal/repo/pg"
+	"github.com/netbill/auth-svc/pkg/googleid"
 	"github.com/netbill/auth-svc/pkg/passmanager"
 	"github.com/netbill/auth-svc/pkg/tokenmanager"
 	"github.com/netbill/pgdbx"
@@ -149,10 +150,13 @@ func (a *App) Run(ctx context.Context) error {
 		})
 	})
 
+	googleVerifier := googleid.New(a.config.Auth.OAuth.Google.ClientID)
+
 	grpcServer := grpcapi.New(grpcapi.ServerDeps{
 		Auth:     authSvc,
 		Accounts: accountSvc,
 		Sessions: sessionSvc,
+		Google:   googleVerifier,
 		Metrics:  svcMetrics,
 		TokenMgr: tokenMgr,
 		Log:      a.log,

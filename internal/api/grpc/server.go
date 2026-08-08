@@ -19,6 +19,7 @@ type Server struct {
 	auth     *auth.Service
 	accounts controller.AccountCore
 	sessions controller.SessionCore
+	google   controller.GoogleIDVerifier
 	tokenMgr interceptors.TokenParser
 	metrics  *metrics.Metrics
 	log      *log.Logger
@@ -28,6 +29,7 @@ type ServerDeps struct {
 	Auth     *auth.Service
 	Accounts controller.AccountCore
 	Sessions controller.SessionCore
+	Google   controller.GoogleIDVerifier
 	TokenMgr interceptors.TokenParser
 	Metrics  *metrics.Metrics
 	Log      *log.Logger
@@ -42,6 +44,7 @@ func New(deps ServerDeps) *Server {
 		auth:     deps.Auth,
 		accounts: deps.Accounts,
 		sessions: deps.Sessions,
+		google:   deps.Google,
 		metrics:  deps.Metrics,
 		tokenMgr: deps.TokenMgr,
 		log:      deps.Log,
@@ -63,7 +66,7 @@ func (s *Server) Run(ctx context.Context, cfg Config) {
 	)
 	pb.RegisterAuthServiceServer(srv, controller.NewAuthServer(s.auth, s.tokenMgr))
 	pb.RegisterAccountServiceServer(srv, controller.NewAccountServer(s.accounts, s.metrics))
-	pb.RegisterSessionServiceServer(srv, controller.NewSessionServer(s.sessions, s.metrics))
+	pb.RegisterSessionServiceServer(srv, controller.NewSessionServer(s.sessions, s.metrics, s.google))
 	reflection.Register(srv)
 
 	s.log.Info("starting grpc server", "port", cfg.Port)

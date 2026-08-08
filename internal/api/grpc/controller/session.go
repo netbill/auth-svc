@@ -36,14 +36,22 @@ type SessionMetrics interface {
 	RecordTokenRefresh(ctx context.Context, err *error)
 	RecordSessionDeleted(ctx context.Context, scope string, err *error)
 }
+
+// GoogleIDVerifier verifies a Google-issued OpenID Connect ID token and
+// returns the verified email address it carries.
+type GoogleIDVerifier interface {
+	Verify(ctx context.Context, idToken string) (email string, err error)
+}
+
 type SessionServer struct {
 	pb.UnimplementedSessionServiceServer
 	sessions SessionCore
 	metrics  SessionMetrics
+	google   GoogleIDVerifier
 }
 
-func NewSessionServer(sessions SessionCore, m SessionMetrics) *SessionServer {
-	return &SessionServer{sessions: sessions, metrics: m}
+func NewSessionServer(sessions SessionCore, m SessionMetrics, google GoogleIDVerifier) *SessionServer {
+	return &SessionServer{sessions: sessions, metrics: m, google: google}
 }
 
 const operationLoginByEmail = "login_by_email"
@@ -100,7 +108,13 @@ func (s *SessionServer) LoginByGoogle(ctx context.Context, req *pb.LoginByGoogle
 	log := scope.Log(ctx).WithOperation(operationLoginByGoogle)
 	defer s.metrics.RecordGoogleLogin(ctx, &err)
 
-	pair, err := s.sessions.LoginByGoogle(ctx, req.IdToken)
+	email, err := s.google.Verify(ctx, req.IdToken)
+	if err != nil {
+		log.Warn("invalid google id token", "error", err)
+		return nil, status.Error(codes.Unauthenticated, "invalid google id token")
+	}
+
+	pair, err := s.sessions.LoginByGoogle(ctx, email)
 	switch {
 	case errors.Is(err, errx.ErrorAccountNotFound),
 		errors.Is(err, errx.ErrorAccountDeleted):

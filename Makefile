@@ -42,10 +42,10 @@ run-server:
 	set -a && . ./.env && set +a && KV_VIPER_FILE=$(CONFIG_FILE) ./cmd/auth-svc/main run service
 
 docker-up:
-	docker compose up -d --build
+	docker compose -f deployment/docker-compose.yml up -d --build
 
 docker-down:
-	docker compose down
+	docker compose -f deployment/docker-compose.yml down
 
 .PHONY: proto
 proto:

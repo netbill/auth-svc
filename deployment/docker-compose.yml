@@ -1,0 +1,88 @@
+services:
+  auth-svc:
+    build:
+      context: ..
+      dockerfile: deployment/Dockerfile
+    container_name: auth-svc
+    env_file:
+      - ../.env
+    environment:
+      - DATABASE_SQL_URL=postgres://postgres:postgres@auth-svc-postgres:5432/postgres
+      - REDIS_ADDR=auth-svc-redis:6379
+      - REDIS_PASSWORD=
+      - OTEL_COLLECTOR_ENDPOINT=http://otel-collector:4318
+    ports:
+      - "${REST_PORT:-8001}:8001"
+      - "${GRPC_PORT:-9001}:9001"
+    depends_on:
+      - auth-svc-postgres
+      - auth-svc-redis
+    networks:
+      - netbill-net
+
+  auth-svc-postgres:
+    image: postgres:15
+    container_name: auth-svc-postgres
+    command: postgres -c wal_level=logical
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=postgres
+    ports:
+      - "${POSTGRES_PORT:-7001}:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - netbill-net
+
+  auth-svc-redis:
+    image: redis/redis-stack-server:latest
+    container_name: auth-svc-redis
+    command: redis-stack-server --maxmemory 100mb --maxmemory-policy allkeys-lru
+    ports:
+      - "${REDIS_PORT:-6001}:6379"
+    volumes:
+      - redisdata:/data
+    networks:
+      - netbill-net
+
+  auth-svc-swagger:
+    image: swaggerapi/swagger-ui
+    container_name: auth-svc-swagger
+    environment:
+      - SWAGGER_JSON=/docs/api-bundled.yaml
+    volumes:
+      - ../docs:/docs:ro
+    ports:
+      - "${SWAGGER_PORT:-5001}:8080"
+    networks:
+      - netbill-net
+
+  auth-svc-async-doc:
+    image: nginx:alpine
+    container_name: auth-svc-ws-doc
+    volumes:
+      - ../docs/ws:/usr/share/nginx/html:ro
+    ports:
+      - "${ASYNC_DOC_PORT:-5003}:80"
+    networks:
+      - netbill-net
+
+  auth-svc-grpc-doc:
+    image: nginx:alpine
+    container_name: auth-svc-grpc-doc
+    volumes:
+      - ../docs/grpc:/usr/share/nginx/html:ro
+    ports:
+      - "${GRPC_DOC_PORT:-5002}:80"
+    networks:
+      - netbill-net
+
+
+volumes:
+  pgdata:
+  redisdata:
+
+networks:
+  netbill-net:
+    external: true
