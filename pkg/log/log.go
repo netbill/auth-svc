@@ -18,8 +18,8 @@ const (
 	OperationField = "operation"
 	ComponentField = "component"
 
-	AccountIDField        = "account_id"
-	AccountSessionIDField = "account_session_id"
+	UserIDField        = "user_id"
+	UserSessionIDField = "user_session_id"
 
 	HTTPMethodField = "http_method"
 	HTTPPathField   = "http_path"
@@ -136,7 +136,7 @@ func (l *Logger) WithRequest(r *http.Request) *Logger {
 	)}
 }
 
-func (l *Logger) WithAccountAuthClaims(auth interface {
+func (l *Logger) WithUserAuthClaims(auth interface {
 	GetAccountID() uuid.UUID
 	GetSessionID() uuid.UUID
 }) *Logger {
@@ -144,8 +144,8 @@ func (l *Logger) WithAccountAuthClaims(auth interface {
 		return l
 	}
 	return &Logger{base: l.base.With(
-		slog.String(AccountIDField, auth.GetAccountID().String()),
-		slog.String(AccountSessionIDField, auth.GetSessionID().String()),
+		slog.String(UserIDField, auth.GetAccountID().String()),
+		slog.String(UserSessionIDField, auth.GetSessionID().String()),
 	)}
 }
 

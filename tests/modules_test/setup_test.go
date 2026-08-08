@@ -7,9 +7,9 @@ import (
 
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/netbill/auth-svc/internal/models"
-	"github.com/netbill/auth-svc/internal/modules/account"
 	authmodule "github.com/netbill/auth-svc/internal/modules/auth"
 	"github.com/netbill/auth-svc/internal/modules/session"
+	"github.com/netbill/auth-svc/internal/modules/user"
 	"github.com/netbill/auth-svc/internal/repo/chache"
 	"github.com/netbill/auth-svc/internal/repo/pg"
 	pkglog "github.com/netbill/auth-svc/pkg/log"
@@ -29,7 +29,7 @@ var (
 
 type noopMetrics struct{}
 
-func (n *noopMetrics) AccountCacheOp(_ context.Context, _ *error)  {}
+func (n *noopMetrics) UserCacheOp(_ context.Context, _ *error)     {}
 func (n *noopMetrics) EmailCacheOp(_ context.Context, _ *error)    {}
 func (n *noopMetrics) PasswordCacheOp(_ context.Context, _ *error) {}
 func (n *noopMetrics) SessionCacheOp(_ context.Context, _ *error)  {}
@@ -71,21 +71,21 @@ func setup(t *testing.T) (*pgdbx.DB, *redis.Client) {
 
 const cacheTTL = 10 * time.Minute
 
-func newServices(t *testing.T, db *pgdbx.DB, rc *redis.Client) (*account.Service, *session.Service) {
+func newServices(t *testing.T, db *pgdbx.DB, rc *redis.Client) (*user.Service, *session.Service) {
 	t.Helper()
 
-	accountRepo := pg.NewAccountRepo(db)
+	userRepo := pg.NewUserRepo(db)
 	emailRepo := pg.NewEmailRepo(db)
 	passwordRepo := pg.NewPasswordRepo(db)
 	sessionRepo := pg.NewSessionRepo(db)
 
-	accountCache := chache.NewAccountCache(rc, cacheTTL, noop, testLog)
+	userCache := chache.NewUserCache(rc, cacheTTL, noop, testLog)
 	emailCache := chache.NewEmailCache(rc, cacheTTL, noop, testLog)
 	passwordCache := chache.NewPasswordCache(rc, cacheTTL, noop, testLog)
 	sessionCache := chache.NewSessionCache(rc, cacheTTL, noop, testLog)
 
 	authSvc := authmodule.New(authmodule.ServiceDeps{
-		AccountRepo: accountRepo,
+		UserRepo:    userRepo,
 		SessionRepo: sessionRepo,
 	})
 
@@ -93,21 +93,21 @@ func newServices(t *testing.T, db *pgdbx.DB, rc *redis.Client) (*account.Service
 
 	tokenMgr := tokenmanager.New(tokenmanager.Config{
 		Issuer:           testCfg.Auth.Tokens.Issuer,
-		AccessSecretKey:  testCfg.Auth.Tokens.AccountAccess.SecretKey,
-		AccessTTL:        testCfg.Auth.Tokens.AccountAccess.TTL,
-		RefreshSecretKey: testCfg.Auth.Tokens.AccountRefresh.SecretKey,
-		RefreshTTL:       testCfg.Auth.Tokens.AccountRefresh.TTL,
-		RefreshHashKey:   testCfg.Auth.Tokens.AccountRefresh.HashKey,
+		AccessSecretKey:  testCfg.Auth.Tokens.UserAccess.SecretKey,
+		AccessTTL:        testCfg.Auth.Tokens.UserAccess.TTL,
+		RefreshSecretKey: testCfg.Auth.Tokens.UserRefresh.SecretKey,
+		RefreshTTL:       testCfg.Auth.Tokens.UserRefresh.TTL,
+		RefreshHashKey:   testCfg.Auth.Tokens.UserRefresh.HashKey,
 	})
 
-	accountSvc := account.New(account.ServiceDeps{
+	userSvc := user.New(user.ServiceDeps{
 		Auth:          authSvc,
-		AccountRepo:   accountRepo,
+		UserRepo:      userRepo,
 		EmailRepo:     emailRepo,
 		PasswordRepo:  passwordRepo,
 		SessionRepo:   sessionRepo,
 		Tx:            db,
-		AccountCache:  accountCache,
+		UserCache:     userCache,
 		EmailCache:    emailCache,
 		PasswordCache: passwordCache,
 		SessionsCache: sessionCache,
@@ -117,27 +117,27 @@ func newServices(t *testing.T, db *pgdbx.DB, rc *redis.Client) (*account.Service
 
 	sessionSvc := session.New(session.ServiceDeps{
 		Auth:          authSvc,
-		AccountRepo:   accountRepo,
+		UserRepo:      userRepo,
 		EmailRepo:     emailRepo,
 		PasswordRepo:  passwordRepo,
 		SessionRepo:   sessionRepo,
 		Tx:            db,
 		PasswordCache: passwordCache,
-		AccountCache:  accountCache,
+		UserCache:     userCache,
 		SessionsCache: sessionCache,
 		PassManager:   passMgr,
 		TokenManager:  tokenMgr,
 	})
 
-	return accountSvc, sessionSvc
+	return userSvc, sessionSvc
 }
 
 type noopMessenger struct{}
 
-func (n *noopMessenger) WriteAccountCreated(_ context.Context, _ models.Account, _ models.AccountEmail) error {
+func (n *noopMessenger) WriteUserCreated(_ context.Context, _ models.User, _ models.UserEmail) error {
 	return nil
 }
 
-func (n *noopMessenger) WriteAccountDeleted(_ context.Context, _ models.Account, _ models.AccountEmail) error {
+func (n *noopMessenger) WriteUserDeleted(_ context.Context, _ models.User, _ models.UserEmail) error {
 	return nil
 }

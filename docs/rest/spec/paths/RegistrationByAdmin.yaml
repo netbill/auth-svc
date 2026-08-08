@@ -1,9 +1,9 @@
 post:
   tags:
     - registration
-  summary: Register a new admin account
+  summary: Register a new admin user
   description: >
-    Registers a new account by an authenticated admin.
+    Registers a new user by an authenticated admin.
 
   security:
     - BearerAuth: [ ]
@@ -15,11 +15,11 @@ post:
           $ref: '../components/schemas/requests/RegistrationAdmin.yaml'
   responses:
     '201':
-      description: Account successfully registered by admin
+      description: User successfully registered by admin
       content:
         application/json:
           schema:
-            $ref: '../components/schemas/responses/Account.yaml'
+            $ref: '../components/schemas/responses/User.yaml'
 
     '400':
       description: >
@@ -32,7 +32,7 @@ post:
 
     '401':
       description: >
-        Unauthorized. Account cannot be resolved from context.
+        Unauthorized. User cannot be resolved from context.
         Check the `detail` field in the response for more information.
       content:
         application/json:

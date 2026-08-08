@@ -4,9 +4,9 @@
 
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-**Email** | **string** | The account&#39;s email address. | 
-**Password** | **string** | The account&#39;s password. | 
-**Role** | **string** | The role assigned to the registering account. | 
+**Email** | **string** | The user&#39;s email address. | 
+**Password** | **string** | The user&#39;s password. | 
+**Role** | **string** | The role assigned to the registering user. | 
 
 ## Methods
 

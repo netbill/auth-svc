@@ -8,7 +8,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/netbill/auth-svc/internal/errx"
 	"github.com/netbill/auth-svc/internal/models"
-	"github.com/netbill/auth-svc/internal/modules/account"
+	"github.com/netbill/auth-svc/internal/modules/user"
 	"github.com/netbill/auth-svc/tests/testutil"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -16,16 +16,16 @@ import (
 
 func registerAndLogin(
 	t *testing.T,
-	accountSvc *account.Service,
+	userSvc *user.Service,
 	sessionSvc interface {
 		LoginByEmail(ctx context.Context, email, password string) (models.TokensPair, error)
 	},
-) (models.Account, models.TokensPair, string) {
+) (models.User, models.TokensPair, string) {
 	t.Helper()
 	ctx := context.Background()
 
 	email := testutil.UniqueEmail()
-	acc, err := accountSvc.Registration(ctx, account.RegistrationParams{
+	acc, err := userSvc.Registration(ctx, user.RegistrationParams{
 		Email:    email,
 		Password: testutil.TestPassword,
 		Role:     "user",
@@ -40,11 +40,11 @@ func registerAndLogin(
 
 func TestSessionService_LoginByEmail(t *testing.T) {
 	db, rc := setup(t)
-	accountSvc, sessionSvc := newServices(t, db, rc)
+	userSvc, sessionSvc := newServices(t, db, rc)
 	ctx := context.Background()
 
 	email := testutil.UniqueEmail()
-	_, err := accountSvc.Registration(ctx, account.RegistrationParams{
+	_, err := userSvc.Registration(ctx, user.RegistrationParams{
 		Email:    email,
 		Password: testutil.TestPassword,
 		Role:     "user",
@@ -60,11 +60,11 @@ func TestSessionService_LoginByEmail(t *testing.T) {
 
 func TestSessionService_LoginByEmail_WrongPassword(t *testing.T) {
 	db, rc := setup(t)
-	accountSvc, sessionSvc := newServices(t, db, rc)
+	userSvc, sessionSvc := newServices(t, db, rc)
 	ctx := context.Background()
 
 	email := testutil.UniqueEmail()
-	_, err := accountSvc.Registration(ctx, account.RegistrationParams{
+	_, err := userSvc.Registration(ctx, user.RegistrationParams{
 		Email:    email,
 		Password: testutil.TestPassword,
 		Role:     "user",
@@ -80,17 +80,17 @@ func TestSessionService_LoginByEmail_NotFound(t *testing.T) {
 	_, sessionSvc := newServices(t, db, rc)
 
 	_, err := sessionSvc.LoginByEmail(context.Background(), "nobody@example.com", testutil.TestPassword)
-	assert.ErrorIs(t, err, errx.ErrorAccountNotFound)
+	assert.ErrorIs(t, err, errx.ErrorUserNotFound)
 }
 
 func TestSessionService_GetMySession(t *testing.T) {
 	db, rc := setup(t)
-	accountSvc, sessionSvc := newServices(t, db, rc)
+	userSvc, sessionSvc := newServices(t, db, rc)
 	ctx := context.Background()
 
-	acc, tokens, _ := registerAndLogin(t, accountSvc, sessionSvc)
+	acc, tokens, _ := registerAndLogin(t, userSvc, sessionSvc)
 
-	actor := models.AccountActor{
+	actor := models.UserActor{
 		ID:        acc.ID,
 		SessionID: tokens.SessionID,
 		Role:      acc.Role,
@@ -99,19 +99,19 @@ func TestSessionService_GetMySession(t *testing.T) {
 	sess, err := sessionSvc.GetMySession(ctx, actor, tokens.SessionID)
 	require.NoError(t, err)
 	assert.Equal(t, tokens.SessionID, sess.ID)
-	assert.Equal(t, acc.ID, sess.AccountID)
+	assert.Equal(t, acc.ID, sess.UserID)
 }
 
-func TestSessionService_GetMySession_WrongAccount(t *testing.T) {
+func TestSessionService_GetMySession_WrongUser(t *testing.T) {
 	db, rc := setup(t)
-	accountSvc, sessionSvc := newServices(t, db, rc)
+	userSvc, sessionSvc := newServices(t, db, rc)
 	ctx := context.Background()
 
-	_, tokens1, _ := registerAndLogin(t, accountSvc, sessionSvc)
-	acc2, tokens2, _ := registerAndLogin(t, accountSvc, sessionSvc)
+	_, tokens1, _ := registerAndLogin(t, userSvc, sessionSvc)
+	acc2, tokens2, _ := registerAndLogin(t, userSvc, sessionSvc)
 
 	// acc2 tries to read acc1's session
-	actor2 := models.AccountActor{
+	actor2 := models.UserActor{
 		ID:        acc2.ID,
 		SessionID: tokens2.SessionID,
 		Role:      acc2.Role,
@@ -123,12 +123,12 @@ func TestSessionService_GetMySession_WrongAccount(t *testing.T) {
 
 func TestSessionService_Logout(t *testing.T) {
 	db, rc := setup(t)
-	accountSvc, sessionSvc := newServices(t, db, rc)
+	userSvc, sessionSvc := newServices(t, db, rc)
 	ctx := context.Background()
 
-	acc, tokens, _ := registerAndLogin(t, accountSvc, sessionSvc)
+	acc, tokens, _ := registerAndLogin(t, userSvc, sessionSvc)
 
-	actor := models.AccountActor{
+	actor := models.UserActor{
 		ID:        acc.ID,
 		SessionID: tokens.SessionID,
 		Role:      acc.Role,
@@ -146,10 +146,10 @@ func TestSessionService_Logout(t *testing.T) {
 
 func TestSessionService_Refresh(t *testing.T) {
 	db, rc := setup(t)
-	accountSvc, sessionSvc := newServices(t, db, rc)
+	userSvc, sessionSvc := newServices(t, db, rc)
 	ctx := context.Background()
 
-	_, tokens, _ := registerAndLogin(t, accountSvc, sessionSvc)
+	_, tokens, _ := registerAndLogin(t, userSvc, sessionSvc)
 
 	// Wait >1s so the new refresh token gets a different ExpiresAt (second-precision JWT)
 	time.Sleep(1100 * time.Millisecond)
@@ -167,16 +167,16 @@ func TestSessionService_Refresh(t *testing.T) {
 
 func TestSessionService_DeleteMySession(t *testing.T) {
 	db, rc := setup(t)
-	accountSvc, sessionSvc := newServices(t, db, rc)
+	userSvc, sessionSvc := newServices(t, db, rc)
 	ctx := context.Background()
 
-	acc, tokens, email := registerAndLogin(t, accountSvc, sessionSvc)
+	acc, tokens, email := registerAndLogin(t, userSvc, sessionSvc)
 
 	// Login again as acc to get a second session
 	tokens2, err := sessionSvc.LoginByEmail(ctx, email, testutil.TestPassword)
 	require.NoError(t, err)
 
-	actor := models.AccountActor{
+	actor := models.UserActor{
 		ID:        acc.ID,
 		SessionID: tokens.SessionID,
 		Role:      acc.Role,
@@ -199,10 +199,10 @@ func TestSessionService_DeleteMySession(t *testing.T) {
 
 func TestSessionService_DeleteMySessions(t *testing.T) {
 	db, rc := setup(t)
-	accountSvc, sessionSvc := newServices(t, db, rc)
+	userSvc, sessionSvc := newServices(t, db, rc)
 	ctx := context.Background()
 
-	acc, tokens, email := registerAndLogin(t, accountSvc, sessionSvc)
+	acc, tokens, email := registerAndLogin(t, userSvc, sessionSvc)
 
 	// Create additional sessions
 	tokens2, err := sessionSvc.LoginByEmail(ctx, email, testutil.TestPassword)
@@ -211,7 +211,7 @@ func TestSessionService_DeleteMySessions(t *testing.T) {
 	require.NoError(t, err)
 
 	// Use the first session as the actor for the DeleteMySessions call
-	actor := models.AccountActor{
+	actor := models.UserActor{
 		ID:        acc.ID,
 		SessionID: tokens.SessionID,
 		Role:      acc.Role,

@@ -18,14 +18,13 @@ import (
 	"net/url"
 )
 
-
 // QrAPIService QrAPI service
 type QrAPIService service
 
 type ApiAuthSvcV1LoginQrConfirmPostRequest struct {
-	ctx context.Context
+	ctx        context.Context
 	ApiService *QrAPIService
-	qRConfirm *QRConfirm
+	qRConfirm  *QRConfirm
 }
 
 func (r ApiAuthSvcV1LoginQrConfirmPostRequest) QRConfirm(qRConfirm QRConfirm) ApiAuthSvcV1LoginQrConfirmPostRequest {
@@ -42,23 +41,22 @@ AuthSvcV1LoginQrConfirmPost Confirm QR token
 
 Confirms a pending QR token. The mobile client (already authenticated) scans the QR code and calls this endpoint. The server creates a new session and pushes the tokens to the desktop's SSE stream opened via GET /auth-svc/v1/login/qr.
 
-
- @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
- @return ApiAuthSvcV1LoginQrConfirmPostRequest
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@return ApiAuthSvcV1LoginQrConfirmPostRequest
 */
 func (a *QrAPIService) AuthSvcV1LoginQrConfirmPost(ctx context.Context) ApiAuthSvcV1LoginQrConfirmPostRequest {
 	return ApiAuthSvcV1LoginQrConfirmPostRequest{
 		ApiService: a,
-		ctx: ctx,
+		ctx:        ctx,
 	}
 }
 
 // Execute executes the request
 func (a *QrAPIService) AuthSvcV1LoginQrConfirmPostExecute(r ApiAuthSvcV1LoginQrConfirmPostRequest) (*http.Response, error) {
 	var (
-		localVarHTTPMethod   = http.MethodPost
-		localVarPostBody     interface{}
-		formFiles            []formFile
+		localVarHTTPMethod = http.MethodPost
+		localVarPostBody   interface{}
+		formFiles          []formFile
 	)
 
 	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "QrAPIService.AuthSvcV1LoginQrConfirmPost")
@@ -123,8 +121,8 @@ func (a *QrAPIService) AuthSvcV1LoginQrConfirmPostExecute(r ApiAuthSvcV1LoginQrC
 				newErr.error = err.Error()
 				return localVarHTTPResponse, newErr
 			}
-					newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
-					newErr.model = v
+			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+			newErr.model = v
 			return localVarHTTPResponse, newErr
 		}
 		if localVarHTTPResponse.StatusCode == 401 {
@@ -134,8 +132,8 @@ func (a *QrAPIService) AuthSvcV1LoginQrConfirmPostExecute(r ApiAuthSvcV1LoginQrC
 				newErr.error = err.Error()
 				return localVarHTTPResponse, newErr
 			}
-					newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
-					newErr.model = v
+			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+			newErr.model = v
 			return localVarHTTPResponse, newErr
 		}
 		if localVarHTTPResponse.StatusCode == 404 {
@@ -145,8 +143,8 @@ func (a *QrAPIService) AuthSvcV1LoginQrConfirmPostExecute(r ApiAuthSvcV1LoginQrC
 				newErr.error = err.Error()
 				return localVarHTTPResponse, newErr
 			}
-					newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
-					newErr.model = v
+			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+			newErr.model = v
 			return localVarHTTPResponse, newErr
 		}
 		if localVarHTTPResponse.StatusCode == 409 {
@@ -156,8 +154,8 @@ func (a *QrAPIService) AuthSvcV1LoginQrConfirmPostExecute(r ApiAuthSvcV1LoginQrC
 				newErr.error = err.Error()
 				return localVarHTTPResponse, newErr
 			}
-					newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
-					newErr.model = v
+			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+			newErr.model = v
 			return localVarHTTPResponse, newErr
 		}
 		if localVarHTTPResponse.StatusCode == 500 {
@@ -167,8 +165,8 @@ func (a *QrAPIService) AuthSvcV1LoginQrConfirmPostExecute(r ApiAuthSvcV1LoginQrC
 				newErr.error = err.Error()
 				return localVarHTTPResponse, newErr
 			}
-					newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
-					newErr.model = v
+			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+			newErr.model = v
 		}
 		return localVarHTTPResponse, newErr
 	}
@@ -177,7 +175,7 @@ func (a *QrAPIService) AuthSvcV1LoginQrConfirmPostExecute(r ApiAuthSvcV1LoginQrC
 }
 
 type ApiAuthSvcV1LoginQrGetRequest struct {
-	ctx context.Context
+	ctx        context.Context
 	ApiService *QrAPIService
 }
 
@@ -191,33 +189,36 @@ AuthSvcV1LoginQrGet Connect to QR login session
 Opens a Server-Sent Events (text/event-stream) connection. Upon connecting, the server generates a QR token and sends it as the first event. The client renders it as a QR code. When the mobile client confirms the token via POST /auth-svc/v1/login/qr/confirm, the server pushes the session tokens through this same stream and closes it. The stream closes with an `error` event if the token isn't confirmed within 5 minutes.
 
 Events sent as SSE `event:`/`data:` frames, each shaped like a normal JSON:API response body for this API:
+
   - `qr_token` — body shaped like the `QRToken` schema. Sent once, immediately
     after connecting.
+
   - `tokens` — body shaped like the `TokensPair` schema, same as every other
     login endpoint. Sent once the QR token is confirmed; the stream closes
     right after.
+
   - `error` — body shaped like the `Errors` schema. Sent if the token isn't
     confirmed in time; the stream closes right after.
 
-
- @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
- @return ApiAuthSvcV1LoginQrGetRequest
+    @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+    @return ApiAuthSvcV1LoginQrGetRequest
 */
 func (a *QrAPIService) AuthSvcV1LoginQrGet(ctx context.Context) ApiAuthSvcV1LoginQrGetRequest {
 	return ApiAuthSvcV1LoginQrGetRequest{
 		ApiService: a,
-		ctx: ctx,
+		ctx:        ctx,
 	}
 }
 
 // Execute executes the request
-//  @return string
+//
+//	@return string
 func (a *QrAPIService) AuthSvcV1LoginQrGetExecute(r ApiAuthSvcV1LoginQrGetRequest) (string, *http.Response, error) {
 	var (
-		localVarHTTPMethod   = http.MethodGet
-		localVarPostBody     interface{}
-		formFiles            []formFile
-		localVarReturnValue  string
+		localVarHTTPMethod  = http.MethodGet
+		localVarPostBody    interface{}
+		formFiles           []formFile
+		localVarReturnValue string
 	)
 
 	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "QrAPIService.AuthSvcV1LoginQrGet")
@@ -277,8 +278,8 @@ func (a *QrAPIService) AuthSvcV1LoginQrGetExecute(r ApiAuthSvcV1LoginQrGetReques
 				newErr.error = err.Error()
 				return localVarReturnValue, localVarHTTPResponse, newErr
 			}
-					newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
-					newErr.model = v
+			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+			newErr.model = v
 		}
 		return localVarReturnValue, localVarHTTPResponse, newErr
 	}

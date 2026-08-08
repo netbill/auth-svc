@@ -10,9 +10,9 @@ import (
 	"github.com/netbill/auth-svc/internal/models"
 )
 
-//go:generate mockery --name=accountRepo --inpackage
-type accountRepo interface {
-	GetByID(ctx context.Context, accountID uuid.UUID) (models.Account, error)
+//go:generate mockery --name=userRepo --inpackage
+type userRepo interface {
+	GetByID(ctx context.Context, userID uuid.UUID) (models.User, error)
 }
 
 //go:generate mockery --name=sessionRepo --inpackage
@@ -21,45 +21,45 @@ type sessionRepo interface {
 }
 
 type Service struct {
-	accountRepo accountRepo
+	userRepo    userRepo
 	sessionRepo sessionRepo
 }
 
 type ServiceDeps struct {
-	AccountRepo accountRepo
+	UserRepo    userRepo
 	SessionRepo sessionRepo
 }
 
 func New(deps ServiceDeps) *Service {
 	return &Service{
-		accountRepo: deps.AccountRepo,
+		userRepo:    deps.UserRepo,
 		sessionRepo: deps.SessionRepo,
 	}
 }
 
 func (s *Service) ValidateSession(
 	ctx context.Context,
-	actor models.AccountActor,
-) (account models.Account, session models.Session, err error) {
-	account, err = s.accountRepo.GetByID(ctx, actor.ID)
+	actor models.UserActor,
+) (user models.User, session models.Session, err error) {
+	user, err = s.userRepo.GetByID(ctx, actor.ID)
 	switch {
-	case errors.Is(err, errx.ErrorAccountNotFound):
-		return models.Account{}, models.Session{}, errx.ErrorAccountInvalidSession.Raise(
-			fmt.Errorf("account %s not found", actor.ID),
+	case errors.Is(err, errx.ErrorUserNotFound):
+		return models.User{}, models.Session{}, errx.ErrorUserInvalidSession.Raise(
+			fmt.Errorf("user %s not found", actor.ID),
 		)
 	case err != nil:
-		return models.Account{}, models.Session{}, err
+		return models.User{}, models.Session{}, err
 	}
 
 	session, err = s.sessionRepo.GetByID(ctx, actor.SessionID)
 	switch {
 	case errors.Is(err, errx.ErrorSessionNotFound):
-		return models.Account{}, models.Session{}, errx.ErrorAccountInvalidSession.Raise(
+		return models.User{}, models.Session{}, errx.ErrorUserInvalidSession.Raise(
 			fmt.Errorf("session %s not found", actor.SessionID),
 		)
 	case err != nil:
-		return models.Account{}, models.Session{}, err
+		return models.User{}, models.Session{}, err
 	}
 
-	return account, session, nil
+	return user, session, nil
 }

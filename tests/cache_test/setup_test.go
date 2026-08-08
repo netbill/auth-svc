@@ -7,8 +7,8 @@ import (
 
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/netbill/auth-svc/internal/repo/chache"
-	"github.com/netbill/auth-svc/tests/testutil"
 	pkglog "github.com/netbill/auth-svc/pkg/log"
+	"github.com/netbill/auth-svc/tests/testutil"
 	"github.com/redis/go-redis/v9"
 	"github.com/stretchr/testify/require"
 )
@@ -23,7 +23,7 @@ var (
 
 type noopMetrics struct{}
 
-func (n *noopMetrics) AccountCacheOp(_ context.Context, _ *error)  {}
+func (n *noopMetrics) UserCacheOp(_ context.Context, _ *error)     {}
 func (n *noopMetrics) EmailCacheOp(_ context.Context, _ *error)    {}
 func (n *noopMetrics) PasswordCacheOp(_ context.Context, _ *error) {}
 func (n *noopMetrics) SessionCacheOp(_ context.Context, _ *error)  {}
@@ -64,10 +64,10 @@ func setupCacheTest(t *testing.T) *redis.Client {
 	return testRedis
 }
 
-func newAccountCache(t *testing.T) *chache.AccountCache {
+func newUserCache(t *testing.T) *chache.UserCache {
 	t.Helper()
 	require.NotNil(t, testRedis)
-	return chache.NewAccountCache(testRedis, testCacheTTL, noop, testLog)
+	return chache.NewUserCache(testRedis, testCacheTTL, noop, testLog)
 }
 
 func newEmailCache(t *testing.T) *chache.EmailCache {

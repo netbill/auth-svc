@@ -17,18 +17,18 @@ import (
 type AuthServiceSuite struct {
 	suite.Suite
 
-	accountRepo *mockAccountRepo
+	userRepo    *mockUserRepo
 	sessionRepo *mockSessionRepo
 
 	svc *Service
 }
 
 func (s *AuthServiceSuite) SetupTest() {
-	s.accountRepo = newMockAccountRepo(s.T())
+	s.userRepo = newMockUserRepo(s.T())
 	s.sessionRepo = newMockSessionRepo(s.T())
 
 	s.svc = New(ServiceDeps{
-		AccountRepo: s.accountRepo,
+		UserRepo:    s.userRepo,
 		SessionRepo: s.sessionRepo,
 	})
 }
@@ -40,42 +40,42 @@ func TestAuthService(t *testing.T) {
 // ─── ValidateSession ─────────────────────────────────────────────────────────
 
 func (s *AuthServiceSuite) TestValidateSession_HappyPath() {
-	accountID := uuid.New()
+	userID := uuid.New()
 	sessionID := uuid.New()
-	account := models.Account{ID: accountID}
+	user := models.User{ID: userID}
 	session := models.Session{ID: sessionID}
-	actor := models.AccountActor{ID: accountID, SessionID: sessionID}
+	actor := models.UserActor{ID: userID, SessionID: sessionID}
 
-	s.accountRepo.On("GetByID", mock.Anything, accountID).Return(account, nil)
+	s.userRepo.On("GetByID", mock.Anything, userID).Return(user, nil)
 	s.sessionRepo.On("GetByID", mock.Anything, sessionID).Return(session, nil)
 
-	gotAccount, gotSession, err := s.svc.ValidateSession(context.Background(), actor)
+	gotUser, gotSession, err := s.svc.ValidateSession(context.Background(), actor)
 
 	require.NoError(s.T(), err)
-	assert.Equal(s.T(), account, gotAccount)
+	assert.Equal(s.T(), user, gotUser)
 	assert.Equal(s.T(), session, gotSession)
 }
 
-func (s *AuthServiceSuite) TestValidateSession_AccountNotFound() {
-	accountID := uuid.New()
+func (s *AuthServiceSuite) TestValidateSession_UserNotFound() {
+	userID := uuid.New()
 	sessionID := uuid.New()
-	actor := models.AccountActor{ID: accountID, SessionID: sessionID}
+	actor := models.UserActor{ID: userID, SessionID: sessionID}
 
-	s.accountRepo.On("GetByID", mock.Anything, accountID).Return(models.Account{}, errx.ErrorAccountNotFound)
+	s.userRepo.On("GetByID", mock.Anything, userID).Return(models.User{}, errx.ErrorUserNotFound)
 
 	_, _, err := s.svc.ValidateSession(context.Background(), actor)
 
 	require.Error(s.T(), err)
-	assert.ErrorIs(s.T(), err, errx.ErrorAccountInvalidSession)
+	assert.ErrorIs(s.T(), err, errx.ErrorUserInvalidSession)
 }
 
-func (s *AuthServiceSuite) TestValidateSession_AccountRepoError() {
-	accountID := uuid.New()
+func (s *AuthServiceSuite) TestValidateSession_UserRepoError() {
+	userID := uuid.New()
 	sessionID := uuid.New()
 	repoErr := errors.New("db connection lost")
-	actor := models.AccountActor{ID: accountID, SessionID: sessionID}
+	actor := models.UserActor{ID: userID, SessionID: sessionID}
 
-	s.accountRepo.On("GetByID", mock.Anything, accountID).Return(models.Account{}, repoErr)
+	s.userRepo.On("GetByID", mock.Anything, userID).Return(models.User{}, repoErr)
 
 	_, _, err := s.svc.ValidateSession(context.Background(), actor)
 
@@ -84,28 +84,28 @@ func (s *AuthServiceSuite) TestValidateSession_AccountRepoError() {
 }
 
 func (s *AuthServiceSuite) TestValidateSession_SessionNotFound() {
-	accountID := uuid.New()
+	userID := uuid.New()
 	sessionID := uuid.New()
-	account := models.Account{ID: accountID}
-	actor := models.AccountActor{ID: accountID, SessionID: sessionID}
+	user := models.User{ID: userID}
+	actor := models.UserActor{ID: userID, SessionID: sessionID}
 
-	s.accountRepo.On("GetByID", mock.Anything, accountID).Return(account, nil)
+	s.userRepo.On("GetByID", mock.Anything, userID).Return(user, nil)
 	s.sessionRepo.On("GetByID", mock.Anything, sessionID).Return(models.Session{}, errx.ErrorSessionNotFound)
 
 	_, _, err := s.svc.ValidateSession(context.Background(), actor)
 
 	require.Error(s.T(), err)
-	assert.ErrorIs(s.T(), err, errx.ErrorAccountInvalidSession)
+	assert.ErrorIs(s.T(), err, errx.ErrorUserInvalidSession)
 }
 
 func (s *AuthServiceSuite) TestValidateSession_SessionRepoError() {
-	accountID := uuid.New()
+	userID := uuid.New()
 	sessionID := uuid.New()
-	account := models.Account{ID: accountID}
+	user := models.User{ID: userID}
 	repoErr := errors.New("db connection lost")
-	actor := models.AccountActor{ID: accountID, SessionID: sessionID}
+	actor := models.UserActor{ID: userID, SessionID: sessionID}
 
-	s.accountRepo.On("GetByID", mock.Anything, accountID).Return(account, nil)
+	s.userRepo.On("GetByID", mock.Anything, userID).Return(user, nil)
 	s.sessionRepo.On("GetByID", mock.Anything, sessionID).Return(models.Session{}, repoErr)
 
 	_, _, err := s.svc.ValidateSession(context.Background(), actor)

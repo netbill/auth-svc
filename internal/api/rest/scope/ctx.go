@@ -13,7 +13,7 @@ type ctxKey int
 
 const (
 	LogCtxKey ctxKey = iota
-	AccountDataCtxKey
+	UserDataCtxKey
 )
 
 func CtxLog(ctx context.Context, log *log.Logger) context.Context {
@@ -23,21 +23,21 @@ func CtxLog(ctx context.Context, log *log.Logger) context.Context {
 func Log(r *http.Request) *log.Logger {
 	log := r.Context().Value(LogCtxKey).(*log.Logger)
 
-	authClaims, ok := r.Context().Value(AccountDataCtxKey).(tokens.AccountAuthClaims)
+	authClaims, ok := r.Context().Value(UserDataCtxKey).(tokens.AccountAuthClaims)
 	if ok {
-		log = log.WithAccountAuthClaims(authClaims)
+		log = log.WithUserAuthClaims(authClaims)
 	}
 
 	return log
 }
 
-func CtxAccountAuth(ctx context.Context, account tokens.AccountAuthClaims) context.Context {
-	return context.WithValue(ctx, AccountDataCtxKey, account)
+func CtxUserAuth(ctx context.Context, user tokens.AccountAuthClaims) context.Context {
+	return context.WithValue(ctx, UserDataCtxKey, user)
 }
 
-func AccountActor(r *http.Request) models.AccountActor {
-	claims := r.Context().Value(AccountDataCtxKey).(tokens.AccountAuthClaims)
-	return models.AccountActor{
+func UserActor(r *http.Request) models.UserActor {
+	claims := r.Context().Value(UserDataCtxKey).(tokens.AccountAuthClaims)
+	return models.UserActor{
 		ID:        claims.GetAccountID(),
 		SessionID: claims.GetSessionID(),
 		Role:      claims.GetRole(),

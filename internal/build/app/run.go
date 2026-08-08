@@ -10,9 +10,9 @@ import (
 	"github.com/netbill/auth-svc/internal/api/rest/controller"
 	"github.com/netbill/auth-svc/internal/api/rest/middlewares"
 	"github.com/netbill/auth-svc/internal/bus"
-	"github.com/netbill/auth-svc/internal/modules/account"
 	authmodule "github.com/netbill/auth-svc/internal/modules/auth"
 	"github.com/netbill/auth-svc/internal/modules/session"
+	"github.com/netbill/auth-svc/internal/modules/user"
 	"github.com/netbill/auth-svc/internal/observability/metrics"
 	"github.com/netbill/auth-svc/internal/observability/telemetry"
 	"github.com/netbill/auth-svc/internal/repo/chache"
@@ -59,7 +59,7 @@ func (a *App) Run(ctx context.Context) error {
 	redisClient := a.config.RedisClient()
 	defer redisClient.Close()
 
-	accountRepo := pg.NewAccountRepo(db)
+	userRepo := pg.NewUserRepo(db)
 	emailRepo := pg.NewEmailRepo(db)
 	passwordRepo := pg.NewPasswordRepo(db)
 	sessionRepo := pg.NewSessionRepo(db)
@@ -67,7 +67,7 @@ func (a *App) Run(ctx context.Context) error {
 
 	redisTTL := a.config.Database.Redis.TTL
 
-	accountCache := chache.NewAccountCache(redisClient, redisTTL.Account, svcMetrics, a.log)
+	userCache := chache.NewUserCache(redisClient, redisTTL.User, svcMetrics, a.log)
 	emailCache := chache.NewEmailCache(redisClient, redisTTL.Email, svcMetrics, a.log)
 	passwordCache := chache.NewPasswordCache(redisClient, redisTTL.Password, svcMetrics, a.log)
 	sessionCache := chache.NewSessionCache(redisClient, redisTTL.Session, svcMetrics, a.log)
@@ -80,26 +80,26 @@ func (a *App) Run(ctx context.Context) error {
 
 	tokenMgr := tokenmanager.New(tokenmanager.Config{
 		Issuer:           a.config.Auth.Tokens.Issuer,
-		AccessSecretKey:  a.config.Auth.Tokens.AccountAccess.SecretKey,
-		AccessTTL:        a.config.Auth.Tokens.AccountAccess.TTL,
-		RefreshSecretKey: a.config.Auth.Tokens.AccountRefresh.SecretKey,
-		RefreshTTL:       a.config.Auth.Tokens.AccountRefresh.TTL,
-		RefreshHashKey:   a.config.Auth.Tokens.AccountRefresh.HashKey,
+		AccessSecretKey:  a.config.Auth.Tokens.UserAccess.SecretKey,
+		AccessTTL:        a.config.Auth.Tokens.UserAccess.TTL,
+		RefreshSecretKey: a.config.Auth.Tokens.UserRefresh.SecretKey,
+		RefreshTTL:       a.config.Auth.Tokens.UserRefresh.TTL,
+		RefreshHashKey:   a.config.Auth.Tokens.UserRefresh.HashKey,
 	})
 
 	authSvc := authmodule.New(authmodule.ServiceDeps{
-		AccountRepo: accountRepo,
+		UserRepo:    userRepo,
 		SessionRepo: sessionRepo,
 	})
 
-	accountSvc := account.New(account.ServiceDeps{
+	userSvc := user.New(user.ServiceDeps{
 		Auth:          authSvc,
-		AccountRepo:   accountRepo,
+		UserRepo:      userRepo,
 		EmailRepo:     emailRepo,
 		PasswordRepo:  passwordRepo,
 		SessionRepo:   sessionRepo,
 		Tx:            db,
-		AccountCache:  accountCache,
+		UserCache:     userCache,
 		EmailCache:    emailCache,
 		PasswordCache: passwordCache,
 		SessionsCache: sessionCache,
@@ -111,13 +111,13 @@ func (a *App) Run(ctx context.Context) error {
 
 	sessionSvc := session.New(session.ServiceDeps{
 		Auth:          authSvc,
-		AccountRepo:   accountRepo,
+		UserRepo:      userRepo,
 		EmailRepo:     emailRepo,
 		PasswordRepo:  passwordRepo,
 		SessionRepo:   sessionRepo,
 		Tx:            db,
 		PasswordCache: passwordCache,
-		AccountCache:  accountCache,
+		UserCache:     userCache,
 		SessionsCache: sessionCache,
 		PassManager:   passMgr,
 		TokenManager:  tokenMgr,
@@ -125,12 +125,12 @@ func (a *App) Run(ctx context.Context) error {
 		Bus:           broker,
 	})
 
-	accountCtrl := controller.NewAccountController(accountSvc, svcMetrics)
+	userCtrl := controller.NewUserController(userSvc, svcMetrics)
 	sessionCtrl := controller.NewSessionController(sessionSvc, a.config.GoogleOAuth(), svcMetrics, broker)
 
 	mdll := middlewares.New(tokenMgr)
 	router := rest.New(rest.ServerDeps{
-		Accounts:    accountCtrl,
+		Users:       userCtrl,
 		Sessions:    sessionCtrl,
 		QR:          sessionCtrl,
 		Middlewares: mdll,
@@ -151,7 +151,7 @@ func (a *App) Run(ctx context.Context) error {
 
 	grpcServer := grpcapi.New(grpcapi.ServerDeps{
 		Auth:     authSvc,
-		Accounts: accountSvc,
+		Users:    userSvc,
 		Sessions: sessionSvc,
 		Google:   googleVerifier,
 		Metrics:  svcMetrics,

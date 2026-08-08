@@ -27,18 +27,18 @@ const (
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 //
 // AuthService is an internal service used by other microservices to validate
-// incoming access tokens and retrieve the associated account and session.
+// incoming access tokens and retrieve the associated user and session.
 //
 // Authentication: pass the access token via metadata:
 //
 //	authorization: Bearer <access_token>
 type AuthServiceClient interface {
 	// ValidateSession parses the access token from metadata, verifies it against
-	// the database and returns the full account and session objects.
+	// the database and returns the full user and session objects.
 	//
 	// Errors:
 	//
-	//	UNAUTHENTICATED     — token is missing, invalid, expired, or the session/account
+	//	UNAUTHENTICATED     — token is missing, invalid, expired, or the session/user
 	//	                      was deleted after the token was issued
 	//	INTERNAL            — unexpected server error
 	ValidateSession(ctx context.Context, in *ValidateSessionRequest, opts ...grpc.CallOption) (*ValidateSessionResponse, error)
@@ -67,18 +67,18 @@ func (c *authServiceClient) ValidateSession(ctx context.Context, in *ValidateSes
 // for forward compatibility.
 //
 // AuthService is an internal service used by other microservices to validate
-// incoming access tokens and retrieve the associated account and session.
+// incoming access tokens and retrieve the associated user and session.
 //
 // Authentication: pass the access token via metadata:
 //
 //	authorization: Bearer <access_token>
 type AuthServiceServer interface {
 	// ValidateSession parses the access token from metadata, verifies it against
-	// the database and returns the full account and session objects.
+	// the database and returns the full user and session objects.
 	//
 	// Errors:
 	//
-	//	UNAUTHENTICATED     — token is missing, invalid, expired, or the session/account
+	//	UNAUTHENTICATED     — token is missing, invalid, expired, or the session/user
 	//	                      was deleted after the token was issued
 	//	INTERNAL            — unexpected server error
 	ValidateSession(context.Context, *ValidateSessionRequest) (*ValidateSessionResponse, error)

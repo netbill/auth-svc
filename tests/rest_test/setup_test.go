@@ -15,7 +15,7 @@ type config struct {
 	} `yaml:"rest"`
 
 	Load struct {
-		Accounts int `yaml:"accounts"`
+		Users int `yaml:"users"`
 	} `yaml:"load"`
 }
 

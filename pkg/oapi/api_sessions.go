@@ -13,19 +13,18 @@ package oapi
 import (
 	"bytes"
 	"context"
+	"github.com/google/uuid"
 	"io"
 	"net/http"
 	"net/url"
-	"github.com/google/uuid"
 	"strings"
 )
-
 
 // SessionsAPIService SessionsAPI service
 type SessionsAPIService service
 
 type ApiAuthSvcV1MeLogoutPostRequest struct {
-	ctx context.Context
+	ctx        context.Context
 	ApiService *SessionsAPIService
 }
 
@@ -36,25 +35,24 @@ func (r ApiAuthSvcV1MeLogoutPostRequest) Execute() (*http.Response, error) {
 /*
 AuthSvcV1MeLogoutPost Logout
 
-Invalidates the current session of the authenticated account. This operation is idempotent — if the session is already deleted, 204 is returned.
+Invalidates the current session of the authenticated user. This operation is idempotent — if the session is already deleted, 204 is returned.
 
-
- @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
- @return ApiAuthSvcV1MeLogoutPostRequest
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@return ApiAuthSvcV1MeLogoutPostRequest
 */
 func (a *SessionsAPIService) AuthSvcV1MeLogoutPost(ctx context.Context) ApiAuthSvcV1MeLogoutPostRequest {
 	return ApiAuthSvcV1MeLogoutPostRequest{
 		ApiService: a,
-		ctx: ctx,
+		ctx:        ctx,
 	}
 }
 
 // Execute executes the request
 func (a *SessionsAPIService) AuthSvcV1MeLogoutPostExecute(r ApiAuthSvcV1MeLogoutPostRequest) (*http.Response, error) {
 	var (
-		localVarHTTPMethod   = http.MethodPost
-		localVarPostBody     interface{}
-		formFiles            []formFile
+		localVarHTTPMethod = http.MethodPost
+		localVarPostBody   interface{}
+		formFiles          []formFile
 	)
 
 	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "SessionsAPIService.AuthSvcV1MeLogoutPost")
@@ -114,8 +112,8 @@ func (a *SessionsAPIService) AuthSvcV1MeLogoutPostExecute(r ApiAuthSvcV1MeLogout
 				newErr.error = err.Error()
 				return localVarHTTPResponse, newErr
 			}
-					newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
-					newErr.model = v
+			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+			newErr.model = v
 		}
 		return localVarHTTPResponse, newErr
 	}
@@ -124,7 +122,7 @@ func (a *SessionsAPIService) AuthSvcV1MeLogoutPostExecute(r ApiAuthSvcV1MeLogout
 }
 
 type ApiAuthSvcV1MeSessionsDeleteRequest struct {
-	ctx context.Context
+	ctx        context.Context
 	ApiService *SessionsAPIService
 }
 
@@ -135,25 +133,24 @@ func (r ApiAuthSvcV1MeSessionsDeleteRequest) Execute() (*http.Response, error) {
 /*
 AuthSvcV1MeSessionsDelete Delete my sessions
 
-Deletes all sessions of the authenticated account (logout from all devices).
+Deletes all sessions of the authenticated user (logout from all devices).
 
-
- @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
- @return ApiAuthSvcV1MeSessionsDeleteRequest
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@return ApiAuthSvcV1MeSessionsDeleteRequest
 */
 func (a *SessionsAPIService) AuthSvcV1MeSessionsDelete(ctx context.Context) ApiAuthSvcV1MeSessionsDeleteRequest {
 	return ApiAuthSvcV1MeSessionsDeleteRequest{
 		ApiService: a,
-		ctx: ctx,
+		ctx:        ctx,
 	}
 }
 
 // Execute executes the request
 func (a *SessionsAPIService) AuthSvcV1MeSessionsDeleteExecute(r ApiAuthSvcV1MeSessionsDeleteRequest) (*http.Response, error) {
 	var (
-		localVarHTTPMethod   = http.MethodDelete
-		localVarPostBody     interface{}
-		formFiles            []formFile
+		localVarHTTPMethod = http.MethodDelete
+		localVarPostBody   interface{}
+		formFiles          []formFile
 	)
 
 	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "SessionsAPIService.AuthSvcV1MeSessionsDelete")
@@ -213,8 +210,8 @@ func (a *SessionsAPIService) AuthSvcV1MeSessionsDeleteExecute(r ApiAuthSvcV1MeSe
 				newErr.error = err.Error()
 				return localVarHTTPResponse, newErr
 			}
-					newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
-					newErr.model = v
+			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+			newErr.model = v
 			return localVarHTTPResponse, newErr
 		}
 		if localVarHTTPResponse.StatusCode == 500 {
@@ -224,8 +221,8 @@ func (a *SessionsAPIService) AuthSvcV1MeSessionsDeleteExecute(r ApiAuthSvcV1MeSe
 				newErr.error = err.Error()
 				return localVarHTTPResponse, newErr
 			}
-					newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
-					newErr.model = v
+			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+			newErr.model = v
 		}
 		return localVarHTTPResponse, newErr
 	}
@@ -234,10 +231,10 @@ func (a *SessionsAPIService) AuthSvcV1MeSessionsDeleteExecute(r ApiAuthSvcV1MeSe
 }
 
 type ApiAuthSvcV1MeSessionsGetRequest struct {
-	ctx context.Context
-	ApiService *SessionsAPIService
-	pageLimit *int32
-	pageOffset *int32
+	ctx          context.Context
+	ApiService   *SessionsAPIService
+	pageLimit    *int32
+	pageOffset   *int32
 	filterActive *bool
 	sortLastUsed *string
 }
@@ -254,47 +251,47 @@ func (r ApiAuthSvcV1MeSessionsGetRequest) PageOffset(pageOffset int32) ApiAuthSv
 	return r
 }
 
-// Filter sessions by active status. - &#x60;true&#x60; — only active (non-deleted) sessions - &#x60;false&#x60; — only deleted sessions - omit — all sessions (default) 
+// Filter sessions by active status. - &#x60;true&#x60; — only active (non-deleted) sessions - &#x60;false&#x60; — only deleted sessions - omit — all sessions (default)
 func (r ApiAuthSvcV1MeSessionsGetRequest) FilterActive(filterActive bool) ApiAuthSvcV1MeSessionsGetRequest {
 	r.filterActive = &filterActive
 	return r
 }
 
-// Sort sessions by last used date. - &#x60;desc&#x60; — most recently used first (default) - &#x60;asc&#x60; — least recently used first 
+// Sort sessions by last used date. - &#x60;desc&#x60; — most recently used first (default) - &#x60;asc&#x60; — least recently used first
 func (r ApiAuthSvcV1MeSessionsGetRequest) SortLastUsed(sortLastUsed string) ApiAuthSvcV1MeSessionsGetRequest {
 	r.sortLastUsed = &sortLastUsed
 	return r
 }
 
-func (r ApiAuthSvcV1MeSessionsGetRequest) Execute() (*AccountSessionsCollection, *http.Response, error) {
+func (r ApiAuthSvcV1MeSessionsGetRequest) Execute() (*UserSessionsCollection, *http.Response, error) {
 	return r.ApiService.AuthSvcV1MeSessionsGetExecute(r)
 }
 
 /*
 AuthSvcV1MeSessionsGet Get my sessions
 
-Returns sessions of the authenticated account.
+Returns sessions of the authenticated user.
 Supports pagination, filtering by deletion status, and sorting by last used date.
 
-
- @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
- @return ApiAuthSvcV1MeSessionsGetRequest
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@return ApiAuthSvcV1MeSessionsGetRequest
 */
 func (a *SessionsAPIService) AuthSvcV1MeSessionsGet(ctx context.Context) ApiAuthSvcV1MeSessionsGetRequest {
 	return ApiAuthSvcV1MeSessionsGetRequest{
 		ApiService: a,
-		ctx: ctx,
+		ctx:        ctx,
 	}
 }
 
 // Execute executes the request
-//  @return AccountSessionsCollection
-func (a *SessionsAPIService) AuthSvcV1MeSessionsGetExecute(r ApiAuthSvcV1MeSessionsGetRequest) (*AccountSessionsCollection, *http.Response, error) {
+//
+//	@return UserSessionsCollection
+func (a *SessionsAPIService) AuthSvcV1MeSessionsGetExecute(r ApiAuthSvcV1MeSessionsGetRequest) (*UserSessionsCollection, *http.Response, error) {
 	var (
-		localVarHTTPMethod   = http.MethodGet
-		localVarPostBody     interface{}
-		formFiles            []formFile
-		localVarReturnValue  *AccountSessionsCollection
+		localVarHTTPMethod  = http.MethodGet
+		localVarPostBody    interface{}
+		formFiles           []formFile
+		localVarReturnValue *UserSessionsCollection
 	)
 
 	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "SessionsAPIService.AuthSvcV1MeSessionsGet")
@@ -370,8 +367,8 @@ func (a *SessionsAPIService) AuthSvcV1MeSessionsGetExecute(r ApiAuthSvcV1MeSessi
 				newErr.error = err.Error()
 				return localVarReturnValue, localVarHTTPResponse, newErr
 			}
-					newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
-					newErr.model = v
+			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+			newErr.model = v
 		}
 		return localVarReturnValue, localVarHTTPResponse, newErr
 	}
@@ -389,9 +386,9 @@ func (a *SessionsAPIService) AuthSvcV1MeSessionsGetExecute(r ApiAuthSvcV1MeSessi
 }
 
 type ApiAuthSvcV1MeSessionsSessionIdDeleteRequest struct {
-	ctx context.Context
+	ctx        context.Context
 	ApiService *SessionsAPIService
-	sessionId uuid.UUID
+	sessionId  uuid.UUID
 }
 
 func (r ApiAuthSvcV1MeSessionsSessionIdDeleteRequest) Execute() (*http.Response, error) {
@@ -401,27 +398,26 @@ func (r ApiAuthSvcV1MeSessionsSessionIdDeleteRequest) Execute() (*http.Response,
 /*
 AuthSvcV1MeSessionsSessionIdDelete Delete my session
 
-Deletes a session by ID. The session must belong to the authenticated account.
+Deletes a session by ID. The session must belong to the authenticated user.
 
-
- @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
- @param sessionId Session ID
- @return ApiAuthSvcV1MeSessionsSessionIdDeleteRequest
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@param sessionId Session ID
+	@return ApiAuthSvcV1MeSessionsSessionIdDeleteRequest
 */
 func (a *SessionsAPIService) AuthSvcV1MeSessionsSessionIdDelete(ctx context.Context, sessionId uuid.UUID) ApiAuthSvcV1MeSessionsSessionIdDeleteRequest {
 	return ApiAuthSvcV1MeSessionsSessionIdDeleteRequest{
 		ApiService: a,
-		ctx: ctx,
-		sessionId: sessionId,
+		ctx:        ctx,
+		sessionId:  sessionId,
 	}
 }
 
 // Execute executes the request
 func (a *SessionsAPIService) AuthSvcV1MeSessionsSessionIdDeleteExecute(r ApiAuthSvcV1MeSessionsSessionIdDeleteRequest) (*http.Response, error) {
 	var (
-		localVarHTTPMethod   = http.MethodDelete
-		localVarPostBody     interface{}
-		formFiles            []formFile
+		localVarHTTPMethod = http.MethodDelete
+		localVarPostBody   interface{}
+		formFiles          []formFile
 	)
 
 	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "SessionsAPIService.AuthSvcV1MeSessionsSessionIdDelete")
@@ -482,8 +478,8 @@ func (a *SessionsAPIService) AuthSvcV1MeSessionsSessionIdDeleteExecute(r ApiAuth
 				newErr.error = err.Error()
 				return localVarHTTPResponse, newErr
 			}
-					newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
-					newErr.model = v
+			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+			newErr.model = v
 			return localVarHTTPResponse, newErr
 		}
 		if localVarHTTPResponse.StatusCode == 404 {
@@ -493,8 +489,8 @@ func (a *SessionsAPIService) AuthSvcV1MeSessionsSessionIdDeleteExecute(r ApiAuth
 				newErr.error = err.Error()
 				return localVarHTTPResponse, newErr
 			}
-					newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
-					newErr.model = v
+			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+			newErr.model = v
 			return localVarHTTPResponse, newErr
 		}
 		if localVarHTTPResponse.StatusCode == 500 {
@@ -504,8 +500,8 @@ func (a *SessionsAPIService) AuthSvcV1MeSessionsSessionIdDeleteExecute(r ApiAuth
 				newErr.error = err.Error()
 				return localVarHTTPResponse, newErr
 			}
-					newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
-					newErr.model = v
+			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+			newErr.model = v
 		}
 		return localVarHTTPResponse, newErr
 	}
@@ -514,41 +510,41 @@ func (a *SessionsAPIService) AuthSvcV1MeSessionsSessionIdDeleteExecute(r ApiAuth
 }
 
 type ApiAuthSvcV1MeSessionsSessionIdGetRequest struct {
-	ctx context.Context
+	ctx        context.Context
 	ApiService *SessionsAPIService
-	sessionId uuid.UUID
+	sessionId  uuid.UUID
 }
 
-func (r ApiAuthSvcV1MeSessionsSessionIdGetRequest) Execute() (*AccountSession, *http.Response, error) {
+func (r ApiAuthSvcV1MeSessionsSessionIdGetRequest) Execute() (*UserSession, *http.Response, error) {
 	return r.ApiService.AuthSvcV1MeSessionsSessionIdGetExecute(r)
 }
 
 /*
 AuthSvcV1MeSessionsSessionIdGet Get my session
 
-Returns a single session of the authenticated account by ID.
+Returns a single session of the authenticated user by ID.
 
-
- @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
- @param sessionId Session ID
- @return ApiAuthSvcV1MeSessionsSessionIdGetRequest
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@param sessionId Session ID
+	@return ApiAuthSvcV1MeSessionsSessionIdGetRequest
 */
 func (a *SessionsAPIService) AuthSvcV1MeSessionsSessionIdGet(ctx context.Context, sessionId uuid.UUID) ApiAuthSvcV1MeSessionsSessionIdGetRequest {
 	return ApiAuthSvcV1MeSessionsSessionIdGetRequest{
 		ApiService: a,
-		ctx: ctx,
-		sessionId: sessionId,
+		ctx:        ctx,
+		sessionId:  sessionId,
 	}
 }
 
 // Execute executes the request
-//  @return AccountSession
-func (a *SessionsAPIService) AuthSvcV1MeSessionsSessionIdGetExecute(r ApiAuthSvcV1MeSessionsSessionIdGetRequest) (*AccountSession, *http.Response, error) {
+//
+//	@return UserSession
+func (a *SessionsAPIService) AuthSvcV1MeSessionsSessionIdGetExecute(r ApiAuthSvcV1MeSessionsSessionIdGetRequest) (*UserSession, *http.Response, error) {
 	var (
-		localVarHTTPMethod   = http.MethodGet
-		localVarPostBody     interface{}
-		formFiles            []formFile
-		localVarReturnValue  *AccountSession
+		localVarHTTPMethod  = http.MethodGet
+		localVarPostBody    interface{}
+		formFiles           []formFile
+		localVarReturnValue *UserSession
 	)
 
 	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "SessionsAPIService.AuthSvcV1MeSessionsSessionIdGet")
@@ -609,8 +605,8 @@ func (a *SessionsAPIService) AuthSvcV1MeSessionsSessionIdGetExecute(r ApiAuthSvc
 				newErr.error = err.Error()
 				return localVarReturnValue, localVarHTTPResponse, newErr
 			}
-					newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
-					newErr.model = v
+			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+			newErr.model = v
 			return localVarReturnValue, localVarHTTPResponse, newErr
 		}
 		if localVarHTTPResponse.StatusCode == 500 {
@@ -620,8 +616,8 @@ func (a *SessionsAPIService) AuthSvcV1MeSessionsSessionIdGetExecute(r ApiAuthSvc
 				newErr.error = err.Error()
 				return localVarReturnValue, localVarHTTPResponse, newErr
 			}
-					newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
-					newErr.model = v
+			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+			newErr.model = v
 		}
 		return localVarReturnValue, localVarHTTPResponse, newErr
 	}
@@ -639,8 +635,8 @@ func (a *SessionsAPIService) AuthSvcV1MeSessionsSessionIdGetExecute(r ApiAuthSvc
 }
 
 type ApiAuthSvcV1RefreshPostRequest struct {
-	ctx context.Context
-	ApiService *SessionsAPIService
+	ctx            context.Context
+	ApiService     *SessionsAPIService
 	refreshSession *RefreshSession
 }
 
@@ -657,27 +653,27 @@ func (r ApiAuthSvcV1RefreshPostRequest) Execute() (*TokensPair, *http.Response, 
 AuthSvcV1RefreshPost Refresh session
 
 Issues a new access/refresh tokens pair using a valid refresh token.
-**401 Unauthorized** is returned when the account or session does not exist. **403 Forbidden** is returned when the account is inactive or the refresh token does not match the session.
+**401 Unauthorized** is returned when the user or session does not exist. **403 Forbidden** is returned when the user is inactive or the refresh token does not match the session.
 
-
- @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
- @return ApiAuthSvcV1RefreshPostRequest
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@return ApiAuthSvcV1RefreshPostRequest
 */
 func (a *SessionsAPIService) AuthSvcV1RefreshPost(ctx context.Context) ApiAuthSvcV1RefreshPostRequest {
 	return ApiAuthSvcV1RefreshPostRequest{
 		ApiService: a,
-		ctx: ctx,
+		ctx:        ctx,
 	}
 }
 
 // Execute executes the request
-//  @return TokensPair
+//
+//	@return TokensPair
 func (a *SessionsAPIService) AuthSvcV1RefreshPostExecute(r ApiAuthSvcV1RefreshPostRequest) (*TokensPair, *http.Response, error) {
 	var (
-		localVarHTTPMethod   = http.MethodPost
-		localVarPostBody     interface{}
-		formFiles            []formFile
-		localVarReturnValue  *TokensPair
+		localVarHTTPMethod  = http.MethodPost
+		localVarPostBody    interface{}
+		formFiles           []formFile
+		localVarReturnValue *TokensPair
 	)
 
 	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "SessionsAPIService.AuthSvcV1RefreshPost")
@@ -742,8 +738,8 @@ func (a *SessionsAPIService) AuthSvcV1RefreshPostExecute(r ApiAuthSvcV1RefreshPo
 				newErr.error = err.Error()
 				return localVarReturnValue, localVarHTTPResponse, newErr
 			}
-					newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
-					newErr.model = v
+			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+			newErr.model = v
 			return localVarReturnValue, localVarHTTPResponse, newErr
 		}
 		if localVarHTTPResponse.StatusCode == 401 {
@@ -753,8 +749,8 @@ func (a *SessionsAPIService) AuthSvcV1RefreshPostExecute(r ApiAuthSvcV1RefreshPo
 				newErr.error = err.Error()
 				return localVarReturnValue, localVarHTTPResponse, newErr
 			}
-					newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
-					newErr.model = v
+			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+			newErr.model = v
 			return localVarReturnValue, localVarHTTPResponse, newErr
 		}
 		if localVarHTTPResponse.StatusCode == 500 {
@@ -764,8 +760,8 @@ func (a *SessionsAPIService) AuthSvcV1RefreshPostExecute(r ApiAuthSvcV1RefreshPo
 				newErr.error = err.Error()
 				return localVarReturnValue, localVarHTTPResponse, newErr
 			}
-					newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
-					newErr.model = v
+			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+			newErr.model = v
 		}
 		return localVarReturnValue, localVarHTTPResponse, newErr
 	}

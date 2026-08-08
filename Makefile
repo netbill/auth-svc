@@ -64,4 +64,4 @@ proto-doc:
 	  --proto_path=proto \
 	  --doc_out=docs/grpc \
 	  --doc_opt=html,index.html \
-	  proto/common.proto proto/account.proto proto/session.proto proto/auth.proto
+	  proto/common.proto proto/user.proto proto/session.proto proto/auth.proto

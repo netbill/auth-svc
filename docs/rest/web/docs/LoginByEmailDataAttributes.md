@@ -4,8 +4,8 @@
 
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-**Email** | **string** | The account&#39;s email address. | 
-**Password** | **string** | The account&#39;s password. | 
+**Email** | **string** | The user&#39;s email address. | 
+**Password** | **string** | The user&#39;s password. | 
 
 ## Methods
 

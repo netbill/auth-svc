@@ -6,8 +6,8 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
-func Account(a models.Account) *pb.Account {
-	out := &pb.Account{
+func User(a models.User) *pb.User {
+	out := &pb.User{
 		Id:        a.ID.String(),
 		Role:      a.Role,
 		Version:   a.Version,
@@ -20,9 +20,9 @@ func Account(a models.Account) *pb.Account {
 	return out
 }
 
-func AccountEmail(e models.AccountEmail) *pb.AccountEmail {
-	out := &pb.AccountEmail{
-		AccountId: e.AccountID.String(),
+func UserEmail(e models.UserEmail) *pb.UserEmail {
+	out := &pb.UserEmail{
+		UserId:    e.UserID.String(),
 		Email:     e.Email,
 		Verified:  e.Verified,
 		Version:   e.Version,
@@ -38,7 +38,7 @@ func AccountEmail(e models.AccountEmail) *pb.AccountEmail {
 func Session(s models.Session) *pb.Session {
 	out := &pb.Session{
 		Id:        s.ID.String(),
-		AccountId: s.AccountID.String(),
+		UserId:    s.UserID.String(),
 		Version:   s.Version,
 		CreatedAt: timestamppb.New(s.CreatedAt),
 		UpdatedAt: timestamppb.New(s.UpdatedAt),

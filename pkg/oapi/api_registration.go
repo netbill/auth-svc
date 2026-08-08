@@ -18,13 +18,12 @@ import (
 	"net/url"
 )
 
-
 // RegistrationAPIService RegistrationAPI service
 type RegistrationAPIService service
 
 type ApiAuthSvcV1RegistrationAdminPostRequest struct {
-	ctx context.Context
-	ApiService *RegistrationAPIService
+	ctx               context.Context
+	ApiService        *RegistrationAPIService
 	registrationAdmin *RegistrationAdmin
 }
 
@@ -33,34 +32,34 @@ func (r ApiAuthSvcV1RegistrationAdminPostRequest) RegistrationAdmin(registration
 	return r
 }
 
-func (r ApiAuthSvcV1RegistrationAdminPostRequest) Execute() (*Account, *http.Response, error) {
+func (r ApiAuthSvcV1RegistrationAdminPostRequest) Execute() (*User, *http.Response, error) {
 	return r.ApiService.AuthSvcV1RegistrationAdminPostExecute(r)
 }
 
 /*
-AuthSvcV1RegistrationAdminPost Register a new admin account
+AuthSvcV1RegistrationAdminPost Register a new admin user
 
-Registers a new account by an authenticated admin.
+Registers a new user by an authenticated admin.
 
-
- @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
- @return ApiAuthSvcV1RegistrationAdminPostRequest
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@return ApiAuthSvcV1RegistrationAdminPostRequest
 */
 func (a *RegistrationAPIService) AuthSvcV1RegistrationAdminPost(ctx context.Context) ApiAuthSvcV1RegistrationAdminPostRequest {
 	return ApiAuthSvcV1RegistrationAdminPostRequest{
 		ApiService: a,
-		ctx: ctx,
+		ctx:        ctx,
 	}
 }
 
 // Execute executes the request
-//  @return Account
-func (a *RegistrationAPIService) AuthSvcV1RegistrationAdminPostExecute(r ApiAuthSvcV1RegistrationAdminPostRequest) (*Account, *http.Response, error) {
+//
+//	@return User
+func (a *RegistrationAPIService) AuthSvcV1RegistrationAdminPostExecute(r ApiAuthSvcV1RegistrationAdminPostRequest) (*User, *http.Response, error) {
 	var (
-		localVarHTTPMethod   = http.MethodPost
-		localVarPostBody     interface{}
-		formFiles            []formFile
-		localVarReturnValue  *Account
+		localVarHTTPMethod  = http.MethodPost
+		localVarPostBody    interface{}
+		formFiles           []formFile
+		localVarReturnValue *User
 	)
 
 	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "RegistrationAPIService.AuthSvcV1RegistrationAdminPost")
@@ -125,8 +124,8 @@ func (a *RegistrationAPIService) AuthSvcV1RegistrationAdminPostExecute(r ApiAuth
 				newErr.error = err.Error()
 				return localVarReturnValue, localVarHTTPResponse, newErr
 			}
-					newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
-					newErr.model = v
+			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+			newErr.model = v
 			return localVarReturnValue, localVarHTTPResponse, newErr
 		}
 		if localVarHTTPResponse.StatusCode == 401 {
@@ -136,8 +135,8 @@ func (a *RegistrationAPIService) AuthSvcV1RegistrationAdminPostExecute(r ApiAuth
 				newErr.error = err.Error()
 				return localVarReturnValue, localVarHTTPResponse, newErr
 			}
-					newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
-					newErr.model = v
+			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+			newErr.model = v
 			return localVarReturnValue, localVarHTTPResponse, newErr
 		}
 		if localVarHTTPResponse.StatusCode == 409 {
@@ -147,8 +146,8 @@ func (a *RegistrationAPIService) AuthSvcV1RegistrationAdminPostExecute(r ApiAuth
 				newErr.error = err.Error()
 				return localVarReturnValue, localVarHTTPResponse, newErr
 			}
-					newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
-					newErr.model = v
+			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+			newErr.model = v
 			return localVarReturnValue, localVarHTTPResponse, newErr
 		}
 		if localVarHTTPResponse.StatusCode == 500 {
@@ -158,8 +157,8 @@ func (a *RegistrationAPIService) AuthSvcV1RegistrationAdminPostExecute(r ApiAuth
 				newErr.error = err.Error()
 				return localVarReturnValue, localVarHTTPResponse, newErr
 			}
-					newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
-					newErr.model = v
+			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+			newErr.model = v
 		}
 		return localVarReturnValue, localVarHTTPResponse, newErr
 	}
@@ -177,8 +176,8 @@ func (a *RegistrationAPIService) AuthSvcV1RegistrationAdminPostExecute(r ApiAuth
 }
 
 type ApiAuthSvcV1RegistrationPostRequest struct {
-	ctx context.Context
-	ApiService *RegistrationAPIService
+	ctx          context.Context
+	ApiService   *RegistrationAPIService
 	registration *Registration
 }
 
@@ -192,26 +191,26 @@ func (r ApiAuthSvcV1RegistrationPostRequest) Execute() (*http.Response, error) {
 }
 
 /*
-AuthSvcV1RegistrationPost Register a new account
+AuthSvcV1RegistrationPost Register a new user
 
-Endpoint to register a new user account.
+Endpoint to register a new user.
 
- @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
- @return ApiAuthSvcV1RegistrationPostRequest
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@return ApiAuthSvcV1RegistrationPostRequest
 */
 func (a *RegistrationAPIService) AuthSvcV1RegistrationPost(ctx context.Context) ApiAuthSvcV1RegistrationPostRequest {
 	return ApiAuthSvcV1RegistrationPostRequest{
 		ApiService: a,
-		ctx: ctx,
+		ctx:        ctx,
 	}
 }
 
 // Execute executes the request
 func (a *RegistrationAPIService) AuthSvcV1RegistrationPostExecute(r ApiAuthSvcV1RegistrationPostRequest) (*http.Response, error) {
 	var (
-		localVarHTTPMethod   = http.MethodPost
-		localVarPostBody     interface{}
-		formFiles            []formFile
+		localVarHTTPMethod = http.MethodPost
+		localVarPostBody   interface{}
+		formFiles          []formFile
 	)
 
 	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "RegistrationAPIService.AuthSvcV1RegistrationPost")
@@ -276,8 +275,8 @@ func (a *RegistrationAPIService) AuthSvcV1RegistrationPostExecute(r ApiAuthSvcV1
 				newErr.error = err.Error()
 				return localVarHTTPResponse, newErr
 			}
-					newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
-					newErr.model = v
+			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+			newErr.model = v
 			return localVarHTTPResponse, newErr
 		}
 		if localVarHTTPResponse.StatusCode == 500 {
@@ -287,8 +286,8 @@ func (a *RegistrationAPIService) AuthSvcV1RegistrationPostExecute(r ApiAuthSvcV1
 				newErr.error = err.Error()
 				return localVarHTTPResponse, newErr
 			}
-					newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
-					newErr.model = v
+			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+			newErr.model = v
 		}
 		return localVarHTTPResponse, newErr
 	}

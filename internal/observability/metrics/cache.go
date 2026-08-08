@@ -16,8 +16,8 @@ func statusFromErr(err *error) string {
 	return "ok"
 }
 
-func (m *Metrics) AccountCacheOp(ctx context.Context, err *error) {
-	m.recordCacheOp(ctx, "account", err)
+func (m *Metrics) UserCacheOp(ctx context.Context, err *error) {
+	m.recordCacheOp(ctx, "user", err)
 }
 
 func (m *Metrics) SessionCacheOp(ctx context.Context, err *error) {

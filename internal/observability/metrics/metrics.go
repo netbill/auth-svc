@@ -51,7 +51,7 @@ func New() (*Metrics, error) {
 	}
 
 	cacheOps, err := meter.Int64Counter("auth.cache_operations_total",
-		metric.WithDescription("Cache operations by entity (account|session|email|password) and result (hit|miss)"),
+		metric.WithDescription("Cache operations by entity (user|session|email|password) and result (hit|miss)"),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("create cache_ops counter: %w", err)

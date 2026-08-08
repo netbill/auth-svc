@@ -60,7 +60,7 @@ func (*ValidateSessionRequest) Descriptor() ([]byte, []int) {
 
 type ValidateSessionResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Account       *Account               `protobuf:"bytes,1,opt,name=account,proto3" json:"account,omitempty"`
+	User          *User                  `protobuf:"bytes,1,opt,name=user,proto3" json:"user,omitempty"`
 	Session       *Session               `protobuf:"bytes,2,opt,name=session,proto3" json:"session,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -96,9 +96,9 @@ func (*ValidateSessionResponse) Descriptor() ([]byte, []int) {
 	return file_auth_proto_rawDescGZIP(), []int{1}
 }
 
-func (x *ValidateSessionResponse) GetAccount() *Account {
+func (x *ValidateSessionResponse) GetUser() *User {
 	if x != nil {
-		return x.Account
+		return x.User
 	}
 	return nil
 }
@@ -116,9 +116,9 @@ const file_auth_proto_rawDesc = "" +
 	"\n" +
 	"\n" +
 	"auth.proto\x12\aauth.v1\x1a\fcommon.proto\"\x18\n" +
-	"\x16ValidateSessionRequest\"q\n" +
-	"\x17ValidateSessionResponse\x12*\n" +
-	"\aaccount\x18\x01 \x01(\v2\x10.auth.v1.AccountR\aaccount\x12*\n" +
+	"\x16ValidateSessionRequest\"h\n" +
+	"\x17ValidateSessionResponse\x12!\n" +
+	"\x04user\x18\x01 \x01(\v2\r.auth.v1.UserR\x04user\x12*\n" +
 	"\asession\x18\x02 \x01(\v2\x10.auth.v1.SessionR\asession2c\n" +
 	"\vAuthService\x12T\n" +
 	"\x0fValidateSession\x12\x1f.auth.v1.ValidateSessionRequest\x1a .auth.v1.ValidateSessionResponseB)Z'github.com/netbill/auth-svc/proto/pb;pbb\x06proto3"
@@ -139,11 +139,11 @@ var file_auth_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
 var file_auth_proto_goTypes = []any{
 	(*ValidateSessionRequest)(nil),  // 0: auth.v1.ValidateSessionRequest
 	(*ValidateSessionResponse)(nil), // 1: auth.v1.ValidateSessionResponse
-	(*Account)(nil),                 // 2: auth.v1.Account
+	(*User)(nil),                    // 2: auth.v1.User
 	(*Session)(nil),                 // 3: auth.v1.Session
 }
 var file_auth_proto_depIdxs = []int32{
-	2, // 0: auth.v1.ValidateSessionResponse.account:type_name -> auth.v1.Account
+	2, // 0: auth.v1.ValidateSessionResponse.user:type_name -> auth.v1.User
 	3, // 1: auth.v1.ValidateSessionResponse.session:type_name -> auth.v1.Session
 	0, // 2: auth.v1.AuthService.ValidateSession:input_type -> auth.v1.ValidateSessionRequest
 	1, // 3: auth.v1.AuthService.ValidateSession:output_type -> auth.v1.ValidateSessionResponse

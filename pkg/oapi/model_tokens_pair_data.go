@@ -11,10 +11,10 @@ API version: 0.1.0
 package oapi
 
 import (
-	"encoding/json"
-	"github.com/google/uuid"
 	"bytes"
+	"encoding/json"
 	"fmt"
+	"github.com/google/uuid"
 )
 
 // checks if the TokensPairData type satisfies the MappedNullable interface at compile time
@@ -22,9 +22,9 @@ var _ MappedNullable = &TokensPairData{}
 
 // TokensPairData struct for TokensPairData
 type TokensPairData struct {
-	// account id
-	Id uuid.UUID `json:"id"`
-	Type string `json:"type"`
+	// user id
+	Id         uuid.UUID                `json:"id"`
+	Type       string                   `json:"type"`
 	Attributes TokensPairDataAttributes `json:"attributes"`
 }
 
@@ -123,7 +123,7 @@ func (o *TokensPairData) SetAttributes(v TokensPairDataAttributes) {
 }
 
 func (o TokensPairData) MarshalJSON() ([]byte, error) {
-	toSerialize,err := o.ToMap()
+	toSerialize, err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -153,10 +153,10 @@ func (o *TokensPairData) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err;
+		return err
 	}
 
-	for _, requiredProperty := range(requiredProperties) {
+	for _, requiredProperty := range requiredProperties {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}
@@ -212,5 +212,3 @@ func (v *NullableTokensPairData) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }
-
-

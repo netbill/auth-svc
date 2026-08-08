@@ -28,20 +28,20 @@ func NewEmailCache(client *redis.Client, ttl time.Duration, m emailCacheMetrics,
 	return &EmailCache{client: client, ttl: ttl, metrics: m, log: log}
 }
 
-func emailByIDKey(accountID uuid.UUID) string {
-	return fmt.Sprintf("account:email:id:%s", accountID)
+func emailByIDKey(userID uuid.UUID) string {
+	return fmt.Sprintf("user:email:id:%s", userID)
 }
 
 func emailByEmailKey(email string) string {
-	return fmt.Sprintf("account:email:%s", email)
+	return fmt.Sprintf("user:email:%s", email)
 }
 
-func (c *EmailCache) Set(ctx context.Context, email models.AccountEmail) error {
-	if err := c.client.JSONSet(ctx, emailByIDKey(email.AccountID), "$", email).Err(); err != nil {
+func (c *EmailCache) Set(ctx context.Context, email models.UserEmail) error {
+	if err := c.client.JSONSet(ctx, emailByIDKey(email.UserID), "$", email).Err(); err != nil {
 		c.log.WithError(err).Error("email cache set by id failed")
 		return err
 	}
-	if err := c.client.Expire(ctx, emailByIDKey(email.AccountID), c.ttl).Err(); err != nil {
+	if err := c.client.Expire(ctx, emailByIDKey(email.UserID), c.ttl).Err(); err != nil {
 		c.log.WithError(err).Error("email cache expire by id failed")
 		return err
 	}
@@ -56,50 +56,50 @@ func (c *EmailCache) Set(ctx context.Context, email models.AccountEmail) error {
 	return nil
 }
 
-func (c *EmailCache) GetByID(ctx context.Context, accountID uuid.UUID) (models.AccountEmail, error) {
+func (c *EmailCache) GetByID(ctx context.Context, userID uuid.UUID) (models.UserEmail, error) {
 	var err error
 	defer c.metrics.EmailCacheOp(ctx, &err)
 
-	val, err := c.client.JSONGet(ctx, emailByIDKey(accountID), ".").Result()
+	val, err := c.client.JSONGet(ctx, emailByIDKey(userID), ".").Result()
 	switch {
 	case errors.Is(err, redis.Nil):
-		return models.AccountEmail{}, err
+		return models.UserEmail{}, err
 	case err != nil:
-		c.log.WithError(err).Error("email cache get by id failed", "account_id", accountID)
-		return models.AccountEmail{}, err
+		c.log.WithError(err).Error("email cache get by id failed", "user_id", userID)
+		return models.UserEmail{}, err
 	}
 
-	var email models.AccountEmail
+	var email models.UserEmail
 	if err = json.Unmarshal([]byte(val), &email); err != nil {
-		c.log.WithError(err).Error("email cache unmarshal failed", "account_id", accountID)
-		return models.AccountEmail{}, err
+		c.log.WithError(err).Error("email cache unmarshal failed", "user_id", userID)
+		return models.UserEmail{}, err
 	}
 
 	return email, nil
 }
 
-func (c *EmailCache) GetByEmail(ctx context.Context, emailAddr string) (models.AccountEmail, error) {
+func (c *EmailCache) GetByEmail(ctx context.Context, emailAddr string) (models.UserEmail, error) {
 	val, err := c.client.JSONGet(ctx, emailByEmailKey(emailAddr), ".").Result()
 	switch {
 	case errors.Is(err, redis.Nil):
-		return models.AccountEmail{}, redis.Nil
+		return models.UserEmail{}, redis.Nil
 	case err != nil:
 		c.log.WithError(err).Error("email cache get by email failed", "email", emailAddr)
-		return models.AccountEmail{}, err
+		return models.UserEmail{}, err
 	}
 
-	var email models.AccountEmail
+	var email models.UserEmail
 	if err = json.Unmarshal([]byte(val), &email); err != nil {
 		c.log.WithError(err).Error("email cache unmarshal failed", "email", emailAddr)
-		return models.AccountEmail{}, err
+		return models.UserEmail{}, err
 	}
 
 	return email, nil
 }
 
-func (c *EmailCache) DeleteByID(ctx context.Context, accountID uuid.UUID) error {
-	if err := c.client.Del(ctx, emailByIDKey(accountID)).Err(); err != nil {
-		c.log.WithError(err).Error("email cache delete by id failed", "account_id", accountID)
+func (c *EmailCache) DeleteByID(ctx context.Context, userID uuid.UUID) error {
+	if err := c.client.Del(ctx, emailByIDKey(userID)).Err(); err != nil {
+		c.log.WithError(err).Error("email cache delete by id failed", "user_id", userID)
 		return err
 	}
 	return nil

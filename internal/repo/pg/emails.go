@@ -10,13 +10,13 @@ import (
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/netbill/auth-svc/internal/errx"
 	"github.com/netbill/auth-svc/internal/models"
-	"github.com/netbill/auth-svc/internal/modules/account"
+	"github.com/netbill/auth-svc/internal/modules/user"
 	"github.com/netbill/pgdbx"
 )
 
 const (
-	emailsTable = "account_emails"
-	emailsCols  = "account_id, email, verified, version, created_at, updated_at, deleted_at"
+	emailsTable = "user_emails"
+	emailsCols  = "user_id, email, verified, version, created_at, updated_at, deleted_at"
 )
 
 type EmailRepo struct {
@@ -27,9 +27,9 @@ func NewEmailRepo(db *pgdbx.DB) *EmailRepo {
 	return &EmailRepo{db: db}
 }
 
-func scanEmail(row pgx.Row) (e models.AccountEmail, err error) {
+func scanEmail(row pgx.Row) (e models.UserEmail, err error) {
 	err = row.Scan(
-		&e.AccountID,
+		&e.UserID,
 		&e.Email,
 		&e.Verified,
 		&e.Version,
@@ -39,47 +39,47 @@ func scanEmail(row pgx.Row) (e models.AccountEmail, err error) {
 	)
 	switch {
 	case errors.Is(err, pgx.ErrNoRows):
-		return models.AccountEmail{}, errx.ErrorAccountNotFound.Raise(err)
+		return models.UserEmail{}, errx.ErrorUserNotFound.Raise(err)
 	case err != nil:
-		return models.AccountEmail{}, fmt.Errorf("scan email: %w", err)
+		return models.UserEmail{}, fmt.Errorf("scan email: %w", err)
 	}
 	return e, nil
 }
 
-func (r *EmailRepo) Create(ctx context.Context, params models.AccountEmail) (models.AccountEmail, error) {
+func (r *EmailRepo) Create(ctx context.Context, params models.UserEmail) (models.UserEmail, error) {
 	const query = `
-		INSERT INTO ` + emailsTable + ` (account_id, email)
+		INSERT INTO ` + emailsTable + ` (user_id, email)
 		VALUES ($1, $2)
 		RETURNING ` + emailsCols
 
-	result, err := scanEmail(r.db.QueryRow(ctx, query, params.AccountID, params.Email))
+	result, err := scanEmail(r.db.QueryRow(ctx, query, params.UserID, params.Email))
 	if err != nil {
 		var pgErr *pgconn.PgError
 		if errors.As(err, &pgErr) && pgErr.Code == "23505" {
-			return models.AccountEmail{}, errx.ErrorEmailAlreadyExist.Raise(err)
+			return models.UserEmail{}, errx.ErrorEmailAlreadyExist.Raise(err)
 		}
-		return models.AccountEmail{}, err
+		return models.UserEmail{}, err
 	}
 	return result, nil
 }
 
-func (r *EmailRepo) GetByID(ctx context.Context, accountID uuid.UUID, optFns ...account.GetAccountOption) (models.AccountEmail, error) {
-	opts := account.ApplyGetAccountOptions(optFns)
+func (r *EmailRepo) GetByID(ctx context.Context, userID uuid.UUID, optFns ...user.GetUserOption) (models.UserEmail, error) {
+	opts := user.ApplyGetUserOptions(optFns)
 
-	query := `SELECT ` + emailsCols + ` FROM ` + emailsTable + ` WHERE account_id = $1`
+	query := `SELECT ` + emailsCols + ` FROM ` + emailsTable + ` WHERE user_id = $1`
 	switch opts.Deleted {
-	case account.DeletedFilterAll:
+	case user.DeletedFilterAll:
 		// no additional filter
-	case account.DeletedFilterDeleted:
+	case user.DeletedFilterDeleted:
 		query += ` AND deleted_at IS NOT NULL`
 	default: // DeletedFilterActive (0)
 		query += ` AND deleted_at IS NULL`
 	}
 
-	return scanEmail(r.db.QueryRow(ctx, query, accountID))
+	return scanEmail(r.db.QueryRow(ctx, query, userID))
 }
 
-func (r *EmailRepo) GetByEmail(ctx context.Context, email string) (models.AccountEmail, error) {
+func (r *EmailRepo) GetByEmail(ctx context.Context, email string) (models.UserEmail, error) {
 	const query = `
 		SELECT ` + emailsCols + `
 		FROM ` + emailsTable + `
@@ -87,4 +87,3 @@ func (r *EmailRepo) GetByEmail(ctx context.Context, email string) (models.Accoun
 
 	return scanEmail(r.db.QueryRow(ctx, query, email))
 }
-

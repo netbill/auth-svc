@@ -17,7 +17,7 @@ import (
 )
 
 type authCore interface {
-	ValidateSession(ctx context.Context, actor models.AccountActor) (models.Account, models.Session, error)
+	ValidateSession(ctx context.Context, actor models.UserActor) (models.User, models.Session, error)
 }
 
 type AuthServer struct {
@@ -45,25 +45,25 @@ func (s *AuthServer) ValidateSession(ctx context.Context, _ *pb.ValidateSessionR
 		return nil, status.Error(codes.Unauthenticated, "missing authorization header")
 	}
 
-	claims, err := s.tokenMgr.ParseAccountAuthAccess(strings.TrimPrefix(values[0], "Bearer "))
+	claims, err := s.tokenMgr.ParseUserAuthAccess(strings.TrimPrefix(values[0], "Bearer "))
 	if err != nil {
 		log.Debug("validate session: invalid token", "error", err)
 		return nil, status.Error(codes.Unauthenticated, "invalid token")
 	}
 
-	actor := models.AccountActor{
+	actor := models.UserActor{
 		ID:        claims.GetAccountID(),
 		SessionID: claims.GetSessionID(),
 		Role:      claims.GetRole(),
 	}
 
-	account, sess, err := s.auth.ValidateSession(ctx, actor)
+	user, sess, err := s.auth.ValidateSession(ctx, actor)
 	switch {
-	case errors.Is(err, errx.ErrorAccountNotFound),
-		errors.Is(err, errx.ErrorAccountDeleted),
+	case errors.Is(err, errx.ErrorUserNotFound),
+		errors.Is(err, errx.ErrorUserDeleted),
 		errors.Is(err, errx.ErrorSessionNotFound),
 		errors.Is(err, errx.ErrorSessionDeleted),
-		errors.Is(err, errx.ErrorAccountInvalidSession):
+		errors.Is(err, errx.ErrorUserInvalidSession):
 		log.Warn("validate session: invalid session", "error", err)
 		return nil, status.Error(codes.Unauthenticated, "invalid session")
 	case err != nil:
@@ -72,7 +72,7 @@ func (s *AuthServer) ValidateSession(ctx context.Context, _ *pb.ValidateSessionR
 	default:
 		log.Info("validate session: session valid")
 		return &pb.ValidateSessionResponse{
-			Account: reponses.Account(account),
+			User:    reponses.User(user),
 			Session: reponses.Session(sess),
 		}, nil
 	}

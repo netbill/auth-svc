@@ -24,7 +24,7 @@ paths:
     $ref: './spec/paths/RefreshSession.yaml'
 
   /auth-svc/v1/me:
-    $ref: './spec/paths/MyAccount.yaml'
+    $ref: './spec/paths/MyUser.yaml'
   /auth-svc/v1/me/logout:
     $ref: './spec/paths/Logout.yaml'
   /auth-svc/v1/me/password:
@@ -68,18 +68,18 @@ components:
       $ref: './spec/components/schemas/responses/QRToken.yaml'
     AccessToken:
       $ref: './spec/components/schemas/responses/AccessToken.yaml'
-    AccountSession:
-      $ref: './spec/components/schemas/responses/AccountSession.yaml'
-    AccountSessionData:
-      $ref: './spec/components/schemas/responses/AccountSessionData.yaml'
-    AccountSessionAttributes:
-      $ref: './spec/components/schemas/responses/AccountSessionAttributes.yaml'
-    AccountSessionsCollection:
-      $ref: './spec/components/schemas/responses/AccountSessionsCollection.yaml'
-    Account:
-      $ref: './spec/components/schemas/responses/Account.yaml'
-    AccountEmail:
-      $ref: './spec/components/schemas/responses/AccountEmail.yaml'
+    UserSession:
+      $ref: './spec/components/schemas/responses/UserSession.yaml'
+    UserSessionData:
+      $ref: './spec/components/schemas/responses/UserSessionData.yaml'
+    UserSessionAttributes:
+      $ref: './spec/components/schemas/responses/UserSessionAttributes.yaml'
+    UserSessionsCollection:
+      $ref: './spec/components/schemas/responses/UserSessionsCollection.yaml'
+    User:
+      $ref: './spec/components/schemas/responses/User.yaml'
+    UserEmail:
+      $ref: './spec/components/schemas/responses/UserEmail.yaml'
     Errors:
       $ref: './spec/components/schemas/responses/Errors.yaml'
     PaginationData:

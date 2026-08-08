@@ -5,7 +5,7 @@ import (
 )
 
 type tokenManager interface {
-	ParseAccountAuthAccess(tokenStr string) (tokens.AccountAuthClaims, error)
+	ParseUserAuthAccess(tokenStr string) (tokens.AccountAuthClaims, error)
 }
 
 type Provider struct {

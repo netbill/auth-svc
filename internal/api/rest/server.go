@@ -13,13 +13,13 @@ import (
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 )
 
-type AccountController interface {
+type UserController interface {
 	Registration(w http.ResponseWriter, r *http.Request)
 	RegistrationByAdmin(w http.ResponseWriter, r *http.Request)
 
-	GetMyAccount(w http.ResponseWriter, r *http.Request)
+	GetMyUser(w http.ResponseWriter, r *http.Request)
 	UpdatePassword(w http.ResponseWriter, r *http.Request)
-	DeleteMyAccount(w http.ResponseWriter, r *http.Request)
+	DeleteMyUser(w http.ResponseWriter, r *http.Request)
 }
 
 type SessionController interface {
@@ -42,13 +42,13 @@ type QRController interface {
 }
 
 type Middlewares interface {
-	AccountAuth(allowedRoles ...string) func(next http.Handler) http.Handler
+	UserAuth(allowedRoles ...string) func(next http.Handler) http.Handler
 	Logger(log *log.Logger) func(next http.Handler) http.Handler
 	CorsDocs() func(next http.Handler) http.Handler
 }
 
 type Server struct {
-	accounts    AccountController
+	users       UserController
 	sessions    SessionController
 	qr          QRController
 	middlewares Middlewares
@@ -56,7 +56,7 @@ type Server struct {
 }
 
 type ServerDeps struct {
-	Accounts    AccountController
+	Users       UserController
 	Sessions    SessionController
 	QR          QRController
 	Middlewares Middlewares
@@ -65,7 +65,7 @@ type ServerDeps struct {
 
 func New(deps ServerDeps) *Server {
 	return &Server{
-		accounts:    deps.Accounts,
+		users:       deps.Users,
 		sessions:    deps.Sessions,
 		qr:          deps.QR,
 		middlewares: deps.Middlewares,
@@ -82,8 +82,8 @@ type Config struct {
 }
 
 func (s *Server) Run(ctx context.Context, cfg Config) {
-	auth := s.middlewares.AccountAuth()
-	sysadmin := s.middlewares.AccountAuth(tokens.RoleSystemAdmin)
+	auth := s.middlewares.UserAuth()
+	sysadmin := s.middlewares.UserAuth(tokens.RoleSystemAdmin)
 
 	r := chi.NewRouter()
 	r.Use(
@@ -94,8 +94,8 @@ func (s *Server) Run(ctx context.Context, cfg Config) {
 	r.Route("/auth-svc", func(r chi.Router) {
 		r.Route("/v1", func(r chi.Router) {
 			r.Route("/registration", func(r chi.Router) {
-				r.Post("/", s.accounts.Registration)
-				r.With(sysadmin).Post("/admin", s.accounts.RegistrationByAdmin)
+				r.Post("/", s.users.Registration)
+				r.With(sysadmin).Post("/admin", s.users.RegistrationByAdmin)
 			})
 
 			r.Route("/login", func(r chi.Router) {
@@ -115,11 +115,11 @@ func (s *Server) Run(ctx context.Context, cfg Config) {
 			r.Post("/refresh", s.sessions.RefreshSession)
 
 			r.With(auth).Route("/me", func(r chi.Router) {
-				r.Get("/", s.accounts.GetMyAccount)
-				r.Delete("/", s.accounts.DeleteMyAccount)
+				r.Get("/", s.users.GetMyUser)
+				r.Delete("/", s.users.DeleteMyUser)
 
 				r.Post("/logout", s.sessions.Logout)
-				r.Patch("/password", s.accounts.UpdatePassword)
+				r.Patch("/password", s.users.UpdatePassword)
 
 				r.Route("/sessions", func(r chi.Router) {
 					r.Get("/", s.sessions.GetMySessions)

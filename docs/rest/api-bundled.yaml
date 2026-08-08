@@ -10,8 +10,8 @@ paths:
     post:
       tags:
         - registration
-      summary: Register a new account
-      description: Endpoint to register a new user account.
+      summary: Register a new user
+      description: Endpoint to register a new user.
       requestBody:
         required: true
         content:
@@ -20,10 +20,10 @@ paths:
               $ref: '#/components/schemas/Registration'
       responses:
         '201':
-          description: Account successfully registered
+          description: User successfully registered
         '409':
           description: |
-            Conflict: An account with this email or phone number already exists. Check the 'detail' field in the response for more information.
+            Conflict: An user with this email or phone number already exists. Check the 'detail' field in the response for more information.
           content:
             application/json:
               schema:
@@ -38,9 +38,9 @@ paths:
     post:
       tags:
         - registration
-      summary: Register a new admin account
+      summary: Register a new admin user
       description: |
-        Registers a new account by an authenticated admin.
+        Registers a new user by an authenticated admin.
       security:
         - BearerAuth: []
       requestBody:
@@ -51,11 +51,11 @@ paths:
               $ref: '#/components/schemas/RegistrationAdmin'
       responses:
         '201':
-          description: Account successfully registered by admin
+          description: User successfully registered by admin
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Account'
+                $ref: '#/components/schemas/User'
         '400':
           description: |
             Bad Request. Request body is invalid or some attributes do not meet requirements. Check the `errors` array for details.
@@ -65,7 +65,7 @@ paths:
                 $ref: '#/components/schemas/Errors'
         '401':
           description: |
-            Unauthorized. Account cannot be resolved from context. Check the `detail` field in the response for more information.
+            Unauthorized. User cannot be resolved from context. Check the `detail` field in the response for more information.
           content:
             application/json:
               schema:
@@ -166,7 +166,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Errors'
         '404':
-          description: Account not found or deleted for this email
+          description: User not found or deleted for this email
           content:
             application/json:
               schema:
@@ -184,7 +184,7 @@ paths:
       summary: Refresh session
       description: |
         Issues a new access/refresh tokens pair using a valid refresh token.
-        **401 Unauthorized** is returned when the account or session does not exist. **403 Forbidden** is returned when the account is inactive or the refresh token does not match the session.
+        **401 Unauthorized** is returned when the user or session does not exist. **403 Forbidden** is returned when the user is inactive or the refresh token does not match the session.
       requestBody:
         required: true
         content:
@@ -207,7 +207,7 @@ paths:
                 $ref: '#/components/schemas/Errors'
         '401':
           description: |
-            Unauthorized. Account not found or session not found or invalid refresh token.
+            Unauthorized. User not found or session not found or invalid refresh token.
           content:
             application/json:
               schema:
@@ -221,10 +221,10 @@ paths:
   /auth-svc/v1/me:
     get:
       tags:
-        - accounts
-      summary: Get my account
+        - users
+      summary: Get my user
       description: |
-        Returns the authenticated account.
+        Returns the authenticated user.
       parameters:
         - in: query
           name: include
@@ -243,21 +243,21 @@ paths:
         - BearerAuth: []
       responses:
         '200':
-          description: Account successfully retrieved
+          description: User successfully retrieved
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Account'
+                $ref: '#/components/schemas/User'
         '401':
           description: |
-            Unauthorized. The account is deleted and can no longer be used.
+            Unauthorized. The user is deleted and can no longer be used.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Errors'
         '404':
           description: |
-            Account not found.
+            User not found.
           content:
             application/json:
               schema:
@@ -270,25 +270,25 @@ paths:
                 $ref: '#/components/schemas/Errors'
     delete:
       tags:
-        - accounts
-      summary: Delete my account
+        - users
+      summary: Delete my user
       description: |
-        Deletes the authenticated account.
+        Deletes the authenticated user.
       security:
         - BearerAuth: []
       responses:
         '204':
-          description: Account successfully deleted
+          description: User successfully deleted
         '401':
           description: |
-            Unauthorized. The session is invalid or does not belong to the authenticated account.
+            Unauthorized. The session is invalid or does not belong to the authenticated user.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Errors'
         '404':
           description: |
-            Account not found.
+            User not found.
           content:
             application/json:
               schema:
@@ -305,7 +305,7 @@ paths:
         - sessions
       summary: Logout
       description: |
-        Invalidates the current session of the authenticated account. This operation is idempotent — if the session is already deleted, 204 is returned.
+        Invalidates the current session of the authenticated user. This operation is idempotent — if the session is already deleted, 204 is returned.
       security:
         - BearerAuth: []
       responses:
@@ -320,10 +320,10 @@ paths:
   /auth-svc/v1/me/password:
     patch:
       tags:
-        - accounts
+        - users
       summary: Update password
       description: |
-        Updates the password of the authenticated account.
+        Updates the password of the authenticated user.
         **401 Unauthorized** is returned when the session is invalid or the old password is incorrect.
       security:
         - BearerAuth: []
@@ -345,7 +345,7 @@ paths:
                 $ref: '#/components/schemas/Errors'
         '401':
           description: |
-            Unauthorized. The session is invalid, does not belong to the authenticated account, or the old password is incorrect.
+            Unauthorized. The session is invalid, does not belong to the authenticated user, or the old password is incorrect.
           content:
             application/json:
               schema:
@@ -362,7 +362,7 @@ paths:
         - sessions
       summary: Get my sessions
       description: |
-        Returns sessions of the authenticated account.
+        Returns sessions of the authenticated user.
         Supports pagination, filtering by deletion status, and sorting by last used date.
       security:
         - BearerAuth: []
@@ -405,7 +405,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AccountSessionsCollection'
+                $ref: '#/components/schemas/UserSessionsCollection'
         '500':
           description: Internal Server Error
           content:
@@ -417,7 +417,7 @@ paths:
         - sessions
       summary: Delete my sessions
       description: |
-        Deletes all sessions of the authenticated account (logout from all devices).
+        Deletes all sessions of the authenticated user (logout from all devices).
       security:
         - BearerAuth: []
       responses:
@@ -425,7 +425,7 @@ paths:
           description: Sessions successfully deleted
         '401':
           description: |
-            Unauthorized. The session is invalid or does not belong to the authenticated account.
+            Unauthorized. The session is invalid or does not belong to the authenticated user.
           content:
             application/json:
               schema:
@@ -450,7 +450,7 @@ paths:
         - sessions
       summary: Get my session
       description: |
-        Returns a single session of the authenticated account by ID.
+        Returns a single session of the authenticated user by ID.
       security:
         - BearerAuth: []
       responses:
@@ -459,7 +459,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AccountSession'
+                $ref: '#/components/schemas/UserSession'
         '404':
           description: Session not found
           content:
@@ -477,7 +477,7 @@ paths:
         - sessions
       summary: Delete my session
       description: |
-        Deletes a session by ID. The session must belong to the authenticated account.
+        Deletes a session by ID. The session must belong to the authenticated user.
       security:
         - BearerAuth: []
       responses:
@@ -485,7 +485,7 @@ paths:
           description: Session successfully deleted
         '401':
           description: |
-            Unauthorized. The session does not belong to the authenticated account.
+            Unauthorized. The session does not belong to the authenticated user.
           content:
             application/json:
               schema:
@@ -606,7 +606,7 @@ components:
             type:
               type: string
               enum:
-                - account_session
+                - user_session
             attributes:
               type: object
               required:
@@ -616,12 +616,12 @@ components:
                 email:
                   type: string
                   format: email
-                  description: The account's email address.
+                  description: The user's email address.
                   example: example@gmail.com
                 password:
                   type: string
                   format: password
-                  description: The account's password.
+                  description: The user's password.
                   example: StrongP@ssw0rd!
     Registration:
       type: object
@@ -637,7 +637,7 @@ components:
             type:
               type: string
               enum:
-                - account
+                - user
             attributes:
               type: object
               required:
@@ -647,12 +647,12 @@ components:
                 email:
                   type: string
                   format: email
-                  description: The account's email address.
+                  description: The user's email address.
                   example: example@gmail.com
                 password:
                   type: string
                   format: password
-                  description: The account's password.
+                  description: The user's password.
                   example: StrongP@ssw0rd!
     RegistrationAdmin:
       type: object
@@ -668,7 +668,7 @@ components:
             type:
               type: string
               enum:
-                - account
+                - user
             attributes:
               type: object
               required:
@@ -679,16 +679,16 @@ components:
                 email:
                   type: string
                   format: email
-                  description: The account's email address.
+                  description: The user's email address.
                   example: example1312@gmail.com
                 password:
                   type: string
                   format: password
-                  description: The account's password.
+                  description: The user's password.
                   example: StrongP@ssw0rd!
                 role:
                   type: string
-                  description: The role assigned to the registering account.
+                  description: The role assigned to the registering user.
                   enum:
                     - admin
                     - moderator
@@ -707,7 +707,7 @@ components:
             type:
               type: string
               enum:
-                - account_session
+                - user_session
             attributes:
               type: object
               required:
@@ -731,7 +731,7 @@ components:
             type:
               type: string
               enum:
-                - account_password
+                - user_password
             attributes:
               type: object
               required:
@@ -741,12 +741,12 @@ components:
                 old_password:
                   type: string
                   format: password
-                  description: The account's current password.
+                  description: The user's current password.
                   example: OldP@ssw0rd!
                 new_password:
                   type: string
                   format: password
-                  description: The account's password.
+                  description: The user's password.
                   example: StrongP@ssw0rd!
     QRConfirm:
       type: object
@@ -788,7 +788,7 @@ components:
             id:
               type: string
               format: uuid
-              description: account id
+              description: user id
             type:
               type: string
               enum:
@@ -855,14 +855,14 @@ components:
                   type: string
                   description: The access token to generate a new access token.
                   example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
-    AccountSession:
+    UserSession:
       type: object
       required:
         - data
       properties:
         data:
-          $ref: '#/components/schemas/AccountSessionData'
-    AccountSessionData:
+          $ref: '#/components/schemas/UserSessionData'
+    UserSessionData:
       type: object
       required:
         - id
@@ -876,29 +876,29 @@ components:
         type:
           type: string
           enum:
-            - account_session
+            - user_session
         attributes:
-          $ref: '#/components/schemas/AccountSessionAttributes'
-    AccountSessionAttributes:
+          $ref: '#/components/schemas/UserSessionAttributes'
+    UserSessionAttributes:
       type: object
       required:
-        - account_id
+        - user_id
         - created_at
         - version
         - updated_at
         - last_used
       properties:
-        account_id:
+        user_id:
           type: string
           format: uuid
-          description: account id
+          description: user id
         created_at:
           type: string
           format: date-time
           description: session creation date
         version:
           type: integer
-          description: The version number of the account record
+          description: The version number of the user record
         last_used:
           type: string
           format: date-time
@@ -911,7 +911,7 @@ components:
           type: string
           format: date-time
           description: session deletion date
-    AccountSessionsCollection:
+    UserSessionsCollection:
       type: object
       required:
         - data
@@ -920,10 +920,10 @@ components:
         data:
           type: array
           items:
-            $ref: '#/components/schemas/AccountSessionData'
+            $ref: '#/components/schemas/UserSessionData'
         links:
           $ref: '#/components/schemas/PaginationData'
-    Account:
+    User:
       type: object
       required:
         - data
@@ -938,11 +938,11 @@ components:
             id:
               type: string
               format: uuid
-              description: account ID
+              description: user ID
             type:
               type: string
               enum:
-                - account
+                - user
             attributes:
               type: object
               required:
@@ -953,24 +953,24 @@ components:
               properties:
                 role:
                   type: string
-                  description: The role assigned to the account
+                  description: The role assigned to the user
                 version:
                   type: integer
-                  description: The version number of the account record
+                  description: The version number of the user record
                 created_at:
                   type: string
                   format: date-time
-                  description: The date and time when the account was created
+                  description: The date and time when the user was created
                 updated_at:
                   type: string
                   format: date-time
-                  description: The date and time when the account was last updated
+                  description: The date and time when the user was last updated
         included:
           type: array
           items:
             oneOf:
-              - $ref: '#/components/schemas/AccountEmail'
-    AccountEmail:
+              - $ref: '#/components/schemas/UserEmail'
+    UserEmail:
       type: object
       required:
         - id
@@ -980,11 +980,11 @@ components:
         id:
           type: string
           format: uuid
-          description: account ID
+          description: user ID
         type:
           type: string
           enum:
-            - account_email
+            - user_email
         attributes:
           type: object
           required:
@@ -997,10 +997,10 @@ components:
             email:
               type: string
               format: email
-              description: The email address associated with the account
+              description: The email address associated with the user
             version:
               type: integer
-              description: The version number of the account record
+              description: The version number of the user record
             verified:
               type: boolean
               description: Indicates whether the email address has been verified

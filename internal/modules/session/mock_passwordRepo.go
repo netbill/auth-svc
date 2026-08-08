@@ -16,27 +16,27 @@ type mockPasswordRepo struct {
 	mock.Mock
 }
 
-// GetByID provides a mock function with given fields: ctx, accountID
-func (_m *mockPasswordRepo) GetByID(ctx context.Context, accountID uuid.UUID) (models.AccountPassword, error) {
-	ret := _m.Called(ctx, accountID)
+// GetByID provides a mock function with given fields: ctx, userID
+func (_m *mockPasswordRepo) GetByID(ctx context.Context, userID uuid.UUID) (models.UserPassword, error) {
+	ret := _m.Called(ctx, userID)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetByID")
 	}
 
-	var r0 models.AccountPassword
+	var r0 models.UserPassword
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID) (models.AccountPassword, error)); ok {
-		return rf(ctx, accountID)
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID) (models.UserPassword, error)); ok {
+		return rf(ctx, userID)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID) models.AccountPassword); ok {
-		r0 = rf(ctx, accountID)
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID) models.UserPassword); ok {
+		r0 = rf(ctx, userID)
 	} else {
-		r0 = ret.Get(0).(models.AccountPassword)
+		r0 = ret.Get(0).(models.UserPassword)
 	}
 
 	if rf, ok := ret.Get(1).(func(context.Context, uuid.UUID) error); ok {
-		r1 = rf(ctx, accountID)
+		r1 = rf(ctx, userID)
 	} else {
 		r1 = ret.Error(1)
 	}

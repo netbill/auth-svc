@@ -69,11 +69,11 @@ func TruncateTables(t *testing.T, pool *pgxpool.Pool) {
 
 	_, err = conn.Exec(context.Background(), `
 		TRUNCATE TABLE
-			account_passwords,
-			account_emails,
+			user_passwords,
+			user_emails,
 			sessions,
 			outbox_events,
-			accounts
+			users
 		RESTART IDENTITY CASCADE
 	`)
 	require.NoError(t, err, "truncate tables")

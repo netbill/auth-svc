@@ -43,41 +43,41 @@ func (r *OutboxRepo) write(ctx context.Context, topic, key, eventType string, pa
 	return nil
 }
 
-func (r *OutboxRepo) WriteAccountCreated(
+func (r *OutboxRepo) WriteUserCreated(
 	ctx context.Context,
-	account models.Account,
-	email models.AccountEmail,
+	user models.User,
+	email models.UserEmail,
 ) error {
 	return r.write(
 		ctx,
 		evtypes.AccountsTopicV1,
-		account.ID.String(),
+		user.ID.String(),
 		evtypes.AccountCreatedEvent,
 		evtypes.AccountCreatedPayload{
-			Account:      toEvAccount(account),
-			AccountEmail: toEvAccountEmail(email),
+			Account:      toEvUser(user),
+			AccountEmail: toEvUserEmail(email),
 		},
 	)
 }
 
-func (r *OutboxRepo) WriteAccountDeleted(
+func (r *OutboxRepo) WriteUserDeleted(
 	ctx context.Context,
-	account models.Account,
-	email models.AccountEmail,
+	user models.User,
+	email models.UserEmail,
 ) error {
 	return r.write(
 		ctx,
 		evtypes.AccountsTopicV1,
-		account.ID.String(),
+		user.ID.String(),
 		evtypes.AccountDeletedEvent,
 		evtypes.AccountDeletedPayload{
-			Account:      toEvAccount(account),
-			AccountEmail: toEvAccountEmail(email),
+			Account:      toEvUser(user),
+			AccountEmail: toEvUserEmail(email),
 		},
 	)
 }
 
-func toEvAccount(a models.Account) evtypes.Account {
+func toEvUser(a models.User) evtypes.Account {
 	return evtypes.Account{
 		ID:        a.ID,
 		Role:      a.Role,
@@ -88,9 +88,9 @@ func toEvAccount(a models.Account) evtypes.Account {
 	}
 }
 
-func toEvAccountEmail(e models.AccountEmail) evtypes.AccountEmail {
+func toEvUserEmail(e models.UserEmail) evtypes.AccountEmail {
 	return evtypes.AccountEmail{
-		AccountID: e.AccountID,
+		AccountID: e.UserID,
 		Email:     e.Email,
 		Verified:  e.Verified,
 		Version:   e.Version,

@@ -18,9 +18,9 @@ type mockSessionRepo struct {
 	mock.Mock
 }
 
-// Create provides a mock function with given fields: ctx, sessionID, accountID, hashToken
-func (_m *mockSessionRepo) Create(ctx context.Context, sessionID uuid.UUID, accountID uuid.UUID, hashToken string) (models.Session, error) {
-	ret := _m.Called(ctx, sessionID, accountID, hashToken)
+// Create provides a mock function with given fields: ctx, sessionID, userID, hashToken
+func (_m *mockSessionRepo) Create(ctx context.Context, sessionID uuid.UUID, userID uuid.UUID, hashToken string) (models.Session, error) {
+	ret := _m.Called(ctx, sessionID, userID, hashToken)
 
 	if len(ret) == 0 {
 		panic("no return value specified for Create")
@@ -29,16 +29,16 @@ func (_m *mockSessionRepo) Create(ctx context.Context, sessionID uuid.UUID, acco
 	var r0 models.Session
 	var r1 error
 	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID, uuid.UUID, string) (models.Session, error)); ok {
-		return rf(ctx, sessionID, accountID, hashToken)
+		return rf(ctx, sessionID, userID, hashToken)
 	}
 	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID, uuid.UUID, string) models.Session); ok {
-		r0 = rf(ctx, sessionID, accountID, hashToken)
+		r0 = rf(ctx, sessionID, userID, hashToken)
 	} else {
 		r0 = ret.Get(0).(models.Session)
 	}
 
 	if rf, ok := ret.Get(1).(func(context.Context, uuid.UUID, uuid.UUID, string) error); ok {
-		r1 = rf(ctx, sessionID, accountID, hashToken)
+		r1 = rf(ctx, sessionID, userID, hashToken)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -64,21 +64,21 @@ func (_m *mockSessionRepo) Delete(ctx context.Context, sessionID uuid.UUID) erro
 	return r0
 }
 
-// DeleteManyForAccount provides a mock function with given fields: ctx, accountID
-func (_m *mockSessionRepo) DeleteManyForAccount(ctx context.Context, accountID uuid.UUID) ([]uuid.UUID, error) {
-	ret := _m.Called(ctx, accountID)
+// DeleteManyForUser provides a mock function with given fields: ctx, userID
+func (_m *mockSessionRepo) DeleteManyForUser(ctx context.Context, userID uuid.UUID) ([]uuid.UUID, error) {
+	ret := _m.Called(ctx, userID)
 
 	if len(ret) == 0 {
-		panic("no return value specified for DeleteManyForAccount")
+		panic("no return value specified for DeleteManyForUser")
 	}
 
 	var r0 []uuid.UUID
 	var r1 error
 	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID) ([]uuid.UUID, error)); ok {
-		return rf(ctx, accountID)
+		return rf(ctx, userID)
 	}
 	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID) []uuid.UUID); ok {
-		r0 = rf(ctx, accountID)
+		r0 = rf(ctx, userID)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]uuid.UUID)
@@ -86,7 +86,7 @@ func (_m *mockSessionRepo) DeleteManyForAccount(ctx context.Context, accountID u
 	}
 
 	if rf, ok := ret.Get(1).(func(context.Context, uuid.UUID) error); ok {
-		r1 = rf(ctx, accountID)
+		r1 = rf(ctx, userID)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -94,17 +94,17 @@ func (_m *mockSessionRepo) DeleteManyForAccount(ctx context.Context, accountID u
 	return r0, r1
 }
 
-// DeleteOneForAccount provides a mock function with given fields: ctx, accountID, sessionID
-func (_m *mockSessionRepo) DeleteOneForAccount(ctx context.Context, accountID uuid.UUID, sessionID uuid.UUID) error {
-	ret := _m.Called(ctx, accountID, sessionID)
+// DeleteOneForUser provides a mock function with given fields: ctx, userID, sessionID
+func (_m *mockSessionRepo) DeleteOneForUser(ctx context.Context, userID uuid.UUID, sessionID uuid.UUID) error {
+	ret := _m.Called(ctx, userID, sessionID)
 
 	if len(ret) == 0 {
-		panic("no return value specified for DeleteOneForAccount")
+		panic("no return value specified for DeleteOneForUser")
 	}
 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID, uuid.UUID) error); ok {
-		r0 = rf(ctx, accountID, sessionID)
+		r0 = rf(ctx, userID, sessionID)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -140,27 +140,27 @@ func (_m *mockSessionRepo) GetByID(ctx context.Context, sessionID uuid.UUID) (mo
 	return r0, r1
 }
 
-// GetForAccount provides a mock function with given fields: ctx, accountID, sessionID
-func (_m *mockSessionRepo) GetForAccount(ctx context.Context, accountID uuid.UUID, sessionID uuid.UUID) (models.Session, error) {
-	ret := _m.Called(ctx, accountID, sessionID)
+// GetForUser provides a mock function with given fields: ctx, userID, sessionID
+func (_m *mockSessionRepo) GetForUser(ctx context.Context, userID uuid.UUID, sessionID uuid.UUID) (models.Session, error) {
+	ret := _m.Called(ctx, userID, sessionID)
 
 	if len(ret) == 0 {
-		panic("no return value specified for GetForAccount")
+		panic("no return value specified for GetForUser")
 	}
 
 	var r0 models.Session
 	var r1 error
 	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID, uuid.UUID) (models.Session, error)); ok {
-		return rf(ctx, accountID, sessionID)
+		return rf(ctx, userID, sessionID)
 	}
 	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID, uuid.UUID) models.Session); ok {
-		r0 = rf(ctx, accountID, sessionID)
+		r0 = rf(ctx, userID, sessionID)
 	} else {
 		r0 = ret.Get(0).(models.Session)
 	}
 
 	if rf, ok := ret.Get(1).(func(context.Context, uuid.UUID, uuid.UUID) error); ok {
-		r1 = rf(ctx, accountID, sessionID)
+		r1 = rf(ctx, userID, sessionID)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -168,34 +168,34 @@ func (_m *mockSessionRepo) GetForAccount(ctx context.Context, accountID uuid.UUI
 	return r0, r1
 }
 
-// GetListForAccount provides a mock function with given fields: ctx, accountID, opts
-func (_m *mockSessionRepo) GetListForAccount(ctx context.Context, accountID uuid.UUID, opts ...ListSessionsOption) (pagi.Page[[]models.Session], error) {
+// GetListForUser provides a mock function with given fields: ctx, userID, opts
+func (_m *mockSessionRepo) GetListForUser(ctx context.Context, userID uuid.UUID, opts ...ListSessionsOption) (pagi.Page[[]models.Session], error) {
 	_va := make([]interface{}, len(opts))
 	for _i := range opts {
 		_va[_i] = opts[_i]
 	}
 	var _ca []interface{}
-	_ca = append(_ca, ctx, accountID)
+	_ca = append(_ca, ctx, userID)
 	_ca = append(_ca, _va...)
 	ret := _m.Called(_ca...)
 
 	if len(ret) == 0 {
-		panic("no return value specified for GetListForAccount")
+		panic("no return value specified for GetListForUser")
 	}
 
 	var r0 pagi.Page[[]models.Session]
 	var r1 error
 	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID, ...ListSessionsOption) (pagi.Page[[]models.Session], error)); ok {
-		return rf(ctx, accountID, opts...)
+		return rf(ctx, userID, opts...)
 	}
 	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID, ...ListSessionsOption) pagi.Page[[]models.Session]); ok {
-		r0 = rf(ctx, accountID, opts...)
+		r0 = rf(ctx, userID, opts...)
 	} else {
 		r0 = ret.Get(0).(pagi.Page[[]models.Session])
 	}
 
 	if rf, ok := ret.Get(1).(func(context.Context, uuid.UUID, ...ListSessionsOption) error); ok {
-		r1 = rf(ctx, accountID, opts...)
+		r1 = rf(ctx, userID, opts...)
 	} else {
 		r1 = ret.Error(1)
 	}

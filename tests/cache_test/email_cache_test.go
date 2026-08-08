@@ -17,8 +17,8 @@ func TestEmailCache_SetAndGetByID(t *testing.T) {
 	cache := newEmailCache(t)
 	ctx := context.Background()
 
-	email := models.AccountEmail{
-		AccountID: testutil.RandomUUID(),
+	email := models.UserEmail{
+		UserID:    testutil.RandomUUID(),
 		Email:     "alice@example.com",
 		Verified:  false,
 		Version:   1,
@@ -28,9 +28,9 @@ func TestEmailCache_SetAndGetByID(t *testing.T) {
 	err := cache.Set(ctx, email)
 	require.NoError(t, err)
 
-	got, err := cache.GetByID(ctx, email.AccountID)
+	got, err := cache.GetByID(ctx, email.UserID)
 	require.NoError(t, err)
-	assert.Equal(t, email.AccountID, got.AccountID)
+	assert.Equal(t, email.UserID, got.UserID)
 	assert.Equal(t, "alice@example.com", got.Email)
 }
 
@@ -39,11 +39,11 @@ func TestEmailCache_SetAndGetByEmail(t *testing.T) {
 	cache := newEmailCache(t)
 	ctx := context.Background()
 
-	email := models.AccountEmail{
-		AccountID: testutil.RandomUUID(),
-		Email:     "bob@example.com",
-		Verified:  false,
-		Version:   1,
+	email := models.UserEmail{
+		UserID:   testutil.RandomUUID(),
+		Email:    "bob@example.com",
+		Verified: false,
+		Version:  1,
 	}
 
 	err := cache.Set(ctx, email)
@@ -51,7 +51,7 @@ func TestEmailCache_SetAndGetByEmail(t *testing.T) {
 
 	got, err := cache.GetByEmail(ctx, "bob@example.com")
 	require.NoError(t, err)
-	assert.Equal(t, email.AccountID, got.AccountID)
+	assert.Equal(t, email.UserID, got.UserID)
 	assert.Equal(t, "bob@example.com", got.Email)
 }
 
@@ -78,26 +78,26 @@ func TestEmailCache_DeleteByID(t *testing.T) {
 	cache := newEmailCache(t)
 	ctx := context.Background()
 
-	email := models.AccountEmail{
-		AccountID: testutil.RandomUUID(),
-		Email:     "charlie@example.com",
-		Version:   1,
+	email := models.UserEmail{
+		UserID:  testutil.RandomUUID(),
+		Email:   "charlie@example.com",
+		Version: 1,
 	}
 
 	err := cache.Set(ctx, email)
 	require.NoError(t, err)
 
-	err = cache.DeleteByID(ctx, email.AccountID)
+	err = cache.DeleteByID(ctx, email.UserID)
 	require.NoError(t, err)
 
 	// ID-keyed entry should be gone
-	_, err = cache.GetByID(ctx, email.AccountID)
+	_, err = cache.GetByID(ctx, email.UserID)
 	assert.ErrorIs(t, err, redis.Nil)
 
 	// Email-keyed entry should still exist (DeleteByID only removes the ID key)
 	got, err := cache.GetByEmail(ctx, email.Email)
 	require.NoError(t, err)
-	assert.Equal(t, email.AccountID, got.AccountID)
+	assert.Equal(t, email.UserID, got.UserID)
 }
 
 func TestEmailCache_DeleteByEmail(t *testing.T) {
@@ -105,10 +105,10 @@ func TestEmailCache_DeleteByEmail(t *testing.T) {
 	cache := newEmailCache(t)
 	ctx := context.Background()
 
-	email := models.AccountEmail{
-		AccountID: testutil.RandomUUID(),
-		Email:     "dave@example.com",
-		Version:   1,
+	email := models.UserEmail{
+		UserID:  testutil.RandomUUID(),
+		Email:   "dave@example.com",
+		Version: 1,
 	}
 
 	err := cache.Set(ctx, email)
@@ -121,7 +121,7 @@ func TestEmailCache_DeleteByEmail(t *testing.T) {
 	assert.ErrorIs(t, err, redis.Nil)
 
 	// ID-keyed entry should still exist
-	got, err := cache.GetByID(ctx, email.AccountID)
+	got, err := cache.GetByID(ctx, email.UserID)
 	require.NoError(t, err)
 	assert.Equal(t, email.Email, got.Email)
 }
@@ -131,20 +131,20 @@ func TestEmailCache_SetStoresTwoKeys(t *testing.T) {
 	cache := newEmailCache(t)
 	ctx := context.Background()
 
-	email := models.AccountEmail{
-		AccountID: testutil.RandomUUID(),
-		Email:     "eve@example.com",
-		Version:   1,
+	email := models.UserEmail{
+		UserID:  testutil.RandomUUID(),
+		Email:   "eve@example.com",
+		Version: 1,
 	}
 
 	require.NoError(t, cache.Set(ctx, email))
 
 	// Both lookups should work
-	byID, err := cache.GetByID(ctx, email.AccountID)
+	byID, err := cache.GetByID(ctx, email.UserID)
 	require.NoError(t, err)
 	assert.Equal(t, email.Email, byID.Email)
 
 	byEmail, err := cache.GetByEmail(ctx, email.Email)
 	require.NoError(t, err)
-	assert.Equal(t, email.AccountID, byEmail.AccountID)
+	assert.Equal(t, email.UserID, byEmail.UserID)
 }

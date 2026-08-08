@@ -12,7 +12,7 @@ import (
 
 //go:generate mockery --name=auth --inpackage
 type auth interface {
-	ValidateSession(ctx context.Context, actor models.AccountActor) (models.Account, models.Session, error)
+	ValidateSession(ctx context.Context, actor models.UserActor) (models.User, models.Session, error)
 }
 
 //go:generate mockery --name=passwordManager --inpackage
@@ -22,13 +22,13 @@ type passwordManager interface {
 
 //go:generate mockery --name=tokenManager --inpackage
 type tokenManager interface {
-	ParseAccountAuthAccess(token string) (tokens.AccountAuthClaims, error)
-	ParseAccountAuthRefresh(token string) (tokens.AccountAuthClaims, error)
+	ParseUserAuthAccess(token string) (tokens.AccountAuthClaims, error)
+	ParseUserAuthRefresh(token string) (tokens.AccountAuthClaims, error)
 
 	HashRefresh(token string) (string, error)
 
-	GenerateAccess(account models.Account, sessionID uuid.UUID) (string, error)
-	GenerateRefresh(account models.Account, sessionID uuid.UUID) (string, error)
+	GenerateAccess(user models.User, sessionID uuid.UUID) (string, error)
+	GenerateRefresh(user models.User, sessionID uuid.UUID) (string, error)
 }
 
 //go:generate mockery --name=bus --inpackage
@@ -39,14 +39,14 @@ type bus interface {
 type Service struct {
 	auth auth
 
-	accountRepo  accountRepo
+	userRepo     userRepo
 	emailRepo    emailRepo
 	passwordRepo passwordRepo
 	sessionRepo  sessionRepo
 	tx           transaction
 
 	passwordCache passwordCache
-	accountCache  accountCache
+	userCache     userCache
 	sessionsCache sessionsCache
 
 	qrRepo qrRepo
@@ -59,7 +59,7 @@ type Service struct {
 type ServiceDeps struct {
 	Auth auth
 
-	AccountRepo  accountRepo
+	UserRepo     userRepo
 	EmailRepo    emailRepo
 	PasswordRepo passwordRepo
 	SessionRepo  sessionRepo
@@ -67,7 +67,7 @@ type ServiceDeps struct {
 	Tx transaction
 
 	PasswordCache passwordCache
-	AccountCache  accountCache
+	UserCache     userCache
 	SessionsCache sessionsCache
 
 	PassManager  passwordManager
@@ -79,13 +79,13 @@ type ServiceDeps struct {
 func New(deps ServiceDeps) *Service {
 	return &Service{
 		auth:          deps.Auth,
-		accountRepo:   deps.AccountRepo,
+		userRepo:      deps.UserRepo,
 		emailRepo:     deps.EmailRepo,
 		passwordRepo:  deps.PasswordRepo,
 		sessionRepo:   deps.SessionRepo,
 		tx:            deps.Tx,
 		passwordCache: deps.PasswordCache,
-		accountCache:  deps.AccountCache,
+		userCache:     deps.UserCache,
 		sessionsCache: deps.SessionsCache,
 		passManager:   deps.PassManager,
 		tokenManager:  deps.TokenManager,
@@ -96,13 +96,13 @@ func New(deps ServiceDeps) *Service {
 
 func (s *Service) GetMySession(
 	ctx context.Context,
-	actor models.AccountActor,
+	actor models.UserActor,
 	sessionID uuid.UUID,
 ) (models.Session, error) {
 	if session, err := s.sessionsCache.Get(ctx, sessionID); err == nil {
-		if session.AccountID != actor.ID {
+		if session.UserID != actor.ID {
 			return models.Session{}, errx.ErrorSessionNotFound.Raise(
-				fmt.Errorf("session %s does not belong to account %s", sessionID, actor.ID),
+				fmt.Errorf("session %s does not belong to user %s", sessionID, actor.ID),
 			)
 		}
 		if session.DeletedAt != nil {
@@ -113,7 +113,7 @@ func (s *Service) GetMySession(
 		return session, nil
 	}
 
-	session, err := s.sessionRepo.GetForAccount(ctx, actor.ID, sessionID)
+	session, err := s.sessionRepo.GetForUser(ctx, actor.ID, sessionID)
 	if err != nil {
 		return models.Session{}, err
 	}
@@ -127,7 +127,7 @@ func (s *Service) Refresh(
 	ctx context.Context,
 	oldRefreshToken string,
 ) (models.TokensPair, error) {
-	claims, err := s.tokenManager.ParseAccountAuthRefresh(oldRefreshToken)
+	claims, err := s.tokenManager.ParseUserAuthRefresh(oldRefreshToken)
 	if err != nil {
 		return models.TokensPair{}, errx.ErrorSessionExpired.Raise(err)
 	}
@@ -148,20 +148,20 @@ func (s *Service) Refresh(
 		)
 	}
 
-	accountID, err := uuid.Parse(claims.Subject)
+	userID, err := uuid.Parse(claims.Subject)
 	if err != nil {
 		return models.TokensPair{}, err
 	}
 
-	account, err := s.accountCache.Get(ctx, accountID)
+	user, err := s.userCache.Get(ctx, userID)
 	if err != nil {
-		account, err = s.accountRepo.GetByID(ctx, accountID)
+		user, err = s.userRepo.GetByID(ctx, userID)
 		if err != nil {
 			return models.TokensPair{}, err
 		}
 	}
 
-	newRefreshToken, err := s.tokenManager.GenerateRefresh(account, claims.SessionID)
+	newRefreshToken, err := s.tokenManager.GenerateRefresh(user, claims.SessionID)
 	if err != nil {
 		return models.TokensPair{}, err
 	}
@@ -179,14 +179,14 @@ func (s *Service) Refresh(
 		return models.TokensPair{}, err
 	}
 
-	accessToken, err := s.tokenManager.GenerateAccess(account, session.ID)
+	accessToken, err := s.tokenManager.GenerateAccess(user, session.ID)
 	if err != nil {
 		return models.TokensPair{}, err
 	}
 
 	detached := context.WithoutCancel(ctx)
 	go s.sessionsCache.Set(detached, session)
-	go s.accountCache.Set(detached, account)
+	go s.userCache.Set(detached, user)
 
 	return models.TokensPair{
 		SessionID: session.ID,
@@ -197,7 +197,7 @@ func (s *Service) Refresh(
 
 func (s *Service) Logout(
 	ctx context.Context,
-	actor models.AccountActor,
+	actor models.UserActor,
 ) error {
 	if err := s.sessionRepo.Delete(ctx, actor.SessionID); err != nil {
 		return err
@@ -210,14 +210,14 @@ func (s *Service) Logout(
 
 func (s *Service) DeleteMySession(
 	ctx context.Context,
-	actor models.AccountActor,
+	actor models.UserActor,
 	sessionID uuid.UUID,
 ) error {
 	if _, _, err := s.auth.ValidateSession(ctx, actor); err != nil {
 		return err
 	}
 
-	if err := s.sessionRepo.DeleteOneForAccount(ctx, actor.ID, sessionID); err != nil {
+	if err := s.sessionRepo.DeleteOneForUser(ctx, actor.ID, sessionID); err != nil {
 		return err
 	}
 
@@ -228,13 +228,13 @@ func (s *Service) DeleteMySession(
 
 func (s *Service) DeleteMySessions(
 	ctx context.Context,
-	actor models.AccountActor,
+	actor models.UserActor,
 ) error {
 	if _, _, err := s.auth.ValidateSession(ctx, actor); err != nil {
 		return err
 	}
 
-	sessionIDs, err := s.sessionRepo.DeleteManyForAccount(ctx, actor.ID)
+	sessionIDs, err := s.sessionRepo.DeleteManyForUser(ctx, actor.ID)
 	if err != nil {
 		return err
 	}

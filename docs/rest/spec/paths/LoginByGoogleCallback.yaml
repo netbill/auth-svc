@@ -27,7 +27,7 @@ get:
             $ref: '../components/schemas/responses/Errors.yaml'
 
     '404':
-      description: Account not found or deleted for this email
+      description: User not found or deleted for this email
       content:
         application/json:
           schema:

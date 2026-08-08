@@ -30,7 +30,7 @@ type SQLConfig struct {
 }
 
 type RedisTTLConfig struct {
-	Account  time.Duration
+	User     time.Duration
 	Email    time.Duration
 	Password time.Duration
 	Session  time.Duration
@@ -72,9 +72,9 @@ type RefreshTokenConfig struct {
 }
 
 type AuthTokensConfig struct {
-	Issuer         string
-	AccountAccess  TokenConfig
-	AccountRefresh RefreshTokenConfig
+	Issuer      string
+	UserAccess  TokenConfig
+	UserRefresh RefreshTokenConfig
 }
 
 type GoogleOAuthConfig struct {
@@ -147,14 +147,14 @@ func LoadConfig() *Config {
 		Auth: AuthConfig{
 			Tokens: AuthTokensConfig{
 				Issuer: envOr("AUTH_TOKENS_ISSUER", "auth-svc"),
-				AccountAccess: TokenConfig{
-					SecretKey: mustEnv("AUTH_TOKENS_ACCOUNT_ACCESS_SECRET_KEY"),
-					TTL:       envDurationOr("AUTH_TOKENS_ACCOUNT_ACCESS_TTL", 720*time.Hour),
+				UserAccess: TokenConfig{
+					SecretKey: mustEnv("AUTH_TOKENS_USER_ACCESS_SECRET_KEY"),
+					TTL:       envDurationOr("AUTH_TOKENS_USER_ACCESS_TTL", 720*time.Hour),
 				},
-				AccountRefresh: RefreshTokenConfig{
-					SecretKey: mustEnv("AUTH_TOKENS_ACCOUNT_REFRESH_SECRET_KEY"),
-					HashKey:   mustEnv("AUTH_TOKENS_ACCOUNT_REFRESH_HASH_KEY"),
-					TTL:       envDurationOr("AUTH_TOKENS_ACCOUNT_REFRESH_TTL", 720*time.Hour),
+				UserRefresh: RefreshTokenConfig{
+					SecretKey: mustEnv("AUTH_TOKENS_USER_REFRESH_SECRET_KEY"),
+					HashKey:   mustEnv("AUTH_TOKENS_USER_REFRESH_HASH_KEY"),
+					TTL:       envDurationOr("AUTH_TOKENS_USER_REFRESH_TTL", 720*time.Hour),
 				},
 			},
 			OAuth: AuthOAuthConfig{
@@ -177,7 +177,7 @@ func LoadConfig() *Config {
 				Password: envOr("REDIS_PASSWORD", ""),
 				DB:       envIntOr("DATABASE_REDIS_DB", 0),
 				TTL: RedisTTLConfig{
-					Account:  envDurationOr("DATABASE_REDIS_TTL_ACCOUNT", 5*time.Minute),
+					User:     envDurationOr("DATABASE_REDIS_TTL_USER", 5*time.Minute),
 					Email:    envDurationOr("DATABASE_REDIS_TTL_EMAIL", 5*time.Minute),
 					Password: envDurationOr("DATABASE_REDIS_TTL_PASSWORD", 5*time.Minute),
 					Session:  envDurationOr("DATABASE_REDIS_TTL_SESSION", 5*time.Minute),

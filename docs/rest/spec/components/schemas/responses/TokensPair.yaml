@@ -12,7 +12,7 @@ properties:
       id:
         type: string
         format: uuid
-        description: account id
+        description: user id
       type:
         type: string
         enum: [ tokens_pair ]

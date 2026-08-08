@@ -13,34 +13,34 @@ type transaction interface {
 	Transaction(ctx context.Context, fn func(ctx context.Context) error) error
 }
 
-//go:generate mockery --name=accountRepo --inpackage
-type accountRepo interface {
-	GetByID(ctx context.Context, accountID uuid.UUID) (models.Account, error)
+//go:generate mockery --name=userRepo --inpackage
+type userRepo interface {
+	GetByID(ctx context.Context, userID uuid.UUID) (models.User, error)
 }
 
 //go:generate mockery --name=emailRepo --inpackage
 type emailRepo interface {
-	GetByEmail(ctx context.Context, email string) (models.AccountEmail, error)
+	GetByEmail(ctx context.Context, email string) (models.UserEmail, error)
 }
 
 //go:generate mockery --name=passwordRepo --inpackage
 type passwordRepo interface {
-	GetByID(ctx context.Context, accountID uuid.UUID) (models.AccountPassword, error)
+	GetByID(ctx context.Context, userID uuid.UUID) (models.UserPassword, error)
 }
 
 //go:generate mockery --name=sessionRepo --inpackage
 type sessionRepo interface {
 	Create(
 		ctx context.Context,
-		sessionID, accountID uuid.UUID,
+		sessionID, userID uuid.UUID,
 		hashToken string,
 	) (models.Session, error)
 
 	GetByID(ctx context.Context, sessionID uuid.UUID) (models.Session, error)
-	GetForAccount(ctx context.Context, accountID, sessionID uuid.UUID) (models.Session, error)
-	GetListForAccount(
+	GetForUser(ctx context.Context, userID, sessionID uuid.UUID) (models.Session, error)
+	GetListForUser(
 		ctx context.Context,
-		accountID uuid.UUID,
+		userID uuid.UUID,
 		opts ...ListSessionsOption,
 	) (pagi.Page[[]models.Session], error)
 
@@ -49,6 +49,6 @@ type sessionRepo interface {
 	UpdateToken(ctx context.Context, sessionID uuid.UUID, token string) (models.Session, error)
 
 	Delete(ctx context.Context, sessionID uuid.UUID) error
-	DeleteOneForAccount(ctx context.Context, accountID, sessionID uuid.UUID) error
-	DeleteManyForAccount(ctx context.Context, accountID uuid.UUID) ([]uuid.UUID, error)
+	DeleteOneForUser(ctx context.Context, userID, sessionID uuid.UUID) error
+	DeleteManyForUser(ctx context.Context, userID uuid.UUID) ([]uuid.UUID, error)
 }

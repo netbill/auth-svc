@@ -1,0 +1,90 @@
+get:
+  tags:
+    - users
+  summary: Get my user
+  description: >
+    Returns the authenticated user.
+
+  parameters:
+    - in: query
+      name: include
+      required: false
+      schema:
+        type: array
+        items:
+          type: string
+          enum:
+            - email
+      style: form
+      explode: false
+      description: >
+        Optional related resources to include. Supported values: `email`.
+
+  security:
+    - BearerAuth: [ ]
+  responses:
+    '200':
+      description: User successfully retrieved
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/responses/User.yaml'
+
+    '401':
+      description: >
+        Unauthorized. The user is deleted and can no longer be used.
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/responses/Errors.yaml'
+
+    '404':
+      description: >
+        User not found.
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/responses/Errors.yaml'
+
+    '500':
+      description: Internal Server Error
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/responses/Errors.yaml'
+
+delete:
+  tags:
+    - users
+  summary: Delete my user
+  description: >
+    Deletes the authenticated user.
+
+  security:
+    - BearerAuth: [ ]
+  responses:
+    '204':
+      description: User successfully deleted
+
+    '401':
+      description: >
+        Unauthorized. The session is invalid or does not belong to the authenticated user.
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/responses/Errors.yaml'
+
+    '404':
+      description: >
+        User not found.
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/responses/Errors.yaml'
+
+    '500':
+      description: Internal Server Error
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/responses/Errors.yaml'

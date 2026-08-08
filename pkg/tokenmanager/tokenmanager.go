@@ -31,37 +31,37 @@ func New(cfg Config) *Manager {
 	return &Manager{cfg: cfg}
 }
 
-func (m *Manager) GenerateAccess(account models.Account, sessionID uuid.UUID) (string, error) {
+func (m *Manager) GenerateAccess(user models.User, sessionID uuid.UUID) (string, error) {
 	claims := tokens.AccountAuthClaims{
 		RegisteredClaims: jwt.RegisteredClaims{
-			Subject:   account.ID.String(),
+			Subject:   user.ID.String(),
 			Issuer:    m.cfg.Issuer,
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(m.cfg.AccessTTL)),
 		},
-		Role:      account.Role,
+		Role:      user.Role,
 		SessionID: sessionID,
 	}
 	return claims.GenerateJWT(m.cfg.AccessSecretKey)
 }
 
-func (m *Manager) GenerateRefresh(account models.Account, sessionID uuid.UUID) (string, error) {
+func (m *Manager) GenerateRefresh(user models.User, sessionID uuid.UUID) (string, error) {
 	claims := tokens.AccountAuthClaims{
 		RegisteredClaims: jwt.RegisteredClaims{
-			Subject:   account.ID.String(),
+			Subject:   user.ID.String(),
 			Issuer:    m.cfg.Issuer,
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(m.cfg.RefreshTTL)),
 		},
-		Role:      account.Role,
+		Role:      user.Role,
 		SessionID: sessionID,
 	}
 	return claims.GenerateJWT(m.cfg.RefreshSecretKey)
 }
 
-func (m *Manager) ParseAccountAuthAccess(tokenStr string) (tokens.AccountAuthClaims, error) {
+func (m *Manager) ParseUserAuthAccess(tokenStr string) (tokens.AccountAuthClaims, error) {
 	return tokens.ParseAccountJWT(tokenStr, m.cfg.AccessSecretKey)
 }
 
-func (m *Manager) ParseAccountAuthRefresh(tokenStr string) (tokens.AccountAuthClaims, error) {
+func (m *Manager) ParseUserAuthRefresh(tokenStr string) (tokens.AccountAuthClaims, error) {
 	return tokens.ParseAccountJWT(tokenStr, m.cfg.RefreshSecretKey)
 }
 

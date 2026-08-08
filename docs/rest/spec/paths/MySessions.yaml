@@ -3,7 +3,7 @@ get:
     - sessions
   summary: Get my sessions
   description: >
-    Returns sessions of the authenticated account.
+    Returns sessions of the authenticated user.
 
     Supports pagination, filtering by deletion status, and sorting by last used date.
   security:
@@ -50,7 +50,7 @@ get:
       content:
         application/json:
           schema:
-            $ref: '../components/schemas/responses/AccountSessionsCollection.yaml'
+            $ref: '../components/schemas/responses/UserSessionsCollection.yaml'
 
     '500':
       description: Internal Server Error
@@ -64,7 +64,7 @@ delete:
     - sessions
   summary: Delete my sessions
   description: >
-    Deletes all sessions of the authenticated account (logout from all devices).
+    Deletes all sessions of the authenticated user (logout from all devices).
   security:
     - BearerAuth: [ ]
   responses:
@@ -73,7 +73,7 @@ delete:
 
     '401':
       description: >
-        Unauthorized. The session is invalid or does not belong to the authenticated account.
+        Unauthorized. The session is invalid or does not belong to the authenticated user.
       content:
         application/json:
           schema:

@@ -76,8 +76,8 @@ func WithOffset(offset uint) ListSessionsOption {
 
 func (s *Service) GetMySessions(
 	ctx context.Context,
-	actor models.AccountActor,
+	actor models.UserActor,
 	opts ...ListSessionsOption,
 ) (pagi.Page[[]models.Session], error) {
-	return s.sessionRepo.GetListForAccount(ctx, actor.ID, opts...)
+	return s.sessionRepo.GetListForUser(ctx, actor.ID, opts...)
 }

@@ -37,8 +37,8 @@ func (c *SessionController) LoginByEmail(w http.ResponseWriter, r *http.Request)
 	token, err := c.sessions.LoginByEmail(r.Context(), req.Data.Attributes.Email, req.Data.Attributes.Password)
 	switch {
 	case errors.Is(err, errx.ErrorPasswordInvalid),
-		errors.Is(err, errx.ErrorAccountNotFound),
-		errors.Is(err, errx.ErrorAccountDeleted):
+		errors.Is(err, errx.ErrorUserNotFound),
+		errors.Is(err, errx.ErrorUserDeleted):
 		log.WithError(err).Warn("invalid login or password")
 		render.ResponseError(w, problems.Unauthorized())
 	case err != nil:
@@ -109,9 +109,9 @@ func (c *SessionController) LoginByGoogleOAuthCallback(w http.ResponseWriter, r 
 	defer c.metrics.RecordGoogleLogin(r.Context(), &err)
 	tokensPair, err := c.sessions.LoginByGoogle(r.Context(), userInfo.Email)
 	switch {
-	case errors.Is(err, errx.ErrorAccountNotFound),
-		errors.Is(err, errx.ErrorAccountDeleted):
-		log.WithError(err).Warn("account with this email not found")
+	case errors.Is(err, errx.ErrorUserNotFound),
+		errors.Is(err, errx.ErrorUserDeleted):
+		log.WithError(err).Warn("user with this email not found")
 		render.ResponseError(w, problems.NotFound("user with this email not found"))
 	case err != nil:
 		log.WithError(err).Error("unexpected error")
@@ -200,7 +200,7 @@ func (c *SessionController) QRConfirm(w http.ResponseWriter, r *http.Request) {
 
 	defer c.metrics.RecordQRLogin(r.Context(), &err)
 
-	pair, err := c.sessions.ConfirmQRToken(r.Context(), scope.AccountActor(r), qrToken)
+	pair, err := c.sessions.ConfirmQRToken(r.Context(), scope.UserActor(r), qrToken)
 	switch {
 	case errors.Is(err, errx.ErrorQRTokenNotFound):
 		log.WithError(err).Warn("qr token not found")

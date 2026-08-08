@@ -10,7 +10,7 @@ properties:
     properties:
       type:
         type: string
-        enum: [ account ]
+        enum: [ user ]
       attributes:
         type: object
         required:
@@ -21,15 +21,15 @@ properties:
           email:
             type: string
             format: email
-            description: The account's email address.
+            description: The user's email address.
             example: example1312@gmail.com
           password:
             type: string
             format: password
-            description: The account's password.
+            description: The user's password.
             example: StrongP@ssw0rd!
           role:
             type: string
-            description: The role assigned to the registering account.
+            description: The role assigned to the registering user.
             enum: [ admin, moderator ]
             example: admin

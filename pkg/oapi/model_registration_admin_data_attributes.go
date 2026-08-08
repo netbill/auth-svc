@@ -11,8 +11,8 @@ API version: 0.1.0
 package oapi
 
 import (
-	"encoding/json"
 	"bytes"
+	"encoding/json"
 	"fmt"
 )
 
@@ -21,11 +21,11 @@ var _ MappedNullable = &RegistrationAdminDataAttributes{}
 
 // RegistrationAdminDataAttributes struct for RegistrationAdminDataAttributes
 type RegistrationAdminDataAttributes struct {
-	// The account's email address.
+	// The user's email address.
 	Email string `json:"email"`
-	// The account's password.
+	// The user's password.
 	Password string `json:"password"`
-	// The role assigned to the registering account.
+	// The role assigned to the registering user.
 	Role string `json:"role"`
 }
 
@@ -124,7 +124,7 @@ func (o *RegistrationAdminDataAttributes) SetRole(v string) {
 }
 
 func (o RegistrationAdminDataAttributes) MarshalJSON() ([]byte, error) {
-	toSerialize,err := o.ToMap()
+	toSerialize, err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -154,10 +154,10 @@ func (o *RegistrationAdminDataAttributes) UnmarshalJSON(data []byte) (err error)
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err;
+		return err
 	}
 
-	for _, requiredProperty := range(requiredProperties) {
+	for _, requiredProperty := range requiredProperties {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}
@@ -213,5 +213,3 @@ func (v *NullableRegistrationAdminDataAttributes) UnmarshalJSON(src []byte) erro
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }
-
-

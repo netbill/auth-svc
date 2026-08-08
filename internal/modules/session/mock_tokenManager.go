@@ -16,9 +16,9 @@ type mockTokenManager struct {
 	mock.Mock
 }
 
-// GenerateAccess provides a mock function with given fields: account, sessionID
-func (_m *mockTokenManager) GenerateAccess(account models.Account, sessionID uuid.UUID) (string, error) {
-	ret := _m.Called(account, sessionID)
+// GenerateAccess provides a mock function with given fields: user, sessionID
+func (_m *mockTokenManager) GenerateAccess(user models.User, sessionID uuid.UUID) (string, error) {
+	ret := _m.Called(user, sessionID)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GenerateAccess")
@@ -26,17 +26,17 @@ func (_m *mockTokenManager) GenerateAccess(account models.Account, sessionID uui
 
 	var r0 string
 	var r1 error
-	if rf, ok := ret.Get(0).(func(models.Account, uuid.UUID) (string, error)); ok {
-		return rf(account, sessionID)
+	if rf, ok := ret.Get(0).(func(models.User, uuid.UUID) (string, error)); ok {
+		return rf(user, sessionID)
 	}
-	if rf, ok := ret.Get(0).(func(models.Account, uuid.UUID) string); ok {
-		r0 = rf(account, sessionID)
+	if rf, ok := ret.Get(0).(func(models.User, uuid.UUID) string); ok {
+		r0 = rf(user, sessionID)
 	} else {
 		r0 = ret.Get(0).(string)
 	}
 
-	if rf, ok := ret.Get(1).(func(models.Account, uuid.UUID) error); ok {
-		r1 = rf(account, sessionID)
+	if rf, ok := ret.Get(1).(func(models.User, uuid.UUID) error); ok {
+		r1 = rf(user, sessionID)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -44,9 +44,9 @@ func (_m *mockTokenManager) GenerateAccess(account models.Account, sessionID uui
 	return r0, r1
 }
 
-// GenerateRefresh provides a mock function with given fields: account, sessionID
-func (_m *mockTokenManager) GenerateRefresh(account models.Account, sessionID uuid.UUID) (string, error) {
-	ret := _m.Called(account, sessionID)
+// GenerateRefresh provides a mock function with given fields: user, sessionID
+func (_m *mockTokenManager) GenerateRefresh(user models.User, sessionID uuid.UUID) (string, error) {
+	ret := _m.Called(user, sessionID)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GenerateRefresh")
@@ -54,17 +54,17 @@ func (_m *mockTokenManager) GenerateRefresh(account models.Account, sessionID uu
 
 	var r0 string
 	var r1 error
-	if rf, ok := ret.Get(0).(func(models.Account, uuid.UUID) (string, error)); ok {
-		return rf(account, sessionID)
+	if rf, ok := ret.Get(0).(func(models.User, uuid.UUID) (string, error)); ok {
+		return rf(user, sessionID)
 	}
-	if rf, ok := ret.Get(0).(func(models.Account, uuid.UUID) string); ok {
-		r0 = rf(account, sessionID)
+	if rf, ok := ret.Get(0).(func(models.User, uuid.UUID) string); ok {
+		r0 = rf(user, sessionID)
 	} else {
 		r0 = ret.Get(0).(string)
 	}
 
-	if rf, ok := ret.Get(1).(func(models.Account, uuid.UUID) error); ok {
-		r1 = rf(account, sessionID)
+	if rf, ok := ret.Get(1).(func(models.User, uuid.UUID) error); ok {
+		r1 = rf(user, sessionID)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -100,12 +100,12 @@ func (_m *mockTokenManager) HashRefresh(token string) (string, error) {
 	return r0, r1
 }
 
-// ParseAccountAuthAccess provides a mock function with given fields: token
-func (_m *mockTokenManager) ParseAccountAuthAccess(token string) (tokens.AccountAuthClaims, error) {
+// ParseUserAuthAccess provides a mock function with given fields: token
+func (_m *mockTokenManager) ParseUserAuthAccess(token string) (tokens.AccountAuthClaims, error) {
 	ret := _m.Called(token)
 
 	if len(ret) == 0 {
-		panic("no return value specified for ParseAccountAuthAccess")
+		panic("no return value specified for ParseUserAuthAccess")
 	}
 
 	var r0 tokens.AccountAuthClaims
@@ -128,12 +128,12 @@ func (_m *mockTokenManager) ParseAccountAuthAccess(token string) (tokens.Account
 	return r0, r1
 }
 
-// ParseAccountAuthRefresh provides a mock function with given fields: token
-func (_m *mockTokenManager) ParseAccountAuthRefresh(token string) (tokens.AccountAuthClaims, error) {
+// ParseUserAuthRefresh provides a mock function with given fields: token
+func (_m *mockTokenManager) ParseUserAuthRefresh(token string) (tokens.AccountAuthClaims, error) {
 	ret := _m.Called(token)
 
 	if len(ret) == 0 {
-		panic("no return value specified for ParseAccountAuthRefresh")
+		panic("no return value specified for ParseUserAuthRefresh")
 	}
 
 	var r0 tokens.AccountAuthClaims

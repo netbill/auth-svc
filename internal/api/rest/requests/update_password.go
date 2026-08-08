@@ -16,7 +16,7 @@ func UpdatePassword(r *http.Request) (req oapi.UpdatePassword, err error) {
 	}
 
 	errs := validation.Errors{
-		"data/type":       validation.Validate(req.Data.Type, validation.Required, validation.In("account_password")),
+		"data/type":       validation.Validate(req.Data.Type, validation.Required, validation.In("user_password")),
 		"data/attributes": validation.Validate(req.Data.Attributes, validation.Required),
 	}
 

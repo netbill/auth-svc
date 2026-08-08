@@ -15,22 +15,22 @@ type mockEmailRepo struct {
 }
 
 // GetByEmail provides a mock function with given fields: ctx, email
-func (_m *mockEmailRepo) GetByEmail(ctx context.Context, email string) (models.AccountEmail, error) {
+func (_m *mockEmailRepo) GetByEmail(ctx context.Context, email string) (models.UserEmail, error) {
 	ret := _m.Called(ctx, email)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetByEmail")
 	}
 
-	var r0 models.AccountEmail
+	var r0 models.UserEmail
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, string) (models.AccountEmail, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, string) (models.UserEmail, error)); ok {
 		return rf(ctx, email)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, string) models.AccountEmail); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, string) models.UserEmail); ok {
 		r0 = rf(ctx, email)
 	} else {
-		r0 = ret.Get(0).(models.AccountEmail)
+		r0 = ret.Get(0).(models.UserEmail)
 	}
 
 	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {

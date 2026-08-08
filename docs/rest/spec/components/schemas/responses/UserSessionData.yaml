@@ -1,0 +1,15 @@
+type: object
+required:
+  - id
+  - type
+  - attributes
+properties:
+  id:
+    type: string
+    format: uuid
+    description: "session id"
+  type:
+    type: string
+    enum: [ user_session ]
+  attributes:
+    $ref: './UserSessionAttributes.yaml'

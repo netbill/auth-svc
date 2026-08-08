@@ -21,16 +21,16 @@ type Config struct {
 
 	Auth struct {
 		Tokens struct {
-			Issuer        string `yaml:"issuer"`
-			AccountAccess struct {
+			Issuer     string `yaml:"issuer"`
+			UserAccess struct {
 				SecretKey string        `yaml:"secret_key"`
 				TTL       time.Duration `yaml:"ttl"`
-			} `yaml:"account_access"`
-			AccountRefresh struct {
+			} `yaml:"user_access"`
+			UserRefresh struct {
 				SecretKey string        `yaml:"secret_key"`
 				HashKey   string        `yaml:"hash_key"`
 				TTL       time.Duration `yaml:"ttl"`
-			} `yaml:"account_refresh"`
+			} `yaml:"user_refresh"`
 		} `yaml:"tokens"`
 		PassBcryptCost int `yaml:"pass_bcrypt_cost"`
 	} `yaml:"auth"`

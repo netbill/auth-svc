@@ -28,47 +28,47 @@ func NewPasswordCache(client *redis.Client, ttl time.Duration, m passwordCacheMe
 	return &PasswordCache{client: client, ttl: ttl, metrics: m, log: log}
 }
 
-func passwordKey(accountID uuid.UUID) string {
-	return fmt.Sprintf("account:password:%s", accountID)
+func passwordKey(userID uuid.UUID) string {
+	return fmt.Sprintf("user:password:%s", userID)
 }
 
-func (c *PasswordCache) Set(ctx context.Context, password models.AccountPassword) error {
-	if err := c.client.JSONSet(ctx, passwordKey(password.AccountID), "$", password).Err(); err != nil {
-		c.log.WithError(err).Error("password cache set failed", "account_id", password.AccountID)
+func (c *PasswordCache) Set(ctx context.Context, password models.UserPassword) error {
+	if err := c.client.JSONSet(ctx, passwordKey(password.UserID), "$", password).Err(); err != nil {
+		c.log.WithError(err).Error("password cache set failed", "user_id", password.UserID)
 		return err
 	}
-	if err := c.client.Expire(ctx, passwordKey(password.AccountID), c.ttl).Err(); err != nil {
-		c.log.WithError(err).Error("password cache expire failed", "account_id", password.AccountID)
+	if err := c.client.Expire(ctx, passwordKey(password.UserID), c.ttl).Err(); err != nil {
+		c.log.WithError(err).Error("password cache expire failed", "user_id", password.UserID)
 		return err
 	}
 	return nil
 }
 
-func (c *PasswordCache) Get(ctx context.Context, accountID uuid.UUID) (models.AccountPassword, error) {
+func (c *PasswordCache) Get(ctx context.Context, userID uuid.UUID) (models.UserPassword, error) {
 	var err error
 	defer c.metrics.PasswordCacheOp(ctx, &err)
 
-	val, err := c.client.JSONGet(ctx, passwordKey(accountID), ".").Result()
+	val, err := c.client.JSONGet(ctx, passwordKey(userID), ".").Result()
 	switch {
 	case errors.Is(err, redis.Nil):
-		return models.AccountPassword{}, err
+		return models.UserPassword{}, err
 	case err != nil:
-		c.log.WithError(err).Error("password cache get failed", "account_id", accountID)
-		return models.AccountPassword{}, err
+		c.log.WithError(err).Error("password cache get failed", "user_id", userID)
+		return models.UserPassword{}, err
 	}
 
-	var password models.AccountPassword
+	var password models.UserPassword
 	if err = json.Unmarshal([]byte(val), &password); err != nil {
-		c.log.WithError(err).Error("password cache unmarshal failed", "account_id", accountID)
-		return models.AccountPassword{}, err
+		c.log.WithError(err).Error("password cache unmarshal failed", "user_id", userID)
+		return models.UserPassword{}, err
 	}
 
 	return password, nil
 }
 
-func (c *PasswordCache) Delete(ctx context.Context, accountID uuid.UUID) error {
-	if err := c.client.Del(ctx, passwordKey(accountID)).Err(); err != nil {
-		c.log.WithError(err).Error("password cache delete failed", "account_id", accountID)
+func (c *PasswordCache) Delete(ctx context.Context, userID uuid.UUID) error {
+	if err := c.client.Del(ctx, passwordKey(userID)).Err(); err != nil {
+		c.log.WithError(err).Error("password cache delete failed", "user_id", userID)
 		return err
 	}
 	return nil

@@ -15,32 +15,32 @@ type mockAuth struct {
 }
 
 // ValidateSession provides a mock function with given fields: ctx, actor
-func (_m *mockAuth) ValidateSession(ctx context.Context, actor models.AccountActor) (models.Account, models.Session, error) {
+func (_m *mockAuth) ValidateSession(ctx context.Context, actor models.UserActor) (models.User, models.Session, error) {
 	ret := _m.Called(ctx, actor)
 
 	if len(ret) == 0 {
 		panic("no return value specified for ValidateSession")
 	}
 
-	var r0 models.Account
+	var r0 models.User
 	var r1 models.Session
 	var r2 error
-	if rf, ok := ret.Get(0).(func(context.Context, models.AccountActor) (models.Account, models.Session, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, models.UserActor) (models.User, models.Session, error)); ok {
 		return rf(ctx, actor)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, models.AccountActor) models.Account); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, models.UserActor) models.User); ok {
 		r0 = rf(ctx, actor)
 	} else {
-		r0 = ret.Get(0).(models.Account)
+		r0 = ret.Get(0).(models.User)
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, models.AccountActor) models.Session); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, models.UserActor) models.Session); ok {
 		r1 = rf(ctx, actor)
 	} else {
 		r1 = ret.Get(1).(models.Session)
 	}
 
-	if rf, ok := ret.Get(2).(func(context.Context, models.AccountActor) error); ok {
+	if rf, ok := ret.Get(2).(func(context.Context, models.UserActor) error); ok {
 		r2 = rf(ctx, actor)
 	} else {
 		r2 = ret.Error(2)

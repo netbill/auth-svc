@@ -14,7 +14,7 @@ import (
 )
 
 var publicMethods = map[string]struct{}{
-	"/auth.v1.AccountService/CreateAccount": {},
+	"/auth.v1.UserService/CreateUser":       {},
 	"/auth.v1.SessionService/LoginByEmail":  {},
 	"/auth.v1.SessionService/LoginByGoogle": {},
 	"/auth.v1.SessionService/Refresh":       {},
@@ -22,7 +22,7 @@ var publicMethods = map[string]struct{}{
 }
 
 type TokenParser interface {
-	ParseAccountAuthAccess(tokenStr string) (tokens.AccountAuthClaims, error)
+	ParseUserAuthAccess(tokenStr string) (tokens.AccountAuthClaims, error)
 }
 
 func LogInterceptor(logger *log.Logger) grpc.UnaryServerInterceptor {
@@ -50,7 +50,7 @@ func AuthInterceptor(tokenMgr TokenParser) grpc.UnaryServerInterceptor {
 		}
 
 		tokenStr := strings.TrimPrefix(values[0], "Bearer ")
-		claims, err := tokenMgr.ParseAccountAuthAccess(tokenStr)
+		claims, err := tokenMgr.ParseUserAuthAccess(tokenStr)
 		if err != nil {
 			return nil, status.Error(codes.Unauthenticated, "invalid token")
 		}

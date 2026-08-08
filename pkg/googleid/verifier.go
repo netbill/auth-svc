@@ -19,8 +19,8 @@ import (
 )
 
 const (
-	issuerHTTPS = "https://accounts.google.com"
-	issuerBare  = "accounts.google.com"
+	issuerHTTPS = "https://users.google.com"
+	issuerBare  = "users.google.com"
 
 	keysTTL = time.Hour
 )
@@ -81,7 +81,7 @@ func (v *Verifier) Verify(ctx context.Context, idToken string) (string, error) {
 	}
 
 	if !c.EmailVerified {
-		return "", errors.New("google account email is not verified")
+		return "", errors.New("google user email is not verified")
 	}
 
 	if c.Email == "" {

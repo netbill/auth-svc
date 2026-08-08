@@ -71,22 +71,22 @@ All URIs are relative to *http://localhost:8001*
 
 Class | Method | HTTP request | Description
 ------------ | ------------- | ------------- | -------------
-*AccountsAPI* | [**AuthSvcV1MeDelete**](docs/AccountsAPI.md#authsvcv1medelete) | **Delete** /auth-svc/v1/me | Delete my account
-*AccountsAPI* | [**AuthSvcV1MeGet**](docs/AccountsAPI.md#authsvcv1meget) | **Get** /auth-svc/v1/me | Get my account
-*AccountsAPI* | [**AuthSvcV1MePasswordPatch**](docs/AccountsAPI.md#authsvcv1mepasswordpatch) | **Patch** /auth-svc/v1/me/password | Update password
 *LoginAPI* | [**AuthSvcV1LoginEmailPost**](docs/LoginAPI.md#authsvcv1loginemailpost) | **Post** /auth-svc/v1/login/email | Login by email
 *LoginAPI* | [**AuthSvcV1LoginGoogleCallbackGet**](docs/LoginAPI.md#authsvcv1logingooglecallbackget) | **Get** /auth-svc/v1/login/google/callback | Google OAuth callback
 *LoginAPI* | [**AuthSvcV1LoginGooglePost**](docs/LoginAPI.md#authsvcv1logingooglepost) | **Post** /auth-svc/v1/login/google | Start Google OAuth login
 *QrAPI* | [**AuthSvcV1LoginQrConfirmPost**](docs/QrAPI.md#authsvcv1loginqrconfirmpost) | **Post** /auth-svc/v1/login/qr/confirm | Confirm QR token
 *QrAPI* | [**AuthSvcV1LoginQrGet**](docs/QrAPI.md#authsvcv1loginqrget) | **Get** /auth-svc/v1/login/qr | Connect to QR login session
-*RegistrationAPI* | [**AuthSvcV1RegistrationAdminPost**](docs/RegistrationAPI.md#authsvcv1registrationadminpost) | **Post** /auth-svc/v1/registration/admin | Register a new admin account
-*RegistrationAPI* | [**AuthSvcV1RegistrationPost**](docs/RegistrationAPI.md#authsvcv1registrationpost) | **Post** /auth-svc/v1/registration/ | Register a new account
+*RegistrationAPI* | [**AuthSvcV1RegistrationAdminPost**](docs/RegistrationAPI.md#authsvcv1registrationadminpost) | **Post** /auth-svc/v1/registration/admin | Register a new admin user
+*RegistrationAPI* | [**AuthSvcV1RegistrationPost**](docs/RegistrationAPI.md#authsvcv1registrationpost) | **Post** /auth-svc/v1/registration/ | Register a new user
 *SessionsAPI* | [**AuthSvcV1MeLogoutPost**](docs/SessionsAPI.md#authsvcv1melogoutpost) | **Post** /auth-svc/v1/me/logout | Logout
 *SessionsAPI* | [**AuthSvcV1MeSessionsDelete**](docs/SessionsAPI.md#authsvcv1mesessionsdelete) | **Delete** /auth-svc/v1/me/sessions | Delete my sessions
 *SessionsAPI* | [**AuthSvcV1MeSessionsGet**](docs/SessionsAPI.md#authsvcv1mesessionsget) | **Get** /auth-svc/v1/me/sessions | Get my sessions
 *SessionsAPI* | [**AuthSvcV1MeSessionsSessionIdDelete**](docs/SessionsAPI.md#authsvcv1mesessionssessioniddelete) | **Delete** /auth-svc/v1/me/sessions/{session_id} | Delete my session
 *SessionsAPI* | [**AuthSvcV1MeSessionsSessionIdGet**](docs/SessionsAPI.md#authsvcv1mesessionssessionidget) | **Get** /auth-svc/v1/me/sessions/{session_id} | Get my session
 *SessionsAPI* | [**AuthSvcV1RefreshPost**](docs/SessionsAPI.md#authsvcv1refreshpost) | **Post** /auth-svc/v1/refresh | Refresh session
+*UsersAPI* | [**AuthSvcV1MeDelete**](docs/UsersAPI.md#authsvcv1medelete) | **Delete** /auth-svc/v1/me | Delete my user
+*UsersAPI* | [**AuthSvcV1MeGet**](docs/UsersAPI.md#authsvcv1meget) | **Get** /auth-svc/v1/me | Get my user
+*UsersAPI* | [**AuthSvcV1MePasswordPatch**](docs/UsersAPI.md#authsvcv1mepasswordpatch) | **Patch** /auth-svc/v1/me/password | Update password
 
 
 ## Documentation For Models
@@ -94,15 +94,6 @@ Class | Method | HTTP request | Description
  - [AccessToken](docs/AccessToken.md)
  - [AccessTokenData](docs/AccessTokenData.md)
  - [AccessTokenDataAttributes](docs/AccessTokenDataAttributes.md)
- - [Account](docs/Account.md)
- - [AccountData](docs/AccountData.md)
- - [AccountDataAttributes](docs/AccountDataAttributes.md)
- - [AccountEmail](docs/AccountEmail.md)
- - [AccountEmailAttributes](docs/AccountEmailAttributes.md)
- - [AccountSession](docs/AccountSession.md)
- - [AccountSessionAttributes](docs/AccountSessionAttributes.md)
- - [AccountSessionData](docs/AccountSessionData.md)
- - [AccountSessionsCollection](docs/AccountSessionsCollection.md)
  - [Errors](docs/Errors.md)
  - [ErrorsErrorsInner](docs/ErrorsErrorsInner.md)
  - [LoginByEmail](docs/LoginByEmail.md)
@@ -129,6 +120,15 @@ Class | Method | HTTP request | Description
  - [UpdatePassword](docs/UpdatePassword.md)
  - [UpdatePasswordData](docs/UpdatePasswordData.md)
  - [UpdatePasswordDataAttributes](docs/UpdatePasswordDataAttributes.md)
+ - [User](docs/User.md)
+ - [UserData](docs/UserData.md)
+ - [UserDataAttributes](docs/UserDataAttributes.md)
+ - [UserEmail](docs/UserEmail.md)
+ - [UserEmailAttributes](docs/UserEmailAttributes.md)
+ - [UserSession](docs/UserSession.md)
+ - [UserSessionAttributes](docs/UserSessionAttributes.md)
+ - [UserSessionData](docs/UserSessionData.md)
+ - [UserSessionsCollection](docs/UserSessionsCollection.md)
 
 
 ## Documentation For Authorization

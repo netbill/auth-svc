@@ -39,17 +39,17 @@ func (f *fakeQRSessions) Refresh(context.Context, string) (models.TokensPair, er
 	panic("not used by this test")
 }
 
-func (f *fakeQRSessions) GetMySession(context.Context, models.AccountActor, uuid.UUID) (models.Session, error) {
+func (f *fakeQRSessions) GetMySession(context.Context, models.UserActor, uuid.UUID) (models.Session, error) {
 	panic("not used by this test")
 }
 
 func (f *fakeQRSessions) GetMySessions(
-	context.Context, models.AccountActor, ...session.ListSessionsOption,
+	context.Context, models.UserActor, ...session.ListSessionsOption,
 ) (pagi.Page[[]models.Session], error) {
 	panic("not used by this test")
 }
 
-func (f *fakeQRSessions) ConfirmQRToken(context.Context, models.AccountActor, string) (models.TokensPair, error) {
+func (f *fakeQRSessions) ConfirmQRToken(context.Context, models.UserActor, string) (models.TokensPair, error) {
 	panic("not used by this test")
 }
 
@@ -57,15 +57,15 @@ func (f *fakeQRSessions) PublishQRToken(context.Context, string, []byte) error {
 	panic("not used by this test")
 }
 
-func (f *fakeQRSessions) Logout(context.Context, models.AccountActor) error {
+func (f *fakeQRSessions) Logout(context.Context, models.UserActor) error {
 	panic("not used by this test")
 }
 
-func (f *fakeQRSessions) DeleteMySession(context.Context, models.AccountActor, uuid.UUID) error {
+func (f *fakeQRSessions) DeleteMySession(context.Context, models.UserActor, uuid.UUID) error {
 	panic("not used by this test")
 }
 
-func (f *fakeQRSessions) DeleteMySessions(context.Context, models.AccountActor) error {
+func (f *fakeQRSessions) DeleteMySessions(context.Context, models.UserActor) error {
 	panic("not used by this test")
 }
 

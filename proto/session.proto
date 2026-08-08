@@ -17,14 +17,14 @@ service SessionService {
   // Returns a token pair on success.
   //
   // Errors:
-  //   UNAUTHENTICATED     — email not found, account deleted, or password is incorrect
+  //   UNAUTHENTICATED     — email not found, user deleted, or password is incorrect
   rpc LoginByEmail(LoginByEmailRequest) returns (LoginResponse);
 
   // LoginByGoogle authenticates a user via a Google ID token.
-  // The account must already exist with the email from the Google token.
+  // The user must already exist with the email from the Google token.
   //
   // Errors:
-  //   UNAUTHENTICATED     — account with this email not found or deleted
+  //   UNAUTHENTICATED     — user with this email not found or deleted
   rpc LoginByGoogle(LoginByGoogleRequest) returns (LoginResponse);
 
   // Refresh exchanges a valid refresh token for a new token pair.
@@ -34,14 +34,14 @@ service SessionService {
   //   UNAUTHENTICATED     — refresh token is expired, invalid, mismatched, or session not found
   rpc Refresh(RefreshRequest) returns (LoginResponse);
 
-  // GetMySession returns a specific session belonging to the authenticated account.
+  // GetMySession returns a specific session belonging to the authenticated user.
   //
   // Errors:
   //   INVALID_ARGUMENT    — session_id is not a valid UUID
-  //   NOT_FOUND           — session not found or does not belong to this account
+  //   NOT_FOUND           — session not found or does not belong to this user
   rpc GetMySession(GetMySessionRequest) returns (GetMySessionResponse);
 
-  // GetMySessions returns a paginated list of sessions for the authenticated account.
+  // GetMySessions returns a paginated list of sessions for the authenticated user.
   // Supports filtering by active/deleted status and sorting by last_used timestamp.
   //
   // Errors:
@@ -55,15 +55,15 @@ service SessionService {
   //   INTERNAL            — unexpected server error
   rpc Logout(LogoutRequest) returns (google.protobuf.Empty);
 
-  // DeleteMySession terminates a specific session belonging to the authenticated account.
+  // DeleteMySession terminates a specific session belonging to the authenticated user.
   //
   // Errors:
   //   INVALID_ARGUMENT    — session_id is not a valid UUID
   //   NOT_FOUND           — session not found
-  //   UNAUTHENTICATED     — session does not belong to this account
+  //   UNAUTHENTICATED     — session does not belong to this user
   rpc DeleteMySession(DeleteMySessionRequest) returns (google.protobuf.Empty);
 
-  // DeleteMySessions terminates all sessions of the authenticated account.
+  // DeleteMySessions terminates all sessions of the authenticated user.
   //
   // Errors:
   //   UNAUTHENTICATED     — session is invalid or expired

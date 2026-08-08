@@ -37,17 +37,17 @@ internal/
 
   api/
     rest/                chi-роутер, контроллеры, request/response мапперы, middleware
-      controller/           SessionController (login/QR/sessions), AccountController
+      controller/           SessionController (login/QR/sessions), UserController
       requests/, responses/ парсинг запросов и сборка oapi.*-моделей (JSON:API)
-      middlewares/          AccountAuth (JWT), CORS, Logger
+      middlewares/          UserAuth (JWT), CORS, Logger
       scope/                контекст запроса (логгер, актор из JWT)
     grpc/                 gRPC-сервер, интерцепторы, контроллеры (свой набор, не REST!)
-      controller/           AccountServer, SessionServer, AuthServer
+      controller/           UserServer, SessionServer, AuthServer
       interceptors/         Log, Auth
       scope/, reponses/     аналоги REST-scope/responses для gRPC
 
   modules/               бизнес-логика, транспорт-агностична
-    account/                 регистрация, профиль, смена пароля, удаление
+    user/                 регистрация, профиль, смена пароля, удаление
     session/                 логин (email/google/qr), сессии, refresh, QR-токены
     auth/                    ValidateSession — общий для REST и gRPC гейт авторизации
 
@@ -58,7 +58,7 @@ internal/
 
   bus/                   Redis pub/sub обёртка (только для QR-логина, не для outbox)
   errx/                  декларативные доменные ошибки (via netbill/ape)
-  models/                доменные модели (Account, Session, TokensPair, ...)
+  models/                доменные модели (User, Session, TokensPair, ...)
   observability/         metrics/ (Prometheus), telemetry/ (OTel init)
 
 pkg/                     переиспользуемые, не завязанные на internal-домен пакеты
@@ -93,7 +93,7 @@ flowchart LR
     end
 
     subgraph Modules["internal/modules — бизнес-логика"]
-        Account["account.Service"]
+        User["user.Service"]
         Session["session.Service"]
         Auth["auth.Service<br/>(ValidateSession)"]
     end
@@ -103,23 +103,23 @@ flowchart LR
         Redis[("Redis<br/>cache + pub/sub")]
     end
 
-    REST --> Account
+    REST --> User
     REST --> Session
-    GRPC --> Account
+    GRPC --> User
     GRPC --> Session
     SSE --> Session
     REST -. auth middleware .-> Auth
     GRPC -. auth interceptor .-> Auth
 
-    Account --> PG
+    User --> PG
     Session --> PG
     Auth --> PG
-    Account -. cache-aside .-> Redis
+    User -. cache-aside .-> Redis
     Session -. cache-aside .-> Redis
     Session -. QR pub/sub .-> Redis
 
-    Account -->|outbox tx| PG
-    PG -->|Debezium, вне репо| Kafka[("Kafka<br/>accounts.v1")]
+    User -->|outbox tx| PG
+    PG -->|Debezium, вне репо| Kafka[("Kafka<br/>users.v1")]
 ```
 
 Важно: у REST и gRPC **разные** контроллеры (`internal/api/rest/controller` и
@@ -173,7 +173,7 @@ TTL QR-токена — один источник правды, `session.QRToken
 ### Transactional outbox → Kafka
 
 `internal/repo/pg/outbox.go` пишет в таблицу `outbox_events` **в той же транзакции**, что
-и сама бизнес-операция (см. `account.Service.Registration`) — исключает рассинхрон
+и сама бизнес-операция (см. `user.Service.Registration`) — исключает рассинхрон
 "аккаунт создан, событие потеряно". Дальше по плану — Debezium читает WAL (поэтому у
 Postgres `wal_level=logical`) и публикует в Kafka. **В этом репозитории Debezium/Kafka не
 подняты** — `outbox_events` копится, но никуда не уезжает, пока эта инфраструктура не
@@ -207,8 +207,8 @@ Postgres `wal_level=logical`) и публикует в Kafka. **В этом ре
 
 Только env-переменные, никакого YAML-файла (см. `internal/build/config/config.go`).
 Обязательные (паника при отсутствии): `DATABASE_SQL_URL`, `REDIS_ADDR`,
-`AUTH_TOKENS_ACCOUNT_ACCESS_SECRET_KEY`, `AUTH_TOKENS_ACCOUNT_REFRESH_SECRET_KEY`,
-`AUTH_TOKENS_ACCOUNT_REFRESH_HASH_KEY`. Всё остальное — опционально, дефолты и полный
+`AUTH_TOKENS_USER_ACCESS_SECRET_KEY`, `AUTH_TOKENS_USER_REFRESH_SECRET_KEY`,
+`AUTH_TOKENS_USER_REFRESH_HASH_KEY`. Всё остальное — опционально, дефолты и полный
 список — в `.env.example`.
 
 ## Известные пробелы (актуально на момент написания)

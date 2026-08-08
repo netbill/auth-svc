@@ -20,22 +20,22 @@ func (s *Service) LoginByEmail(
 		return models.TokensPair{}, err
 	}
 
-	account, err := s.accountRepo.GetByID(ctx, emailRecord.AccountID)
+	user, err := s.userRepo.GetByID(ctx, emailRecord.UserID)
 	if err != nil {
 		return models.TokensPair{}, err
 	}
 
-	if err = s.checkPassword(ctx, account.ID, password); err != nil {
+	if err = s.checkPassword(ctx, user.ID, password); err != nil {
 		return models.TokensPair{}, err
 	}
 
-	return s.createSession(ctx, account)
+	return s.createSession(ctx, user)
 }
 
-func (s *Service) checkPassword(ctx context.Context, accountID uuid.UUID, password string) error {
-	pwd, err := s.passwordCache.Get(ctx, accountID)
+func (s *Service) checkPassword(ctx context.Context, userID uuid.UUID, password string) error {
+	pwd, err := s.passwordCache.Get(ctx, userID)
 	if err != nil {
-		pwd, err = s.passwordRepo.GetByID(ctx, accountID)
+		pwd, err = s.passwordRepo.GetByID(ctx, userID)
 		if err != nil {
 			return err
 		}
@@ -55,21 +55,21 @@ func (s *Service) LoginByGoogle(
 		return models.TokensPair{}, err
 	}
 
-	account, err := s.accountRepo.GetByID(ctx, emailRecord.AccountID)
+	user, err := s.userRepo.GetByID(ctx, emailRecord.UserID)
 	if err != nil {
 		return models.TokensPair{}, err
 	}
 
-	return s.createSession(ctx, account)
+	return s.createSession(ctx, user)
 }
 
 func (s *Service) createSession(
 	ctx context.Context,
-	account models.Account,
+	user models.User,
 ) (models.TokensPair, error) {
 	sessionID := uuid.New()
 
-	refreshToken, err := s.tokenManager.GenerateRefresh(account, sessionID)
+	refreshToken, err := s.tokenManager.GenerateRefresh(user, sessionID)
 	if err != nil {
 		return models.TokensPair{}, err
 	}
@@ -81,19 +81,19 @@ func (s *Service) createSession(
 
 	var session models.Session
 	if err = s.tx.Transaction(ctx, func(ctx context.Context) error {
-		session, err = s.sessionRepo.Create(ctx, sessionID, account.ID, hashToken)
+		session, err = s.sessionRepo.Create(ctx, sessionID, user.ID, hashToken)
 		return err
 	}); err != nil {
 		return models.TokensPair{}, err
 	}
 
-	accessToken, err := s.tokenManager.GenerateAccess(account, session.ID)
+	accessToken, err := s.tokenManager.GenerateAccess(user, session.ID)
 	if err != nil {
 		return models.TokensPair{}, err
 	}
 
 	detached := context.WithoutCancel(ctx)
-	go s.accountCache.Set(detached, account)
+	go s.userCache.Set(detached, user)
 	go s.sessionsCache.Set(detached, session)
 
 	return models.TokensPair{
@@ -127,7 +127,7 @@ func (s *Service) CreateQRToken(ctx context.Context) (string, error) {
 
 func (s *Service) ConfirmQRToken(
 	ctx context.Context,
-	actor models.AccountActor,
+	actor models.UserActor,
 	qrToken string,
 ) (models.TokensPair, error) {
 	status, err := s.qrRepo.Get(ctx, qrToken)
@@ -144,12 +144,12 @@ func (s *Service) ConfirmQRToken(
 		)
 	}
 
-	account, err := s.accountRepo.GetByID(ctx, actor.ID)
+	user, err := s.userRepo.GetByID(ctx, actor.ID)
 	if err != nil {
 		return models.TokensPair{}, err
 	}
 
-	pair, err := s.createSession(ctx, account)
+	pair, err := s.createSession(ctx, user)
 	if err != nil {
 		return models.TokensPair{}, err
 	}

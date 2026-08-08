@@ -19,7 +19,7 @@ func TestSessionCache_SetAndGetByID(t *testing.T) {
 
 	sess := models.Session{
 		ID:        testutil.RandomUUID(),
-		AccountID: testutil.RandomUUID(),
+		UserID:    testutil.RandomUUID(),
 		Version:   1,
 		CreatedAt: time.Now().UTC().Truncate(time.Second),
 		LastUsed:  time.Now().UTC().Truncate(time.Second),
@@ -31,7 +31,7 @@ func TestSessionCache_SetAndGetByID(t *testing.T) {
 	got, err := cache.Get(ctx, sess.ID)
 	require.NoError(t, err)
 	assert.Equal(t, sess.ID, got.ID)
-	assert.Equal(t, sess.AccountID, got.AccountID)
+	assert.Equal(t, sess.UserID, got.UserID)
 }
 
 func TestSessionCache_GetByID_Miss(t *testing.T) {
@@ -49,9 +49,9 @@ func TestSessionCache_DeleteByID(t *testing.T) {
 	ctx := context.Background()
 
 	sess := models.Session{
-		ID:        testutil.RandomUUID(),
-		AccountID: testutil.RandomUUID(),
-		Version:   1,
+		ID:      testutil.RandomUUID(),
+		UserID:  testutil.RandomUUID(),
+		Version: 1,
 	}
 
 	err := cache.Set(ctx, sess)
@@ -79,20 +79,20 @@ func TestSessionCache_MultipleSessions(t *testing.T) {
 	cache := newSessionCache(t)
 	ctx := context.Background()
 
-	accountID := testutil.RandomUUID()
-	sess1 := models.Session{ID: testutil.RandomUUID(), AccountID: accountID, Version: 1}
-	sess2 := models.Session{ID: testutil.RandomUUID(), AccountID: accountID, Version: 1}
+	userID := testutil.RandomUUID()
+	sess1 := models.Session{ID: testutil.RandomUUID(), UserID: userID, Version: 1}
+	sess2 := models.Session{ID: testutil.RandomUUID(), UserID: userID, Version: 1}
 
 	require.NoError(t, cache.Set(ctx, sess1))
 	require.NoError(t, cache.Set(ctx, sess2))
 
 	got1, err := cache.Get(ctx, sess1.ID)
 	require.NoError(t, err)
-	assert.Equal(t, accountID, got1.AccountID)
+	assert.Equal(t, userID, got1.UserID)
 
 	got2, err := cache.Get(ctx, sess2.ID)
 	require.NoError(t, err)
-	assert.Equal(t, accountID, got2.AccountID)
+	assert.Equal(t, userID, got2.UserID)
 
 	// Delete one — the other should survive
 	require.NoError(t, cache.Delete(ctx, sess1.ID))

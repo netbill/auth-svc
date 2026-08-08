@@ -27,25 +27,25 @@ type sessionCore interface {
 
 	Refresh(ctx context.Context, oldRefreshToken string) (models.TokensPair, error)
 
-	GetMySession(ctx context.Context, actor models.AccountActor, sessionID uuid.UUID) (models.Session, error)
+	GetMySession(ctx context.Context, actor models.UserActor, sessionID uuid.UUID) (models.Session, error)
 	GetMySessions(
 		ctx context.Context,
-		actor models.AccountActor,
+		actor models.UserActor,
 		opts ...session.ListSessionsOption,
 	) (pagi.Page[[]models.Session], error)
 
 	CreateQRToken(ctx context.Context) (string, error)
 	ConfirmQRToken(
 		ctx context.Context,
-		actor models.AccountActor,
+		actor models.UserActor,
 		qrToken string,
 	) (models.TokensPair, error)
 
 	PublishQRToken(ctx context.Context, key string, payload []byte) error
 
-	Logout(ctx context.Context, actor models.AccountActor) error
-	DeleteMySession(ctx context.Context, actor models.AccountActor, sessionID uuid.UUID) error
-	DeleteMySessions(ctx context.Context, actor models.AccountActor) error
+	Logout(ctx context.Context, actor models.UserActor) error
+	DeleteMySession(ctx context.Context, actor models.UserActor, sessionID uuid.UUID) error
+	DeleteMySessions(ctx context.Context, actor models.UserActor) error
 }
 
 type SessionMetrics interface {
@@ -103,7 +103,7 @@ func (c *SessionController) GetMySession(w http.ResponseWriter, r *http.Request)
 
 	log = log.WithField("target_session_id", sessionID)
 
-	s, err := c.sessions.GetMySession(r.Context(), scope.AccountActor(r), sessionID)
+	s, err := c.sessions.GetMySession(r.Context(), scope.UserActor(r), sessionID)
 	switch {
 	case errors.Is(err, errx.ErrorSessionNotFound):
 		log.WithError(err).Warn("session not found")
@@ -113,7 +113,7 @@ func (c *SessionController) GetMySession(w http.ResponseWriter, r *http.Request)
 		render.ResponseError(w, problems.InternalError())
 	default:
 		log.Info("session retrieved")
-		render.Response(w, http.StatusOK, responses.AccountSession(s))
+		render.Response(w, http.StatusOK, responses.UserSession(s))
 	}
 }
 
@@ -145,14 +145,14 @@ func (c *SessionController) GetMySessions(w http.ResponseWriter, r *http.Request
 		opts = append(opts, session.WithLastUsedOrder(session.LastUsedDesc))
 	}
 
-	sessions, err := c.sessions.GetMySessions(r.Context(), scope.AccountActor(r), opts...)
+	sessions, err := c.sessions.GetMySessions(r.Context(), scope.UserActor(r), opts...)
 	switch {
 	case err != nil:
 		log.WithError(err).Error("unexpected error")
 		render.ResponseError(w, problems.InternalError())
 	default:
 		log.Info("sessions retrieved")
-		render.Response(w, http.StatusOK, responses.AccountSessionsCollection(r, sessions))
+		render.Response(w, http.StatusOK, responses.UserSessionsCollection(r, sessions))
 	}
 }
 
@@ -175,8 +175,8 @@ func (c *SessionController) RefreshSession(w http.ResponseWriter, r *http.Reques
 	case errors.Is(err, errx.ErrorSessionExpired):
 		log.WithError(err).Warn("refresh token expired")
 		render.ResponseError(w, problems.Unauthorized())
-	case errors.Is(err, errx.ErrorAccountNotFound):
-		log.WithError(err).Warn("account not found")
+	case errors.Is(err, errx.ErrorUserNotFound):
+		log.WithError(err).Warn("user not found")
 		render.ResponseError(w, problems.Unauthorized())
 	case errors.Is(err, errx.ErrorSessionNotFound):
 		log.WithError(err).Warn("session not found")
@@ -214,9 +214,9 @@ func (c *SessionController) DeleteMySession(w http.ResponseWriter, r *http.Reque
 
 	defer c.metrics.RecordSessionDeleted(r.Context(), "single", &err)
 
-	err = c.sessions.DeleteMySession(r.Context(), scope.AccountActor(r), sessionID)
+	err = c.sessions.DeleteMySession(r.Context(), scope.UserActor(r), sessionID)
 	switch {
-	case errors.Is(err, errx.ErrorAccountInvalidSession):
+	case errors.Is(err, errx.ErrorUserInvalidSession):
 		log.WithError(err).Warn("invalid credentials")
 		render.ResponseError(w, problems.Unauthorized())
 	case errors.Is(err, errx.ErrorSessionNotFound):
@@ -239,9 +239,9 @@ func (c *SessionController) DeleteMySessions(w http.ResponseWriter, r *http.Requ
 	var err error
 	defer c.metrics.RecordSessionDeleted(r.Context(), "all", &err)
 
-	err = c.sessions.DeleteMySessions(r.Context(), scope.AccountActor(r))
+	err = c.sessions.DeleteMySessions(r.Context(), scope.UserActor(r))
 	switch {
-	case errors.Is(err, errx.ErrorAccountInvalidSession),
+	case errors.Is(err, errx.ErrorUserInvalidSession),
 		errors.Is(err, errx.ErrorSessionNotFound):
 		log.WithError(err).Warn("invalid credentials")
 		render.ResponseError(w, problems.Unauthorized())
@@ -259,7 +259,7 @@ const operationLogout = "logout"
 func (c *SessionController) Logout(w http.ResponseWriter, r *http.Request) {
 	log := scope.Log(r).WithOperation(operationLogout)
 
-	err := c.sessions.Logout(r.Context(), scope.AccountActor(r))
+	err := c.sessions.Logout(r.Context(), scope.UserActor(r))
 	switch {
 	case errors.Is(err, errx.ErrorSessionNotFound):
 		// already logged out — treat as success

@@ -6,12 +6,12 @@ option go_package = "github.com/netbill/auth-svc/proto/pb;pb";
 
 import "google/protobuf/timestamp.proto";
 
-// Account represents a user account.
-message Account {
-  // Unique account identifier (UUID).
+// User represents a user.
+message User {
+  // Unique user identifier (UUID).
   string id = 1;
 
-  // Account role. Possible values: "user", "system_admin".
+  // User role. Possible values: "user", "system_admin".
   string role = 3;
 
   // Optimistic concurrency version. Incremented on each update.
@@ -20,14 +20,14 @@ message Account {
   google.protobuf.Timestamp created_at = 5;
   google.protobuf.Timestamp updated_at = 6;
 
-  // Set when the account is soft-deleted.
+  // Set when the user is soft-deleted.
   optional google.protobuf.Timestamp deleted_at = 7;
 }
 
-// AccountEmail represents the primary email address of an account.
-message AccountEmail {
-  // UUID of the owning account.
-  string account_id = 1;
+// UserEmail represents the primary email address of a user.
+message UserEmail {
+  // UUID of the owning user.
+  string user_id = 1;
 
   string email = 2;
 
@@ -40,7 +40,7 @@ message AccountEmail {
   google.protobuf.Timestamp created_at = 5;
   google.protobuf.Timestamp updated_at = 6;
 
-  // Set when the email is soft-deleted (cascades from account deletion).
+  // Set when the email is soft-deleted (cascades from user deletion).
   optional google.protobuf.Timestamp deleted_at = 7;
 }
 
@@ -49,8 +49,8 @@ message Session {
   // Unique session identifier (UUID).
   string id = 1;
 
-  // UUID of the owning account.
-  string account_id = 2;
+  // UUID of the owning user.
+  string user_id = 2;
 
   // Optimistic concurrency version.
   int32 version = 3;

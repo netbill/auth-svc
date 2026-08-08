@@ -4,16 +4,16 @@ All URIs are relative to *http://localhost:8001*
 
 Method | HTTP request | Description
 ------------- | ------------- | -------------
-[**AuthSvcV1RegistrationAdminPost**](RegistrationAPI.md#AuthSvcV1RegistrationAdminPost) | **Post** /auth-svc/v1/registration/admin | Register a new admin account
-[**AuthSvcV1RegistrationPost**](RegistrationAPI.md#AuthSvcV1RegistrationPost) | **Post** /auth-svc/v1/registration/ | Register a new account
+[**AuthSvcV1RegistrationAdminPost**](RegistrationAPI.md#AuthSvcV1RegistrationAdminPost) | **Post** /auth-svc/v1/registration/admin | Register a new admin user
+[**AuthSvcV1RegistrationPost**](RegistrationAPI.md#AuthSvcV1RegistrationPost) | **Post** /auth-svc/v1/registration/ | Register a new user
 
 
 
 ## AuthSvcV1RegistrationAdminPost
 
-> Account AuthSvcV1RegistrationAdminPost(ctx).RegistrationAdmin(registrationAdmin).Execute()
+> User AuthSvcV1RegistrationAdminPost(ctx).RegistrationAdmin(registrationAdmin).Execute()
 
-Register a new admin account
+Register a new admin user
 
 
 
@@ -39,7 +39,7 @@ func main() {
 		fmt.Fprintf(os.Stderr, "Error when calling `RegistrationAPI.AuthSvcV1RegistrationAdminPost``: %v\n", err)
 		fmt.Fprintf(os.Stderr, "Full HTTP response: %v\n", r)
 	}
-	// response from `AuthSvcV1RegistrationAdminPost`: Account
+	// response from `AuthSvcV1RegistrationAdminPost`: User
 	fmt.Fprintf(os.Stdout, "Response from `RegistrationAPI.AuthSvcV1RegistrationAdminPost`: %v\n", resp)
 }
 ```
@@ -59,7 +59,7 @@ Name | Type | Description  | Notes
 
 ### Return type
 
-[**Account**](Account.md)
+[**User**](User.md)
 
 ### Authorization
 
@@ -79,7 +79,7 @@ Name | Type | Description  | Notes
 
 > AuthSvcV1RegistrationPost(ctx).Registration(registration).Execute()
 
-Register a new account
+Register a new user
 
 
 

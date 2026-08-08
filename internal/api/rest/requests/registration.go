@@ -19,7 +19,7 @@ func Registration(r *http.Request) (req oapi.Registration, err error) {
 	}
 
 	errs := validation.Errors{
-		"data/type":       validation.Validate(req.Data.Type, validation.Required, validation.In("account")),
+		"data/type":       validation.Validate(req.Data.Type, validation.Required, validation.In("user")),
 		"data/attributes": validation.Validate(req.Data.Attributes, validation.Required),
 		"data/attributes/email": validation.Validate(
 			req.Data.Attributes.Email, validation.Required, validation.Length(5, 255),
@@ -38,7 +38,7 @@ func RegistrationAdmin(r *http.Request) (req oapi.RegistrationAdmin, err error) 
 	}
 
 	errs := validation.Errors{
-		"data/type":       validation.Validate(req.Data.Type, validation.Required, validation.In("account")),
+		"data/type":       validation.Validate(req.Data.Type, validation.Required, validation.In("user")),
 		"data/attributes": validation.Validate(req.Data.Attributes, validation.Required),
 		"data/attributes/email": validation.Validate(
 			req.Data.Attributes.Email, validation.Required, validation.Length(5, 255), is.Email),

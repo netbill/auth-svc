@@ -4,8 +4,8 @@
 
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-**OldPassword** | **string** | The account&#39;s current password. | 
-**NewPassword** | **string** | The account&#39;s password. | 
+**OldPassword** | **string** | The user&#39;s current password. | 
+**NewPassword** | **string** | The user&#39;s password. | 
 
 ## Methods
 

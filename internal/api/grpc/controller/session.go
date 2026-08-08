@@ -21,11 +21,11 @@ type SessionCore interface {
 	LoginByEmail(ctx context.Context, email, password string) (models.TokensPair, error)
 	LoginByGoogle(ctx context.Context, email string) (models.TokensPair, error)
 	Refresh(ctx context.Context, oldRefreshToken string) (models.TokensPair, error)
-	GetMySession(ctx context.Context, actor models.AccountActor, sessionID uuid.UUID) (models.Session, error)
-	GetMySessions(ctx context.Context, actor models.AccountActor, opts ...session.ListSessionsOption) (pagi.Page[[]models.Session], error)
-	Logout(ctx context.Context, actor models.AccountActor) error
-	DeleteMySession(ctx context.Context, actor models.AccountActor, sessionID uuid.UUID) error
-	DeleteMySessions(ctx context.Context, actor models.AccountActor) error
+	GetMySession(ctx context.Context, actor models.UserActor, sessionID uuid.UUID) (models.Session, error)
+	GetMySessions(ctx context.Context, actor models.UserActor, opts ...session.ListSessionsOption) (pagi.Page[[]models.Session], error)
+	Logout(ctx context.Context, actor models.UserActor) error
+	DeleteMySession(ctx context.Context, actor models.UserActor, sessionID uuid.UUID) error
+	DeleteMySessions(ctx context.Context, actor models.UserActor) error
 }
 
 type SessionMetrics interface {
@@ -60,9 +60,9 @@ func (s *SessionServer) LoginByEmail(ctx context.Context, req *pb.LoginByEmailRe
 
 	pair, err := s.sessions.LoginByEmail(ctx, req.Email, req.Password)
 	switch {
-	case errors.Is(err, errx.ErrorAccountNotFound),
-		errors.Is(err, errx.ErrorAccountDeleted):
-		log.Warn("account not found", "error", err)
+	case errors.Is(err, errx.ErrorUserNotFound),
+		errors.Is(err, errx.ErrorUserDeleted):
+		log.Warn("user not found", "error", err)
 		return nil, status.Error(codes.Unauthenticated, "invalid credentials")
 	case errors.Is(err, errx.ErrorPasswordInvalid):
 		log.Warn("invalid password", "error", err)
@@ -90,9 +90,9 @@ func (s *SessionServer) LoginByGoogle(ctx context.Context, req *pb.LoginByGoogle
 
 	pair, err := s.sessions.LoginByGoogle(ctx, email)
 	switch {
-	case errors.Is(err, errx.ErrorAccountNotFound),
-		errors.Is(err, errx.ErrorAccountDeleted):
-		log.Warn("account not found", "error", err)
+	case errors.Is(err, errx.ErrorUserNotFound),
+		errors.Is(err, errx.ErrorUserDeleted):
+		log.Warn("user not found", "error", err)
 		return nil, status.Error(codes.Unauthenticated, "invalid credentials")
 	case err != nil:
 		log.Error("unexpected error", "error", err)
@@ -114,7 +114,7 @@ func (s *SessionServer) Refresh(ctx context.Context, req *pb.RefreshRequest) (_ 
 	case errors.Is(err, errx.ErrorSessionExpired),
 		errors.Is(err, errx.ErrorSessionTokenMismatch),
 		errors.Is(err, errx.ErrorSessionNotFound),
-		errors.Is(err, errx.ErrorAccountNotFound):
+		errors.Is(err, errx.ErrorUserNotFound):
 		log.Warn("invalid refresh token", "error", err)
 		return nil, status.Error(codes.Unauthenticated, "invalid refresh token")
 	case err != nil:
@@ -137,7 +137,7 @@ func (s *SessionServer) GetMySession(ctx context.Context, req *pb.GetMySessionRe
 		return nil, status.Error(codes.InvalidArgument, "invalid session_id")
 	}
 
-	sess, err := s.sessions.GetMySession(ctx, scope.AccountActor(ctx), sessionID)
+	sess, err := s.sessions.GetMySession(ctx, scope.UserActor(ctx), sessionID)
 	switch {
 	case errors.Is(err, errx.ErrorSessionNotFound),
 		errors.Is(err, errx.ErrorSessionDeleted):
@@ -174,7 +174,7 @@ func (s *SessionServer) GetMySessions(ctx context.Context, req *pb.GetMySessions
 		session.WithLastUsedOrder(pbToLastUsedOrder(req.Order)),
 	}
 
-	result, err := s.sessions.GetMySessions(ctx, scope.AccountActor(ctx), opts...)
+	result, err := s.sessions.GetMySessions(ctx, scope.UserActor(ctx), opts...)
 	switch {
 	case err != nil:
 		log.Error("unexpected error", "error", err)
@@ -204,7 +204,7 @@ const operationLogout = "logout"
 func (s *SessionServer) Logout(ctx context.Context, _ *pb.LogoutRequest) (*emptypb.Empty, error) {
 	log := scope.Log(ctx).WithOperation(operationLogout)
 
-	err := s.sessions.Logout(ctx, scope.AccountActor(ctx))
+	err := s.sessions.Logout(ctx, scope.UserActor(ctx))
 	switch {
 	case errors.Is(err, errx.ErrorSessionNotFound):
 		log.Debug("session already deleted, treating as success")
@@ -229,12 +229,12 @@ func (s *SessionServer) DeleteMySession(ctx context.Context, req *pb.DeleteMySes
 		return nil, status.Error(codes.InvalidArgument, "invalid session_id")
 	}
 
-	err = s.sessions.DeleteMySession(ctx, scope.AccountActor(ctx), sessionID)
+	err = s.sessions.DeleteMySession(ctx, scope.UserActor(ctx), sessionID)
 	switch {
 	case errors.Is(err, errx.ErrorSessionNotFound):
 		log.Warn("session not found", "error", err)
 		return nil, status.Error(codes.NotFound, "session not found")
-	case errors.Is(err, errx.ErrorAccountInvalidSession):
+	case errors.Is(err, errx.ErrorUserInvalidSession):
 		log.Warn("invalid session", "error", err)
 		return nil, status.Error(codes.Unauthenticated, "invalid session")
 	case err != nil:
@@ -251,9 +251,9 @@ const operationDeleteMySessions = "delete_my_sessions"
 func (s *SessionServer) DeleteMySessions(ctx context.Context, _ *pb.DeleteMySessionsRequest) (*emptypb.Empty, error) {
 	log := scope.Log(ctx).WithOperation(operationDeleteMySessions)
 
-	err := s.sessions.DeleteMySessions(ctx, scope.AccountActor(ctx))
+	err := s.sessions.DeleteMySessions(ctx, scope.UserActor(ctx))
 	switch {
-	case errors.Is(err, errx.ErrorAccountInvalidSession),
+	case errors.Is(err, errx.ErrorUserInvalidSession),
 		errors.Is(err, errx.ErrorSessionNotFound):
 		log.Warn("invalid session", "error", err)
 		return nil, status.Error(codes.Unauthenticated, "invalid session")

@@ -11,10 +11,10 @@ API version: 0.1.0
 package oapi
 
 import (
-	"encoding/json"
-	"github.com/google/uuid"
 	"bytes"
+	"encoding/json"
 	"fmt"
+	"github.com/google/uuid"
 )
 
 // checks if the QRTokenDataAttributes type satisfies the MappedNullable interface at compile time
@@ -22,7 +22,7 @@ var _ MappedNullable = &QRTokenDataAttributes{}
 
 // QRTokenDataAttributes struct for QRTokenDataAttributes
 type QRTokenDataAttributes struct {
-	// Token to render as a QR code. Send it back via POST /auth-svc/v1/login/qr/confirm to complete the login. 
+	// Token to render as a QR code. Send it back via POST /auth-svc/v1/login/qr/confirm to complete the login.
 	QrToken uuid.UUID `json:"qr_token"`
 }
 
@@ -71,7 +71,7 @@ func (o *QRTokenDataAttributes) SetQrToken(v uuid.UUID) {
 }
 
 func (o QRTokenDataAttributes) MarshalJSON() ([]byte, error) {
-	toSerialize,err := o.ToMap()
+	toSerialize, err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -97,10 +97,10 @@ func (o *QRTokenDataAttributes) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err;
+		return err
 	}
 
-	for _, requiredProperty := range(requiredProperties) {
+	for _, requiredProperty := range requiredProperties {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}
@@ -156,5 +156,3 @@ func (v *NullableQRTokenDataAttributes) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }
-
-

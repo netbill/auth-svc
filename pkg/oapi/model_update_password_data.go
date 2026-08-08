@@ -11,8 +11,8 @@ API version: 0.1.0
 package oapi
 
 import (
-	"encoding/json"
 	"bytes"
+	"encoding/json"
 	"fmt"
 )
 
@@ -21,7 +21,7 @@ var _ MappedNullable = &UpdatePasswordData{}
 
 // UpdatePasswordData struct for UpdatePasswordData
 type UpdatePasswordData struct {
-	Type string `json:"type"`
+	Type       string                       `json:"type"`
 	Attributes UpdatePasswordDataAttributes `json:"attributes"`
 }
 
@@ -95,7 +95,7 @@ func (o *UpdatePasswordData) SetAttributes(v UpdatePasswordDataAttributes) {
 }
 
 func (o UpdatePasswordData) MarshalJSON() ([]byte, error) {
-	toSerialize,err := o.ToMap()
+	toSerialize, err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -123,10 +123,10 @@ func (o *UpdatePasswordData) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err;
+		return err
 	}
 
-	for _, requiredProperty := range(requiredProperties) {
+	for _, requiredProperty := range requiredProperties {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}
@@ -182,5 +182,3 @@ func (v *NullableUpdatePasswordData) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }
-
-

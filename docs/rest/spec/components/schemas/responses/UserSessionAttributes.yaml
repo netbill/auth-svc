@@ -1,0 +1,32 @@
+type: object
+required:
+  - user_id
+  - created_at
+  - version
+  - updated_at
+  - last_used
+properties:
+  user_id:
+    type: string
+    format: uuid
+    description: "user id"
+  created_at:
+    type: string
+    format: date-time
+    description: "session creation date"
+  version:
+    type: integer
+    description: "The version number of the user record"
+  last_used:
+    type: string
+    format: date-time
+    description: "last used date"
+  updated_at:
+    type: string
+    format: date-time
+    description: "updated at date"
+  deleted_at:
+    type: string
+    format: date-time
+    description: "session deletion date"
+

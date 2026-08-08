@@ -9,14 +9,14 @@ import (
 
 //go:generate mockery --name=passwordCache --inpackage
 type passwordCache interface {
-	Set(ctx context.Context, password models.AccountPassword) error
-	Get(ctx context.Context, accountID uuid.UUID) (models.AccountPassword, error)
+	Set(ctx context.Context, password models.UserPassword) error
+	Get(ctx context.Context, userID uuid.UUID) (models.UserPassword, error)
 }
 
-//go:generate mockery --name=accountCache --inpackage
-type accountCache interface {
-	Set(ctx context.Context, account models.Account) error
-	Get(ctx context.Context, accountID uuid.UUID) (models.Account, error)
+//go:generate mockery --name=userCache --inpackage
+type userCache interface {
+	Set(ctx context.Context, user models.User) error
+	Get(ctx context.Context, userID uuid.UUID) (models.User, error)
 }
 
 //go:generate mockery --name=sessionsCache --inpackage

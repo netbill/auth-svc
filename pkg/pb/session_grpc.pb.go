@@ -46,14 +46,14 @@ type SessionServiceClient interface {
 	//
 	// Errors:
 	//
-	//	UNAUTHENTICATED     — email not found, account deleted, or password is incorrect
+	//	UNAUTHENTICATED     — email not found, user deleted, or password is incorrect
 	LoginByEmail(ctx context.Context, in *LoginByEmailRequest, opts ...grpc.CallOption) (*LoginResponse, error)
 	// LoginByGoogle authenticates a user via a Google ID token.
-	// The account must already exist with the email from the Google token.
+	// The user must already exist with the email from the Google token.
 	//
 	// Errors:
 	//
-	//	UNAUTHENTICATED     — account with this email not found or deleted
+	//	UNAUTHENTICATED     — user with this email not found or deleted
 	LoginByGoogle(ctx context.Context, in *LoginByGoogleRequest, opts ...grpc.CallOption) (*LoginResponse, error)
 	// Refresh exchanges a valid refresh token for a new token pair.
 	// The old refresh token is invalidated after a successful call.
@@ -62,14 +62,14 @@ type SessionServiceClient interface {
 	//
 	//	UNAUTHENTICATED     — refresh token is expired, invalid, mismatched, or session not found
 	Refresh(ctx context.Context, in *RefreshRequest, opts ...grpc.CallOption) (*LoginResponse, error)
-	// GetMySession returns a specific session belonging to the authenticated account.
+	// GetMySession returns a specific session belonging to the authenticated user.
 	//
 	// Errors:
 	//
 	//	INVALID_ARGUMENT    — session_id is not a valid UUID
-	//	NOT_FOUND           — session not found or does not belong to this account
+	//	NOT_FOUND           — session not found or does not belong to this user
 	GetMySession(ctx context.Context, in *GetMySessionRequest, opts ...grpc.CallOption) (*GetMySessionResponse, error)
-	// GetMySessions returns a paginated list of sessions for the authenticated account.
+	// GetMySessions returns a paginated list of sessions for the authenticated user.
 	// Supports filtering by active/deleted status and sorting by last_used timestamp.
 	//
 	// Errors:
@@ -83,15 +83,15 @@ type SessionServiceClient interface {
 	//
 	//	INTERNAL            — unexpected server error
 	Logout(ctx context.Context, in *LogoutRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
-	// DeleteMySession terminates a specific session belonging to the authenticated account.
+	// DeleteMySession terminates a specific session belonging to the authenticated user.
 	//
 	// Errors:
 	//
 	//	INVALID_ARGUMENT    — session_id is not a valid UUID
 	//	NOT_FOUND           — session not found
-	//	UNAUTHENTICATED     — session does not belong to this account
+	//	UNAUTHENTICATED     — session does not belong to this user
 	DeleteMySession(ctx context.Context, in *DeleteMySessionRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
-	// DeleteMySessions terminates all sessions of the authenticated account.
+	// DeleteMySessions terminates all sessions of the authenticated user.
 	//
 	// Errors:
 	//
@@ -203,14 +203,14 @@ type SessionServiceServer interface {
 	//
 	// Errors:
 	//
-	//	UNAUTHENTICATED     — email not found, account deleted, or password is incorrect
+	//	UNAUTHENTICATED     — email not found, user deleted, or password is incorrect
 	LoginByEmail(context.Context, *LoginByEmailRequest) (*LoginResponse, error)
 	// LoginByGoogle authenticates a user via a Google ID token.
-	// The account must already exist with the email from the Google token.
+	// The user must already exist with the email from the Google token.
 	//
 	// Errors:
 	//
-	//	UNAUTHENTICATED     — account with this email not found or deleted
+	//	UNAUTHENTICATED     — user with this email not found or deleted
 	LoginByGoogle(context.Context, *LoginByGoogleRequest) (*LoginResponse, error)
 	// Refresh exchanges a valid refresh token for a new token pair.
 	// The old refresh token is invalidated after a successful call.
@@ -219,14 +219,14 @@ type SessionServiceServer interface {
 	//
 	//	UNAUTHENTICATED     — refresh token is expired, invalid, mismatched, or session not found
 	Refresh(context.Context, *RefreshRequest) (*LoginResponse, error)
-	// GetMySession returns a specific session belonging to the authenticated account.
+	// GetMySession returns a specific session belonging to the authenticated user.
 	//
 	// Errors:
 	//
 	//	INVALID_ARGUMENT    — session_id is not a valid UUID
-	//	NOT_FOUND           — session not found or does not belong to this account
+	//	NOT_FOUND           — session not found or does not belong to this user
 	GetMySession(context.Context, *GetMySessionRequest) (*GetMySessionResponse, error)
-	// GetMySessions returns a paginated list of sessions for the authenticated account.
+	// GetMySessions returns a paginated list of sessions for the authenticated user.
 	// Supports filtering by active/deleted status and sorting by last_used timestamp.
 	//
 	// Errors:
@@ -240,15 +240,15 @@ type SessionServiceServer interface {
 	//
 	//	INTERNAL            — unexpected server error
 	Logout(context.Context, *LogoutRequest) (*emptypb.Empty, error)
-	// DeleteMySession terminates a specific session belonging to the authenticated account.
+	// DeleteMySession terminates a specific session belonging to the authenticated user.
 	//
 	// Errors:
 	//
 	//	INVALID_ARGUMENT    — session_id is not a valid UUID
 	//	NOT_FOUND           — session not found
-	//	UNAUTHENTICATED     — session does not belong to this account
+	//	UNAUTHENTICATED     — session does not belong to this user
 	DeleteMySession(context.Context, *DeleteMySessionRequest) (*emptypb.Empty, error)
-	// DeleteMySessions terminates all sessions of the authenticated account.
+	// DeleteMySessions terminates all sessions of the authenticated user.
 	//
 	// Errors:
 	//

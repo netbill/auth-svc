@@ -22,37 +22,37 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-// Account represents a user account.
-type Account struct {
+// User represents a user.
+type User struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
-	// Unique account identifier (UUID).
+	// Unique user identifier (UUID).
 	Id string `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	// Account role. Possible values: "user", "system_admin".
+	// User role. Possible values: "user", "system_admin".
 	Role string `protobuf:"bytes,3,opt,name=role,proto3" json:"role,omitempty"`
 	// Optimistic concurrency version. Incremented on each update.
 	Version   int32                  `protobuf:"varint,4,opt,name=version,proto3" json:"version,omitempty"`
 	CreatedAt *timestamppb.Timestamp `protobuf:"bytes,5,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
 	UpdatedAt *timestamppb.Timestamp `protobuf:"bytes,6,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
-	// Set when the account is soft-deleted.
+	// Set when the user is soft-deleted.
 	DeletedAt     *timestamppb.Timestamp `protobuf:"bytes,7,opt,name=deleted_at,json=deletedAt,proto3,oneof" json:"deleted_at,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *Account) Reset() {
-	*x = Account{}
+func (x *User) Reset() {
+	*x = User{}
 	mi := &file_common_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *Account) String() string {
+func (x *User) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*Account) ProtoMessage() {}
+func (*User) ProtoMessage() {}
 
-func (x *Account) ProtoReflect() protoreflect.Message {
+func (x *User) ProtoReflect() protoreflect.Message {
 	mi := &file_common_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -64,85 +64,85 @@ func (x *Account) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use Account.ProtoReflect.Descriptor instead.
-func (*Account) Descriptor() ([]byte, []int) {
+// Deprecated: Use User.ProtoReflect.Descriptor instead.
+func (*User) Descriptor() ([]byte, []int) {
 	return file_common_proto_rawDescGZIP(), []int{0}
 }
 
-func (x *Account) GetId() string {
+func (x *User) GetId() string {
 	if x != nil {
 		return x.Id
 	}
 	return ""
 }
 
-func (x *Account) GetRole() string {
+func (x *User) GetRole() string {
 	if x != nil {
 		return x.Role
 	}
 	return ""
 }
 
-func (x *Account) GetVersion() int32 {
+func (x *User) GetVersion() int32 {
 	if x != nil {
 		return x.Version
 	}
 	return 0
 }
 
-func (x *Account) GetCreatedAt() *timestamppb.Timestamp {
+func (x *User) GetCreatedAt() *timestamppb.Timestamp {
 	if x != nil {
 		return x.CreatedAt
 	}
 	return nil
 }
 
-func (x *Account) GetUpdatedAt() *timestamppb.Timestamp {
+func (x *User) GetUpdatedAt() *timestamppb.Timestamp {
 	if x != nil {
 		return x.UpdatedAt
 	}
 	return nil
 }
 
-func (x *Account) GetDeletedAt() *timestamppb.Timestamp {
+func (x *User) GetDeletedAt() *timestamppb.Timestamp {
 	if x != nil {
 		return x.DeletedAt
 	}
 	return nil
 }
 
-// AccountEmail represents the primary email address of an account.
-type AccountEmail struct {
+// UserEmail represents the primary email address of a user.
+type UserEmail struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
-	// UUID of the owning account.
-	AccountId string `protobuf:"bytes,1,opt,name=account_id,json=accountId,proto3" json:"account_id,omitempty"`
-	Email     string `protobuf:"bytes,2,opt,name=email,proto3" json:"email,omitempty"`
+	// UUID of the owning user.
+	UserId string `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	Email  string `protobuf:"bytes,2,opt,name=email,proto3" json:"email,omitempty"`
 	// Whether the email address has been verified.
 	Verified bool `protobuf:"varint,3,opt,name=verified,proto3" json:"verified,omitempty"`
 	// Optimistic concurrency version.
 	Version   int32                  `protobuf:"varint,4,opt,name=version,proto3" json:"version,omitempty"`
 	CreatedAt *timestamppb.Timestamp `protobuf:"bytes,5,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
 	UpdatedAt *timestamppb.Timestamp `protobuf:"bytes,6,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
-	// Set when the email is soft-deleted (cascades from account deletion).
+	// Set when the email is soft-deleted (cascades from user deletion).
 	DeletedAt     *timestamppb.Timestamp `protobuf:"bytes,7,opt,name=deleted_at,json=deletedAt,proto3,oneof" json:"deleted_at,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *AccountEmail) Reset() {
-	*x = AccountEmail{}
+func (x *UserEmail) Reset() {
+	*x = UserEmail{}
 	mi := &file_common_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *AccountEmail) String() string {
+func (x *UserEmail) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*AccountEmail) ProtoMessage() {}
+func (*UserEmail) ProtoMessage() {}
 
-func (x *AccountEmail) ProtoReflect() protoreflect.Message {
+func (x *UserEmail) ProtoReflect() protoreflect.Message {
 	mi := &file_common_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -154,54 +154,54 @@ func (x *AccountEmail) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use AccountEmail.ProtoReflect.Descriptor instead.
-func (*AccountEmail) Descriptor() ([]byte, []int) {
+// Deprecated: Use UserEmail.ProtoReflect.Descriptor instead.
+func (*UserEmail) Descriptor() ([]byte, []int) {
 	return file_common_proto_rawDescGZIP(), []int{1}
 }
 
-func (x *AccountEmail) GetAccountId() string {
+func (x *UserEmail) GetUserId() string {
 	if x != nil {
-		return x.AccountId
+		return x.UserId
 	}
 	return ""
 }
 
-func (x *AccountEmail) GetEmail() string {
+func (x *UserEmail) GetEmail() string {
 	if x != nil {
 		return x.Email
 	}
 	return ""
 }
 
-func (x *AccountEmail) GetVerified() bool {
+func (x *UserEmail) GetVerified() bool {
 	if x != nil {
 		return x.Verified
 	}
 	return false
 }
 
-func (x *AccountEmail) GetVersion() int32 {
+func (x *UserEmail) GetVersion() int32 {
 	if x != nil {
 		return x.Version
 	}
 	return 0
 }
 
-func (x *AccountEmail) GetCreatedAt() *timestamppb.Timestamp {
+func (x *UserEmail) GetCreatedAt() *timestamppb.Timestamp {
 	if x != nil {
 		return x.CreatedAt
 	}
 	return nil
 }
 
-func (x *AccountEmail) GetUpdatedAt() *timestamppb.Timestamp {
+func (x *UserEmail) GetUpdatedAt() *timestamppb.Timestamp {
 	if x != nil {
 		return x.UpdatedAt
 	}
 	return nil
 }
 
-func (x *AccountEmail) GetDeletedAt() *timestamppb.Timestamp {
+func (x *UserEmail) GetDeletedAt() *timestamppb.Timestamp {
 	if x != nil {
 		return x.DeletedAt
 	}
@@ -213,8 +213,8 @@ type Session struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// Unique session identifier (UUID).
 	Id string `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	// UUID of the owning account.
-	AccountId string `protobuf:"bytes,2,opt,name=account_id,json=accountId,proto3" json:"account_id,omitempty"`
+	// UUID of the owning user.
+	UserId string `protobuf:"bytes,2,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
 	// Optimistic concurrency version.
 	Version   int32                  `protobuf:"varint,3,opt,name=version,proto3" json:"version,omitempty"`
 	CreatedAt *timestamppb.Timestamp `protobuf:"bytes,4,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
@@ -264,9 +264,9 @@ func (x *Session) GetId() string {
 	return ""
 }
 
-func (x *Session) GetAccountId() string {
+func (x *Session) GetUserId() string {
 	if x != nil {
-		return x.AccountId
+		return x.UserId
 	}
 	return ""
 }
@@ -502,8 +502,8 @@ var File_common_proto protoreflect.FileDescriptor
 
 const file_common_proto_rawDesc = "" +
 	"\n" +
-	"\fcommon.proto\x12\aauth.v1\x1a\x1fgoogle/protobuf/timestamp.proto\"\x8c\x02\n" +
-	"\aAccount\x12\x0e\n" +
+	"\fcommon.proto\x12\aauth.v1\x1a\x1fgoogle/protobuf/timestamp.proto\"\x89\x02\n" +
+	"\x04User\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
 	"\x04role\x18\x03 \x01(\tR\x04role\x12\x18\n" +
 	"\aversion\x18\x04 \x01(\x05R\aversion\x129\n" +
@@ -513,10 +513,9 @@ const file_common_proto_rawDesc = "" +
 	"updated_at\x18\x06 \x01(\v2\x1a.google.protobuf.TimestampR\tupdatedAt\x12>\n" +
 	"\n" +
 	"deleted_at\x18\a \x01(\v2\x1a.google.protobuf.TimestampH\x00R\tdeletedAt\x88\x01\x01B\r\n" +
-	"\v_deleted_at\"\xbe\x02\n" +
-	"\fAccountEmail\x12\x1d\n" +
-	"\n" +
-	"account_id\x18\x01 \x01(\tR\taccountId\x12\x14\n" +
+	"\v_deleted_at\"\xb5\x02\n" +
+	"\tUserEmail\x12\x17\n" +
+	"\auser_id\x18\x01 \x01(\tR\x06userId\x12\x14\n" +
 	"\x05email\x18\x02 \x01(\tR\x05email\x12\x1a\n" +
 	"\bverified\x18\x03 \x01(\bR\bverified\x12\x18\n" +
 	"\aversion\x18\x04 \x01(\x05R\aversion\x129\n" +
@@ -526,11 +525,10 @@ const file_common_proto_rawDesc = "" +
 	"updated_at\x18\x06 \x01(\v2\x1a.google.protobuf.TimestampR\tupdatedAt\x12>\n" +
 	"\n" +
 	"deleted_at\x18\a \x01(\v2\x1a.google.protobuf.TimestampH\x00R\tdeletedAt\x88\x01\x01B\r\n" +
-	"\v_deleted_at\"\xd0\x02\n" +
+	"\v_deleted_at\"\xca\x02\n" +
 	"\aSession\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1d\n" +
-	"\n" +
-	"account_id\x18\x02 \x01(\tR\taccountId\x12\x18\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x17\n" +
+	"\auser_id\x18\x02 \x01(\tR\x06userId\x12\x18\n" +
 	"\aversion\x18\x03 \x01(\x05R\aversion\x129\n" +
 	"\n" +
 	"created_at\x18\x04 \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\x129\n" +
@@ -571,8 +569,8 @@ func file_common_proto_rawDescGZIP() []byte {
 
 var file_common_proto_msgTypes = make([]protoimpl.MessageInfo, 6)
 var file_common_proto_goTypes = []any{
-	(*Account)(nil),               // 0: auth.v1.Account
-	(*AccountEmail)(nil),          // 1: auth.v1.AccountEmail
+	(*User)(nil),                  // 0: auth.v1.User
+	(*UserEmail)(nil),             // 1: auth.v1.UserEmail
 	(*Session)(nil),               // 2: auth.v1.Session
 	(*TokensPair)(nil),            // 3: auth.v1.TokensPair
 	(*Pagination)(nil),            // 4: auth.v1.Pagination
@@ -580,12 +578,12 @@ var file_common_proto_goTypes = []any{
 	(*timestamppb.Timestamp)(nil), // 6: google.protobuf.Timestamp
 }
 var file_common_proto_depIdxs = []int32{
-	6,  // 0: auth.v1.Account.created_at:type_name -> google.protobuf.Timestamp
-	6,  // 1: auth.v1.Account.updated_at:type_name -> google.protobuf.Timestamp
-	6,  // 2: auth.v1.Account.deleted_at:type_name -> google.protobuf.Timestamp
-	6,  // 3: auth.v1.AccountEmail.created_at:type_name -> google.protobuf.Timestamp
-	6,  // 4: auth.v1.AccountEmail.updated_at:type_name -> google.protobuf.Timestamp
-	6,  // 5: auth.v1.AccountEmail.deleted_at:type_name -> google.protobuf.Timestamp
+	6,  // 0: auth.v1.User.created_at:type_name -> google.protobuf.Timestamp
+	6,  // 1: auth.v1.User.updated_at:type_name -> google.protobuf.Timestamp
+	6,  // 2: auth.v1.User.deleted_at:type_name -> google.protobuf.Timestamp
+	6,  // 3: auth.v1.UserEmail.created_at:type_name -> google.protobuf.Timestamp
+	6,  // 4: auth.v1.UserEmail.updated_at:type_name -> google.protobuf.Timestamp
+	6,  // 5: auth.v1.UserEmail.deleted_at:type_name -> google.protobuf.Timestamp
 	6,  // 6: auth.v1.Session.created_at:type_name -> google.protobuf.Timestamp
 	6,  // 7: auth.v1.Session.updated_at:type_name -> google.protobuf.Timestamp
 	6,  // 8: auth.v1.Session.last_used:type_name -> google.protobuf.Timestamp

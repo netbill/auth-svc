@@ -179,14 +179,6 @@
             <ul>
               
                 <li>
-                  <a href="#auth.v1.Account"><span class="badge">M</span>Account</a>
-                </li>
-              
-                <li>
-                  <a href="#auth.v1.AccountEmail"><span class="badge">M</span>AccountEmail</a>
-                </li>
-              
-                <li>
                   <a href="#auth.v1.PageInfo"><span class="badge">M</span>PageInfo</a>
                 </li>
               
@@ -202,6 +194,14 @@
                   <a href="#auth.v1.TokensPair"><span class="badge">M</span>TokensPair</a>
                 </li>
               
+                <li>
+                  <a href="#auth.v1.User"><span class="badge">M</span>User</a>
+                </li>
+              
+                <li>
+                  <a href="#auth.v1.UserEmail"><span class="badge">M</span>UserEmail</a>
+                </li>
+              
               
               
               
@@ -210,27 +210,19 @@
         
           
           <li>
-            <a href="#account.proto">account.proto</a>
+            <a href="#user.proto">user.proto</a>
             <ul>
               
                 <li>
-                  <a href="#auth.v1.CreateAccountRequest"><span class="badge">M</span>CreateAccountRequest</a>
+                  <a href="#auth.v1.CreateUserRequest"><span class="badge">M</span>CreateUserRequest</a>
                 </li>
               
                 <li>
-                  <a href="#auth.v1.CreateAccountResponse"><span class="badge">M</span>CreateAccountResponse</a>
+                  <a href="#auth.v1.CreateUserResponse"><span class="badge">M</span>CreateUserResponse</a>
                 </li>
               
                 <li>
-                  <a href="#auth.v1.DeleteMyAccountRequest"><span class="badge">M</span>DeleteMyAccountRequest</a>
-                </li>
-              
-                <li>
-                  <a href="#auth.v1.GetMyAccountRequest"><span class="badge">M</span>GetMyAccountRequest</a>
-                </li>
-              
-                <li>
-                  <a href="#auth.v1.GetMyAccountResponse"><span class="badge">M</span>GetMyAccountResponse</a>
+                  <a href="#auth.v1.DeleteMyUserRequest"><span class="badge">M</span>DeleteMyUserRequest</a>
                 </li>
               
                 <li>
@@ -242,22 +234,22 @@
                 </li>
               
                 <li>
+                  <a href="#auth.v1.GetMyUserRequest"><span class="badge">M</span>GetMyUserRequest</a>
+                </li>
+              
+                <li>
+                  <a href="#auth.v1.GetMyUserResponse"><span class="badge">M</span>GetMyUserResponse</a>
+                </li>
+              
+                <li>
                   <a href="#auth.v1.UpdatePasswordRequest"><span class="badge">M</span>UpdatePasswordRequest</a>
                 </li>
               
-                <li>
-                  <a href="#auth.v1.UpdateUsernameRequest"><span class="badge">M</span>UpdateUsernameRequest</a>
-                </li>
-              
-                <li>
-                  <a href="#auth.v1.UpdateUsernameResponse"><span class="badge">M</span>UpdateUsernameResponse</a>
-                </li>
-              
               
               
               
                 <li>
-                  <a href="#auth.v1.AccountService"><span class="badge">S</span>AccountService</a>
+                  <a href="#auth.v1.UserService"><span class="badge">S</span>UserService</a>
                 </li>
               
             </ul>
@@ -298,10 +290,6 @@
               
                 <li>
                   <a href="#auth.v1.LoginByGoogleRequest"><span class="badge">M</span>LoginByGoogleRequest</a>
-                </li>
-              
-                <li>
-                  <a href="#auth.v1.LoginByUsernameRequest"><span class="badge">M</span>LoginByUsernameRequest</a>
                 </li>
               
                 <li>
@@ -368,138 +356,6 @@
       </div>
       <p></p>
 
-      
-        <h3 id="auth.v1.Account">Account</h3>
-        <p>Account represents a user account.</p>
-
-        
-          <table class="field-table">
-            <thead>
-              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
-            </thead>
-            <tbody>
-              
-                <tr>
-                  <td>id</td>
-                  <td><a href="#string">string</a></td>
-                  <td></td>
-                  <td><p>Unique account identifier (UUID). </p></td>
-                </tr>
-              
-                <tr>
-                  <td>username</td>
-                  <td><a href="#string">string</a></td>
-                  <td></td>
-                  <td><p>Unique username. 3–32 characters, letters/digits/underscore/hyphen only. </p></td>
-                </tr>
-              
-                <tr>
-                  <td>role</td>
-                  <td><a href="#string">string</a></td>
-                  <td></td>
-                  <td><p>Account role. Possible values: &#34;user&#34;, &#34;system_admin&#34;. </p></td>
-                </tr>
-              
-                <tr>
-                  <td>version</td>
-                  <td><a href="#int32">int32</a></td>
-                  <td></td>
-                  <td><p>Optimistic concurrency version. Incremented on each update. </p></td>
-                </tr>
-              
-                <tr>
-                  <td>created_at</td>
-                  <td><a href="#google.protobuf.Timestamp">google.protobuf.Timestamp</a></td>
-                  <td></td>
-                  <td><p> </p></td>
-                </tr>
-              
-                <tr>
-                  <td>updated_at</td>
-                  <td><a href="#google.protobuf.Timestamp">google.protobuf.Timestamp</a></td>
-                  <td></td>
-                  <td><p> </p></td>
-                </tr>
-              
-                <tr>
-                  <td>deleted_at</td>
-                  <td><a href="#google.protobuf.Timestamp">google.protobuf.Timestamp</a></td>
-                  <td>optional</td>
-                  <td><p>Set when the account is soft-deleted. </p></td>
-                </tr>
-              
-            </tbody>
-          </table>
-
-          
-
-        
-      
-        <h3 id="auth.v1.AccountEmail">AccountEmail</h3>
-        <p>AccountEmail represents the primary email address of an account.</p>
-
-        
-          <table class="field-table">
-            <thead>
-              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
-            </thead>
-            <tbody>
-              
-                <tr>
-                  <td>account_id</td>
-                  <td><a href="#string">string</a></td>
-                  <td></td>
-                  <td><p>UUID of the owning account. </p></td>
-                </tr>
-              
-                <tr>
-                  <td>email</td>
-                  <td><a href="#string">string</a></td>
-                  <td></td>
-                  <td><p> </p></td>
-                </tr>
-              
-                <tr>
-                  <td>verified</td>
-                  <td><a href="#bool">bool</a></td>
-                  <td></td>
-                  <td><p>Whether the email address has been verified. </p></td>
-                </tr>
-              
-                <tr>
-                  <td>version</td>
-                  <td><a href="#int32">int32</a></td>
-                  <td></td>
-                  <td><p>Optimistic concurrency version. </p></td>
-                </tr>
-              
-                <tr>
-                  <td>created_at</td>
-                  <td><a href="#google.protobuf.Timestamp">google.protobuf.Timestamp</a></td>
-                  <td></td>
-                  <td><p> </p></td>
-                </tr>
-              
-                <tr>
-                  <td>updated_at</td>
-                  <td><a href="#google.protobuf.Timestamp">google.protobuf.Timestamp</a></td>
-                  <td></td>
-                  <td><p> </p></td>
-                </tr>
-              
-                <tr>
-                  <td>deleted_at</td>
-                  <td><a href="#google.protobuf.Timestamp">google.protobuf.Timestamp</a></td>
-                  <td>optional</td>
-                  <td><p>Set when the email is soft-deleted (cascades from account deletion). </p></td>
-                </tr>
-              
-            </tbody>
-          </table>
-
-          
-
-        
       
         <h3 id="auth.v1.PageInfo">PageInfo</h3>
         <p>PageInfo is returned alongside paginated results.</p>
@@ -595,10 +451,10 @@
                 </tr>
               
                 <tr>
-                  <td>account_id</td>
+                  <td>user_id</td>
                   <td><a href="#string">string</a></td>
                   <td></td>
-                  <td><p>UUID of the owning account. </p></td>
+                  <td><p>UUID of the owning user. </p></td>
                 </tr>
               
                 <tr>
@@ -681,6 +537,131 @@
 
         
       
+        <h3 id="auth.v1.User">User</h3>
+        <p>User represents a user.</p>
+
+        
+          <table class="field-table">
+            <thead>
+              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
+            </thead>
+            <tbody>
+              
+                <tr>
+                  <td>id</td>
+                  <td><a href="#string">string</a></td>
+                  <td></td>
+                  <td><p>Unique user identifier (UUID). </p></td>
+                </tr>
+              
+                <tr>
+                  <td>role</td>
+                  <td><a href="#string">string</a></td>
+                  <td></td>
+                  <td><p>User role. Possible values: &#34;user&#34;, &#34;system_admin&#34;. </p></td>
+                </tr>
+              
+                <tr>
+                  <td>version</td>
+                  <td><a href="#int32">int32</a></td>
+                  <td></td>
+                  <td><p>Optimistic concurrency version. Incremented on each update. </p></td>
+                </tr>
+              
+                <tr>
+                  <td>created_at</td>
+                  <td><a href="#google.protobuf.Timestamp">google.protobuf.Timestamp</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>updated_at</td>
+                  <td><a href="#google.protobuf.Timestamp">google.protobuf.Timestamp</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>deleted_at</td>
+                  <td><a href="#google.protobuf.Timestamp">google.protobuf.Timestamp</a></td>
+                  <td>optional</td>
+                  <td><p>Set when the user is soft-deleted. </p></td>
+                </tr>
+              
+            </tbody>
+          </table>
+
+          
+
+        
+      
+        <h3 id="auth.v1.UserEmail">UserEmail</h3>
+        <p>UserEmail represents the primary email address of a user.</p>
+
+        
+          <table class="field-table">
+            <thead>
+              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
+            </thead>
+            <tbody>
+              
+                <tr>
+                  <td>user_id</td>
+                  <td><a href="#string">string</a></td>
+                  <td></td>
+                  <td><p>UUID of the owning user. </p></td>
+                </tr>
+              
+                <tr>
+                  <td>email</td>
+                  <td><a href="#string">string</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>verified</td>
+                  <td><a href="#bool">bool</a></td>
+                  <td></td>
+                  <td><p>Whether the email address has been verified. </p></td>
+                </tr>
+              
+                <tr>
+                  <td>version</td>
+                  <td><a href="#int32">int32</a></td>
+                  <td></td>
+                  <td><p>Optimistic concurrency version. </p></td>
+                </tr>
+              
+                <tr>
+                  <td>created_at</td>
+                  <td><a href="#google.protobuf.Timestamp">google.protobuf.Timestamp</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>updated_at</td>
+                  <td><a href="#google.protobuf.Timestamp">google.protobuf.Timestamp</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+                <tr>
+                  <td>deleted_at</td>
+                  <td><a href="#google.protobuf.Timestamp">google.protobuf.Timestamp</a></td>
+                  <td>optional</td>
+                  <td><p>Set when the email is soft-deleted (cascades from user deletion). </p></td>
+                </tr>
+              
+            </tbody>
+          </table>
+
+          
+
+        
+      
 
       
 
@@ -690,12 +671,12 @@
     
       
       <div class="file-heading">
-        <h2 id="account.proto">account.proto</h2><a href="#title">Top</a>
+        <h2 id="user.proto">user.proto</h2><a href="#title">Top</a>
       </div>
       <p></p>
 
       
-        <h3 id="auth.v1.CreateAccountRequest">CreateAccountRequest</h3>
+        <h3 id="auth.v1.CreateUserRequest">CreateUserRequest</h3>
         <p></p>
 
         
@@ -709,15 +690,7 @@
                   <td>email</td>
                   <td><a href="#string">string</a></td>
                   <td></td>
-                  <td><p>Valid email address. Must be unique across all accounts. </p></td>
-                </tr>
-              
-                <tr>
-                  <td>username</td>
-                  <td><a href="#string">string</a></td>
-                  <td></td>
-                  <td><p>Desired username. 3–32 characters, letters/digits/underscore/hyphen only.
-Must be unique across all accounts. </p></td>
+                  <td><p>Valid email address. Must be unique across all users. </p></td>
                 </tr>
               
                 <tr>
@@ -735,7 +708,7 @@ one lowercase letter, one digit and one special character (-.!#$%&amp;?,@). </p>
 
         
       
-        <h3 id="auth.v1.CreateAccountResponse">CreateAccountResponse</h3>
+        <h3 id="auth.v1.CreateUserResponse">CreateUserResponse</h3>
         <p></p>
 
         
@@ -746,8 +719,8 @@ one lowercase letter, one digit and one special character (-.!#$%&amp;?,@). </p>
             <tbody>
               
                 <tr>
-                  <td>account</td>
-                  <td><a href="#auth.v1.Account">Account</a></td>
+                  <td>user</td>
+                  <td><a href="#auth.v1.User">User</a></td>
                   <td></td>
                   <td><p> </p></td>
                 </tr>
@@ -759,41 +732,10 @@ one lowercase letter, one digit and one special character (-.!#$%&amp;?,@). </p>
 
         
       
-        <h3 id="auth.v1.DeleteMyAccountRequest">DeleteMyAccountRequest</h3>
+        <h3 id="auth.v1.DeleteMyUserRequest">DeleteMyUserRequest</h3>
         <p></p>
 
         
-
-        
-      
-        <h3 id="auth.v1.GetMyAccountRequest">GetMyAccountRequest</h3>
-        <p></p>
-
-        
-
-        
-      
-        <h3 id="auth.v1.GetMyAccountResponse">GetMyAccountResponse</h3>
-        <p></p>
-
-        
-          <table class="field-table">
-            <thead>
-              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
-            </thead>
-            <tbody>
-              
-                <tr>
-                  <td>account</td>
-                  <td><a href="#auth.v1.Account">Account</a></td>
-                  <td></td>
-                  <td><p> </p></td>
-                </tr>
-              
-            </tbody>
-          </table>
-
-          
 
         
       
@@ -816,7 +758,38 @@ one lowercase letter, one digit and one special character (-.!#$%&amp;?,@). </p>
               
                 <tr>
                   <td>email</td>
-                  <td><a href="#auth.v1.AccountEmail">AccountEmail</a></td>
+                  <td><a href="#auth.v1.UserEmail">UserEmail</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+            </tbody>
+          </table>
+
+          
+
+        
+      
+        <h3 id="auth.v1.GetMyUserRequest">GetMyUserRequest</h3>
+        <p></p>
+
+        
+
+        
+      
+        <h3 id="auth.v1.GetMyUserResponse">GetMyUserResponse</h3>
+        <p></p>
+
+        
+          <table class="field-table">
+            <thead>
+              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
+            </thead>
+            <tbody>
+              
+                <tr>
+                  <td>user</td>
+                  <td><a href="#auth.v1.User">User</a></td>
                   <td></td>
                   <td><p> </p></td>
                 </tr>
@@ -849,55 +822,7 @@ one lowercase letter, one digit and one special character (-.!#$%&amp;?,@). </p>
                   <td>new_password</td>
                   <td><a href="#string">string</a></td>
                   <td></td>
-                  <td><p>New password. Same rules as CreateAccountRequest.password. </p></td>
-                </tr>
-              
-            </tbody>
-          </table>
-
-          
-
-        
-      
-        <h3 id="auth.v1.UpdateUsernameRequest">UpdateUsernameRequest</h3>
-        <p></p>
-
-        
-          <table class="field-table">
-            <thead>
-              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
-            </thead>
-            <tbody>
-              
-                <tr>
-                  <td>new_username</td>
-                  <td><a href="#string">string</a></td>
-                  <td></td>
-                  <td><p>New username. Same rules as CreateAccountRequest.username. </p></td>
-                </tr>
-              
-            </tbody>
-          </table>
-
-          
-
-        
-      
-        <h3 id="auth.v1.UpdateUsernameResponse">UpdateUsernameResponse</h3>
-        <p></p>
-
-        
-          <table class="field-table">
-            <thead>
-              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
-            </thead>
-            <tbody>
-              
-                <tr>
-                  <td>account</td>
-                  <td><a href="#auth.v1.Account">Account</a></td>
-                  <td></td>
-                  <td><p>Updated account with the new username and incremented version. </p></td>
+                  <td><p>New password. Same rules as CreateUserRequest.password. </p></td>
                 </tr>
               
             </tbody>
@@ -913,8 +838,8 @@ one lowercase letter, one digit and one special character (-.!#$%&amp;?,@). </p>
       
 
       
-        <h3 id="auth.v1.AccountService">AccountService</h3>
-        <p>AccountService manages user accounts: registration, profile, credentials.</p><p>All methods except CreateAccount require authentication via metadata:</p><p>authorization: Bearer <access_token></p>
+        <h3 id="auth.v1.UserService">UserService</h3>
+        <p>UserService manages users: registration, profile, credentials.</p><p>All methods except CreateUser require authentication via metadata:</p><p>authorization: Bearer <access_token></p>
         <table class="enum-table">
           <thead>
             <tr><td>Method Name</td><td>Request Type</td><td>Response Type</td><td>Description</td></tr>
@@ -922,54 +847,41 @@ one lowercase letter, one digit and one special character (-.!#$%&amp;?,@). </p>
           <tbody>
             
               <tr>
-                <td>CreateAccount</td>
-                <td><a href="#auth.v1.CreateAccountRequest">CreateAccountRequest</a></td>
-                <td><a href="#auth.v1.CreateAccountResponse">CreateAccountResponse</a></td>
-                <td><p>CreateAccount registers a new user account.
+                <td>CreateUser</td>
+                <td><a href="#auth.v1.CreateUserRequest">CreateUserRequest</a></td>
+                <td><a href="#auth.v1.CreateUserResponse">CreateUserResponse</a></td>
+                <td><p>CreateUser registers a new user.
 
 Errors:
-  ALREADY_EXISTS      — email or username is already taken
-  INVALID_ARGUMENT    — username or password does not meet requirements</p></td>
+  ALREADY_EXISTS      — email is already taken
+  INVALID_ARGUMENT    — password does not meet requirements</p></td>
               </tr>
             
               <tr>
-                <td>GetMyAccount</td>
-                <td><a href="#auth.v1.GetMyAccountRequest">GetMyAccountRequest</a></td>
-                <td><a href="#auth.v1.GetMyAccountResponse">GetMyAccountResponse</a></td>
-                <td><p>GetMyAccount returns the authenticated account&#39;s profile.
+                <td>GetMyUser</td>
+                <td><a href="#auth.v1.GetMyUserRequest">GetMyUserRequest</a></td>
+                <td><a href="#auth.v1.GetMyUserResponse">GetMyUserResponse</a></td>
+                <td><p>GetMyUser returns the authenticated user&#39;s profile.
 
 Errors:
-  NOT_FOUND           — account does not exist or was deleted</p></td>
+  NOT_FOUND           — user does not exist or was deleted</p></td>
               </tr>
             
               <tr>
                 <td>GetMyEmail</td>
                 <td><a href="#auth.v1.GetMyEmailRequest">GetMyEmailRequest</a></td>
                 <td><a href="#auth.v1.GetMyEmailResponse">GetMyEmailResponse</a></td>
-                <td><p>GetMyEmail returns the authenticated account&#39;s primary email address.
+                <td><p>GetMyEmail returns the authenticated user&#39;s primary email address.
 
 Errors:
-  NOT_FOUND           — account does not exist</p></td>
-              </tr>
-            
-              <tr>
-                <td>UpdateUsername</td>
-                <td><a href="#auth.v1.UpdateUsernameRequest">UpdateUsernameRequest</a></td>
-                <td><a href="#auth.v1.UpdateUsernameResponse">UpdateUsernameResponse</a></td>
-                <td><p>UpdateUsername changes the username of the authenticated account.
-If the new username is identical to the current one, the call succeeds without any changes.
-
-Errors:
-  ALREADY_EXISTS      — username is taken by another account
-  INVALID_ARGUMENT    — username does not meet requirements
-  UNAUTHENTICATED     — session is invalid or expired</p></td>
+  NOT_FOUND           — user does not exist</p></td>
               </tr>
             
               <tr>
                 <td>UpdatePassword</td>
                 <td><a href="#auth.v1.UpdatePasswordRequest">UpdatePasswordRequest</a></td>
                 <td><a href="#google.protobuf.Empty">.google.protobuf.Empty</a></td>
-                <td><p>UpdatePassword changes the password of the authenticated account.
+                <td><p>UpdatePassword changes the password of the authenticated user.
 The old password must be provided for verification.
 
 Errors:
@@ -979,10 +891,10 @@ Errors:
               </tr>
             
               <tr>
-                <td>DeleteMyAccount</td>
-                <td><a href="#auth.v1.DeleteMyAccountRequest">DeleteMyAccountRequest</a></td>
+                <td>DeleteMyUser</td>
+                <td><a href="#auth.v1.DeleteMyUserRequest">DeleteMyUserRequest</a></td>
                 <td><a href="#google.protobuf.Empty">.google.protobuf.Empty</a></td>
-                <td><p>DeleteMyAccount soft-deletes the authenticated account along with all its
+                <td><p>DeleteMyUser soft-deletes the authenticated user along with all its
 sessions and email addresses. The operation is irreversible via the API.
 
 Errors:
@@ -1204,37 +1116,6 @@ Errors:
 
         
       
-        <h3 id="auth.v1.LoginByUsernameRequest">LoginByUsernameRequest</h3>
-        <p></p>
-
-        
-          <table class="field-table">
-            <thead>
-              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
-            </thead>
-            <tbody>
-              
-                <tr>
-                  <td>username</td>
-                  <td><a href="#string">string</a></td>
-                  <td></td>
-                  <td><p> </p></td>
-                </tr>
-              
-                <tr>
-                  <td>password</td>
-                  <td><a href="#string">string</a></td>
-                  <td></td>
-                  <td><p> </p></td>
-                </tr>
-              
-            </tbody>
-          </table>
-
-          
-
-        
-      
         <h3 id="auth.v1.LoginResponse">LoginResponse</h3>
         <p>LoginResponse is returned by all login and refresh methods.</p>
 
@@ -1364,18 +1245,7 @@ Errors:
 Returns a token pair on success.
 
 Errors:
-  UNAUTHENTICATED     — email not found, account deleted, or password is incorrect</p></td>
-              </tr>
-            
-              <tr>
-                <td>LoginByUsername</td>
-                <td><a href="#auth.v1.LoginByUsernameRequest">LoginByUsernameRequest</a></td>
-                <td><a href="#auth.v1.LoginResponse">LoginResponse</a></td>
-                <td><p>LoginByUsername authenticates a user by username and password.
-Returns a token pair on success.
-
-Errors:
-  UNAUTHENTICATED     — username not found, account deleted, or password is incorrect</p></td>
+  UNAUTHENTICATED     — email not found, user deleted, or password is incorrect</p></td>
               </tr>
             
               <tr>
@@ -1383,10 +1253,10 @@ Errors:
                 <td><a href="#auth.v1.LoginByGoogleRequest">LoginByGoogleRequest</a></td>
                 <td><a href="#auth.v1.LoginResponse">LoginResponse</a></td>
                 <td><p>LoginByGoogle authenticates a user via a Google ID token.
-The account must already exist with the email from the Google token.
+The user must already exist with the email from the Google token.
 
 Errors:
-  UNAUTHENTICATED     — account with this email not found or deleted</p></td>
+  UNAUTHENTICATED     — user with this email not found or deleted</p></td>
               </tr>
             
               <tr>
@@ -1404,18 +1274,18 @@ Errors:
                 <td>GetMySession</td>
                 <td><a href="#auth.v1.GetMySessionRequest">GetMySessionRequest</a></td>
                 <td><a href="#auth.v1.GetMySessionResponse">GetMySessionResponse</a></td>
-                <td><p>GetMySession returns a specific session belonging to the authenticated account.
+                <td><p>GetMySession returns a specific session belonging to the authenticated user.
 
 Errors:
   INVALID_ARGUMENT    — session_id is not a valid UUID
-  NOT_FOUND           — session not found or does not belong to this account</p></td>
+  NOT_FOUND           — session not found or does not belong to this user</p></td>
               </tr>
             
               <tr>
                 <td>GetMySessions</td>
                 <td><a href="#auth.v1.GetMySessionsRequest">GetMySessionsRequest</a></td>
                 <td><a href="#auth.v1.GetMySessionsResponse">GetMySessionsResponse</a></td>
-                <td><p>GetMySessions returns a paginated list of sessions for the authenticated account.
+                <td><p>GetMySessions returns a paginated list of sessions for the authenticated user.
 Supports filtering by active/deleted status and sorting by last_used timestamp.
 
 Errors:
@@ -1437,19 +1307,19 @@ Errors:
                 <td>DeleteMySession</td>
                 <td><a href="#auth.v1.DeleteMySessionRequest">DeleteMySessionRequest</a></td>
                 <td><a href="#google.protobuf.Empty">.google.protobuf.Empty</a></td>
-                <td><p>DeleteMySession terminates a specific session belonging to the authenticated account.
+                <td><p>DeleteMySession terminates a specific session belonging to the authenticated user.
 
 Errors:
   INVALID_ARGUMENT    — session_id is not a valid UUID
   NOT_FOUND           — session not found
-  UNAUTHENTICATED     — session does not belong to this account</p></td>
+  UNAUTHENTICATED     — session does not belong to this user</p></td>
               </tr>
             
               <tr>
                 <td>DeleteMySessions</td>
                 <td><a href="#auth.v1.DeleteMySessionsRequest">DeleteMySessionsRequest</a></td>
                 <td><a href="#google.protobuf.Empty">.google.protobuf.Empty</a></td>
-                <td><p>DeleteMySessions terminates all sessions of the authenticated account.
+                <td><p>DeleteMySessions terminates all sessions of the authenticated user.
 
 Errors:
   UNAUTHENTICATED     — session is invalid or expired</p></td>
@@ -1485,8 +1355,8 @@ Errors:
             <tbody>
               
                 <tr>
-                  <td>account</td>
-                  <td><a href="#auth.v1.Account">Account</a></td>
+                  <td>user</td>
+                  <td><a href="#auth.v1.User">User</a></td>
                   <td></td>
                   <td><p> </p></td>
                 </tr>
@@ -1512,7 +1382,7 @@ Errors:
 
       
         <h3 id="auth.v1.AuthService">AuthService</h3>
-        <p>AuthService is an internal service used by other microservices to validate</p><p>incoming access tokens and retrieve the associated account and session.</p><p>Authentication: pass the access token via metadata:</p><p>authorization: Bearer <access_token></p>
+        <p>AuthService is an internal service used by other microservices to validate</p><p>incoming access tokens and retrieve the associated user and session.</p><p>Authentication: pass the access token via metadata:</p><p>authorization: Bearer <access_token></p>
         <table class="enum-table">
           <thead>
             <tr><td>Method Name</td><td>Request Type</td><td>Response Type</td><td>Description</td></tr>
@@ -1524,10 +1394,10 @@ Errors:
                 <td><a href="#auth.v1.ValidateSessionRequest">ValidateSessionRequest</a></td>
                 <td><a href="#auth.v1.ValidateSessionResponse">ValidateSessionResponse</a></td>
                 <td><p>ValidateSession parses the access token from metadata, verifies it against
-the database and returns the full account and session objects.
+the database and returns the full user and session objects.
 
 Errors:
-  UNAUTHENTICATED     — token is missing, invalid, expired, or the session/account
+  UNAUTHENTICATED     — token is missing, invalid, expired, or the session/user
                         was deleted after the token was issued
   INTERNAL            — unexpected server error</p></td>
               </tr>

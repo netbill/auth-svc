@@ -3,7 +3,7 @@ post:
     - sessions
   summary: Logout
   description: >
-    Invalidates the current session of the authenticated account.
+    Invalidates the current session of the authenticated user.
     This operation is idempotent — if the session is already deleted, 204 is returned.
   security:
     - BearerAuth: [ ]

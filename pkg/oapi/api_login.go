@@ -18,13 +18,12 @@ import (
 	"net/url"
 )
 
-
 // LoginAPIService LoginAPI service
 type LoginAPIService service
 
 type ApiAuthSvcV1LoginEmailPostRequest struct {
-	ctx context.Context
-	ApiService *LoginAPIService
+	ctx          context.Context
+	ApiService   *LoginAPIService
 	loginByEmail *LoginByEmail
 }
 
@@ -42,25 +41,25 @@ AuthSvcV1LoginEmailPost Login by email
 
 Endpoint to login a user using their email and password.
 
-
- @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
- @return ApiAuthSvcV1LoginEmailPostRequest
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@return ApiAuthSvcV1LoginEmailPostRequest
 */
 func (a *LoginAPIService) AuthSvcV1LoginEmailPost(ctx context.Context) ApiAuthSvcV1LoginEmailPostRequest {
 	return ApiAuthSvcV1LoginEmailPostRequest{
 		ApiService: a,
-		ctx: ctx,
+		ctx:        ctx,
 	}
 }
 
 // Execute executes the request
-//  @return TokensPair
+//
+//	@return TokensPair
 func (a *LoginAPIService) AuthSvcV1LoginEmailPostExecute(r ApiAuthSvcV1LoginEmailPostRequest) (*TokensPair, *http.Response, error) {
 	var (
-		localVarHTTPMethod   = http.MethodPost
-		localVarPostBody     interface{}
-		formFiles            []formFile
-		localVarReturnValue  *TokensPair
+		localVarHTTPMethod  = http.MethodPost
+		localVarPostBody    interface{}
+		formFiles           []formFile
+		localVarReturnValue *TokensPair
 	)
 
 	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "LoginAPIService.AuthSvcV1LoginEmailPost")
@@ -125,8 +124,8 @@ func (a *LoginAPIService) AuthSvcV1LoginEmailPostExecute(r ApiAuthSvcV1LoginEmai
 				newErr.error = err.Error()
 				return localVarReturnValue, localVarHTTPResponse, newErr
 			}
-					newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
-					newErr.model = v
+			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+			newErr.model = v
 			return localVarReturnValue, localVarHTTPResponse, newErr
 		}
 		if localVarHTTPResponse.StatusCode == 500 {
@@ -136,8 +135,8 @@ func (a *LoginAPIService) AuthSvcV1LoginEmailPostExecute(r ApiAuthSvcV1LoginEmai
 				newErr.error = err.Error()
 				return localVarReturnValue, localVarHTTPResponse, newErr
 			}
-					newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
-					newErr.model = v
+			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+			newErr.model = v
 		}
 		return localVarReturnValue, localVarHTTPResponse, newErr
 	}
@@ -155,9 +154,9 @@ func (a *LoginAPIService) AuthSvcV1LoginEmailPostExecute(r ApiAuthSvcV1LoginEmai
 }
 
 type ApiAuthSvcV1LoginGoogleCallbackGetRequest struct {
-	ctx context.Context
+	ctx        context.Context
 	ApiService *LoginAPIService
-	code *string
+	code       *string
 }
 
 // OAuth authorization code returned by Google
@@ -175,25 +174,25 @@ AuthSvcV1LoginGoogleCallbackGet Google OAuth callback
 
 Exchanges Google OAuth `code` for user info and returns an access/refresh tokens pair.
 
-
- @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
- @return ApiAuthSvcV1LoginGoogleCallbackGetRequest
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@return ApiAuthSvcV1LoginGoogleCallbackGetRequest
 */
 func (a *LoginAPIService) AuthSvcV1LoginGoogleCallbackGet(ctx context.Context) ApiAuthSvcV1LoginGoogleCallbackGetRequest {
 	return ApiAuthSvcV1LoginGoogleCallbackGetRequest{
 		ApiService: a,
-		ctx: ctx,
+		ctx:        ctx,
 	}
 }
 
 // Execute executes the request
-//  @return TokensPair
+//
+//	@return TokensPair
 func (a *LoginAPIService) AuthSvcV1LoginGoogleCallbackGetExecute(r ApiAuthSvcV1LoginGoogleCallbackGetRequest) (*TokensPair, *http.Response, error) {
 	var (
-		localVarHTTPMethod   = http.MethodGet
-		localVarPostBody     interface{}
-		formFiles            []formFile
-		localVarReturnValue  *TokensPair
+		localVarHTTPMethod  = http.MethodGet
+		localVarPostBody    interface{}
+		formFiles           []formFile
+		localVarReturnValue *TokensPair
 	)
 
 	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "LoginAPIService.AuthSvcV1LoginGoogleCallbackGet")
@@ -257,8 +256,8 @@ func (a *LoginAPIService) AuthSvcV1LoginGoogleCallbackGetExecute(r ApiAuthSvcV1L
 				newErr.error = err.Error()
 				return localVarReturnValue, localVarHTTPResponse, newErr
 			}
-					newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
-					newErr.model = v
+			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+			newErr.model = v
 			return localVarReturnValue, localVarHTTPResponse, newErr
 		}
 		if localVarHTTPResponse.StatusCode == 404 {
@@ -268,8 +267,8 @@ func (a *LoginAPIService) AuthSvcV1LoginGoogleCallbackGetExecute(r ApiAuthSvcV1L
 				newErr.error = err.Error()
 				return localVarReturnValue, localVarHTTPResponse, newErr
 			}
-					newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
-					newErr.model = v
+			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+			newErr.model = v
 			return localVarReturnValue, localVarHTTPResponse, newErr
 		}
 		if localVarHTTPResponse.StatusCode == 500 {
@@ -279,8 +278,8 @@ func (a *LoginAPIService) AuthSvcV1LoginGoogleCallbackGetExecute(r ApiAuthSvcV1L
 				newErr.error = err.Error()
 				return localVarReturnValue, localVarHTTPResponse, newErr
 			}
-					newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
-					newErr.model = v
+			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+			newErr.model = v
 		}
 		return localVarReturnValue, localVarHTTPResponse, newErr
 	}
@@ -298,7 +297,7 @@ func (a *LoginAPIService) AuthSvcV1LoginGoogleCallbackGetExecute(r ApiAuthSvcV1L
 }
 
 type ApiAuthSvcV1LoginGooglePostRequest struct {
-	ctx context.Context
+	ctx        context.Context
 	ApiService *LoginAPIService
 }
 
@@ -311,23 +310,22 @@ AuthSvcV1LoginGooglePost Start Google OAuth login
 
 Redirects the user-agent to Google OAuth consent screen. This endpoint returns a redirect and does not return a JSON:API document.
 
-
- @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
- @return ApiAuthSvcV1LoginGooglePostRequest
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@return ApiAuthSvcV1LoginGooglePostRequest
 */
 func (a *LoginAPIService) AuthSvcV1LoginGooglePost(ctx context.Context) ApiAuthSvcV1LoginGooglePostRequest {
 	return ApiAuthSvcV1LoginGooglePostRequest{
 		ApiService: a,
-		ctx: ctx,
+		ctx:        ctx,
 	}
 }
 
 // Execute executes the request
 func (a *LoginAPIService) AuthSvcV1LoginGooglePostExecute(r ApiAuthSvcV1LoginGooglePostRequest) (*http.Response, error) {
 	var (
-		localVarHTTPMethod   = http.MethodPost
-		localVarPostBody     interface{}
-		formFiles            []formFile
+		localVarHTTPMethod = http.MethodPost
+		localVarPostBody   interface{}
+		formFiles          []formFile
 	)
 
 	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "LoginAPIService.AuthSvcV1LoginGooglePost")
@@ -387,8 +385,8 @@ func (a *LoginAPIService) AuthSvcV1LoginGooglePostExecute(r ApiAuthSvcV1LoginGoo
 				newErr.error = err.Error()
 				return localVarHTTPResponse, newErr
 			}
-					newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
-					newErr.model = v
+			newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+			newErr.model = v
 		}
 		return localVarHTTPResponse, newErr
 	}

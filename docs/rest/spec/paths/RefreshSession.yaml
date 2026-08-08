@@ -5,8 +5,8 @@ post:
   description: >
     Issues a new access/refresh tokens pair using a valid refresh token.
 
-    **401 Unauthorized** is returned when the account or session does not exist.
-    **403 Forbidden** is returned when the account is inactive or the refresh token does not match the session.
+    **401 Unauthorized** is returned when the user or session does not exist.
+    **403 Forbidden** is returned when the user is inactive or the refresh token does not match the session.
   requestBody:
     required: true
     content:
@@ -32,7 +32,7 @@ post:
 
     '401':
       description: >
-        Unauthorized. Account not found or session not found or invalid refresh token.
+        Unauthorized. User not found or session not found or invalid refresh token.
       content:
         application/json:
           schema:

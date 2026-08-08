@@ -17,7 +17,7 @@ import (
 
 type Server struct {
 	auth     *auth.Service
-	accounts controller.AccountCore
+	users    controller.UserCore
 	sessions controller.SessionCore
 	google   controller.GoogleIDVerifier
 	tokenMgr interceptors.TokenParser
@@ -27,7 +27,7 @@ type Server struct {
 
 type ServerDeps struct {
 	Auth     *auth.Service
-	Accounts controller.AccountCore
+	Users    controller.UserCore
 	Sessions controller.SessionCore
 	Google   controller.GoogleIDVerifier
 	TokenMgr interceptors.TokenParser
@@ -42,7 +42,7 @@ type Config struct {
 func New(deps ServerDeps) *Server {
 	return &Server{
 		auth:     deps.Auth,
-		accounts: deps.Accounts,
+		users:    deps.Users,
 		sessions: deps.Sessions,
 		google:   deps.Google,
 		metrics:  deps.Metrics,
@@ -65,7 +65,7 @@ func (s *Server) Run(ctx context.Context, cfg Config) {
 		),
 	)
 	pb.RegisterAuthServiceServer(srv, controller.NewAuthServer(s.auth, s.tokenMgr))
-	pb.RegisterAccountServiceServer(srv, controller.NewAccountServer(s.accounts, s.metrics))
+	pb.RegisterUserServiceServer(srv, controller.NewUserServer(s.users, s.metrics))
 	pb.RegisterSessionServiceServer(srv, controller.NewSessionServer(s.sessions, s.metrics, s.google))
 	reflection.Register(srv)
 

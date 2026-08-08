@@ -11,17 +11,17 @@ import (
 type ctxKey int
 
 const (
-	AccountDataCtxKey ctxKey = iota
+	UserDataCtxKey ctxKey = iota
 	LogCtxKey
 )
 
 func CtxWithClaims(ctx context.Context, claims tokens.AccountAuthClaims) context.Context {
-	return context.WithValue(ctx, AccountDataCtxKey, claims)
+	return context.WithValue(ctx, UserDataCtxKey, claims)
 }
 
-func AccountActor(ctx context.Context) models.AccountActor {
-	claims := ctx.Value(AccountDataCtxKey).(tokens.AccountAuthClaims)
-	return models.AccountActor{
+func UserActor(ctx context.Context) models.UserActor {
+	claims := ctx.Value(UserDataCtxKey).(tokens.AccountAuthClaims)
+	return models.UserActor{
 		ID:        claims.GetAccountID(),
 		SessionID: claims.GetSessionID(),
 		Role:      claims.GetRole(),
@@ -35,9 +35,9 @@ func CtxWithLog(ctx context.Context, log *log.Logger) context.Context {
 func Log(ctx context.Context) *log.Logger {
 	log := ctx.Value(LogCtxKey).(*log.Logger)
 
-	authClaims, ok := ctx.Value(AccountDataCtxKey).(tokens.AccountAuthClaims)
+	authClaims, ok := ctx.Value(UserDataCtxKey).(tokens.AccountAuthClaims)
 	if ok {
-		log = log.WithAccountAuthClaims(authClaims)
+		log = log.WithUserAuthClaims(authClaims)
 	}
 
 	return log

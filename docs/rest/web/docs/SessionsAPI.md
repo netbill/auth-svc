@@ -133,7 +133,7 @@ Other parameters are passed through a pointer to a apiAuthSvcV1MeSessionsDeleteR
 
 ## AuthSvcV1MeSessionsGet
 
-> AccountSessionsCollection AuthSvcV1MeSessionsGet(ctx).PageLimit(pageLimit).PageOffset(pageOffset).FilterActive(filterActive).SortLastUsed(sortLastUsed).Execute()
+> UserSessionsCollection AuthSvcV1MeSessionsGet(ctx).PageLimit(pageLimit).PageOffset(pageOffset).FilterActive(filterActive).SortLastUsed(sortLastUsed).Execute()
 
 Get my sessions
 
@@ -164,7 +164,7 @@ func main() {
 		fmt.Fprintf(os.Stderr, "Error when calling `SessionsAPI.AuthSvcV1MeSessionsGet``: %v\n", err)
 		fmt.Fprintf(os.Stderr, "Full HTTP response: %v\n", r)
 	}
-	// response from `AuthSvcV1MeSessionsGet`: AccountSessionsCollection
+	// response from `AuthSvcV1MeSessionsGet`: UserSessionsCollection
 	fmt.Fprintf(os.Stdout, "Response from `SessionsAPI.AuthSvcV1MeSessionsGet`: %v\n", resp)
 }
 ```
@@ -187,7 +187,7 @@ Name | Type | Description  | Notes
 
 ### Return type
 
-[**AccountSessionsCollection**](AccountSessionsCollection.md)
+[**UserSessionsCollection**](UserSessionsCollection.md)
 
 ### Authorization
 
@@ -273,7 +273,7 @@ Name | Type | Description  | Notes
 
 ## AuthSvcV1MeSessionsSessionIdGet
 
-> AccountSession AuthSvcV1MeSessionsSessionIdGet(ctx, sessionId).Execute()
+> UserSession AuthSvcV1MeSessionsSessionIdGet(ctx, sessionId).Execute()
 
 Get my session
 
@@ -301,7 +301,7 @@ func main() {
 		fmt.Fprintf(os.Stderr, "Error when calling `SessionsAPI.AuthSvcV1MeSessionsSessionIdGet``: %v\n", err)
 		fmt.Fprintf(os.Stderr, "Full HTTP response: %v\n", r)
 	}
-	// response from `AuthSvcV1MeSessionsSessionIdGet`: AccountSession
+	// response from `AuthSvcV1MeSessionsSessionIdGet`: UserSession
 	fmt.Fprintf(os.Stdout, "Response from `SessionsAPI.AuthSvcV1MeSessionsSessionIdGet`: %v\n", resp)
 }
 ```
@@ -325,7 +325,7 @@ Name | Type | Description  | Notes
 
 ### Return type
 
-[**AccountSession**](AccountSession.md)
+[**UserSession**](UserSession.md)
 
 ### Authorization
 

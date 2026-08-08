@@ -47,15 +47,15 @@ type loginResponse struct {
 const testPassword = "!Test1234"
 
 // TestRegistrationAndLogin последовательно регистрирует N аккаунтов и логинит каждый.
-// N задаётся через load.accounts в test_config.yaml.
+// N задаётся через load.users в test_config.yaml.
 func TestRegistrationAndLogin(t *testing.T) {
-	n := testCfg.Load.Accounts
+	n := testCfg.Load.Users
 	base := testCfg.REST.BaseURL
 
 	for i := range n {
 		email := fmt.Sprintf("test_%s@example.com", uuid.New().String()[:8])
 
-		t.Run(fmt.Sprintf("account_%d", i+1), func(t *testing.T) {
+		t.Run(fmt.Sprintf("user_%d", i+1), func(t *testing.T) {
 			t.Parallel()
 
 			// — регистрация —
@@ -73,7 +73,7 @@ func register(t *testing.T, base, email string) {
 	t.Helper()
 
 	var body registerRequest
-	body.Data.Type = "account"
+	body.Data.Type = "user"
 	body.Data.Attributes.Email = email
 	body.Data.Attributes.Password = testPassword
 
@@ -88,7 +88,7 @@ func login(t *testing.T, base, email string) loginResponse {
 	t.Helper()
 
 	var body loginRequest
-	body.Data.Type = "account_session"
+	body.Data.Type = "user_session"
 	body.Data.Attributes.Email = email
 	body.Data.Attributes.Password = testPassword
 

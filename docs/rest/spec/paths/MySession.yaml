@@ -12,7 +12,7 @@ get:
     - sessions
   summary: Get my session
   description: >
-    Returns a single session of the authenticated account by ID.
+    Returns a single session of the authenticated user by ID.
   security:
     - BearerAuth: [ ]
   responses:
@@ -21,7 +21,7 @@ get:
       content:
         application/json:
           schema:
-            $ref: '../components/schemas/responses/AccountSession.yaml'
+            $ref: '../components/schemas/responses/UserSession.yaml'
 
     '404':
       description: Session not found
@@ -42,7 +42,7 @@ delete:
     - sessions
   summary: Delete my session
   description: >
-    Deletes a session by ID. The session must belong to the authenticated account.
+    Deletes a session by ID. The session must belong to the authenticated user.
   security:
     - BearerAuth: [ ]
   responses:
@@ -51,7 +51,7 @@ delete:
 
     '401':
       description: >
-        Unauthorized. The session does not belong to the authenticated account.
+        Unauthorized. The session does not belong to the authenticated user.
       content:
         application/json:
           schema:

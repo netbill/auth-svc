@@ -16,27 +16,27 @@ type mockPasswordCache struct {
 	mock.Mock
 }
 
-// Get provides a mock function with given fields: ctx, accountID
-func (_m *mockPasswordCache) Get(ctx context.Context, accountID uuid.UUID) (models.AccountPassword, error) {
-	ret := _m.Called(ctx, accountID)
+// Get provides a mock function with given fields: ctx, userID
+func (_m *mockPasswordCache) Get(ctx context.Context, userID uuid.UUID) (models.UserPassword, error) {
+	ret := _m.Called(ctx, userID)
 
 	if len(ret) == 0 {
 		panic("no return value specified for Get")
 	}
 
-	var r0 models.AccountPassword
+	var r0 models.UserPassword
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID) (models.AccountPassword, error)); ok {
-		return rf(ctx, accountID)
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID) (models.UserPassword, error)); ok {
+		return rf(ctx, userID)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID) models.AccountPassword); ok {
-		r0 = rf(ctx, accountID)
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID) models.UserPassword); ok {
+		r0 = rf(ctx, userID)
 	} else {
-		r0 = ret.Get(0).(models.AccountPassword)
+		r0 = ret.Get(0).(models.UserPassword)
 	}
 
 	if rf, ok := ret.Get(1).(func(context.Context, uuid.UUID) error); ok {
-		r1 = rf(ctx, accountID)
+		r1 = rf(ctx, userID)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -45,7 +45,7 @@ func (_m *mockPasswordCache) Get(ctx context.Context, accountID uuid.UUID) (mode
 }
 
 // Set provides a mock function with given fields: ctx, password
-func (_m *mockPasswordCache) Set(ctx context.Context, password models.AccountPassword) error {
+func (_m *mockPasswordCache) Set(ctx context.Context, password models.UserPassword) error {
 	ret := _m.Called(ctx, password)
 
 	if len(ret) == 0 {
@@ -53,7 +53,7 @@ func (_m *mockPasswordCache) Set(ctx context.Context, password models.AccountPas
 	}
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, models.AccountPassword) error); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, models.UserPassword) error); ok {
 		r0 = rf(ctx, password)
 	} else {
 		r0 = ret.Error(0)

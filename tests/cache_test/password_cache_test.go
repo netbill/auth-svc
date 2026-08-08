@@ -16,18 +16,18 @@ func TestPasswordCache_SetAndGetByID(t *testing.T) {
 	cache := newPasswordCache(t)
 	ctx := context.Background()
 
-	pass := models.AccountPassword{
-		AccountID: testutil.RandomUUID(),
-		Hash:      "bcrypthash",
-		Version:   1,
+	pass := models.UserPassword{
+		UserID:  testutil.RandomUUID(),
+		Hash:    "bcrypthash",
+		Version: 1,
 	}
 
 	err := cache.Set(ctx, pass)
 	require.NoError(t, err)
 
-	got, err := cache.Get(ctx, pass.AccountID)
+	got, err := cache.Get(ctx, pass.UserID)
 	require.NoError(t, err)
-	assert.Equal(t, pass.AccountID, got.AccountID)
+	assert.Equal(t, pass.UserID, got.UserID)
 	assert.Equal(t, "bcrypthash", got.Hash)
 }
 
@@ -45,19 +45,19 @@ func TestPasswordCache_DeleteByID(t *testing.T) {
 	cache := newPasswordCache(t)
 	ctx := context.Background()
 
-	pass := models.AccountPassword{
-		AccountID: testutil.RandomUUID(),
-		Hash:      "todelete",
-		Version:   1,
+	pass := models.UserPassword{
+		UserID:  testutil.RandomUUID(),
+		Hash:    "todelete",
+		Version: 1,
 	}
 
 	err := cache.Set(ctx, pass)
 	require.NoError(t, err)
 
-	err = cache.Delete(ctx, pass.AccountID)
+	err = cache.Delete(ctx, pass.UserID)
 	require.NoError(t, err)
 
-	_, err = cache.Get(ctx, pass.AccountID)
+	_, err = cache.Get(ctx, pass.UserID)
 	assert.ErrorIs(t, err, redis.Nil)
 }
 
@@ -68,7 +68,7 @@ func TestPasswordCache_Overwrite(t *testing.T) {
 
 	id := testutil.RandomUUID()
 
-	pass := models.AccountPassword{AccountID: id, Hash: "oldhash", Version: 1}
+	pass := models.UserPassword{UserID: id, Hash: "oldhash", Version: 1}
 	require.NoError(t, cache.Set(ctx, pass))
 
 	pass.Hash = "newhash"
