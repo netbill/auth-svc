@@ -16,6 +16,7 @@ properties:
         required:
           - email
           - password
+          - username
           - role
         properties:
           email:
@@ -28,6 +29,11 @@ properties:
             format: password
             description: The user's password.
             example: StrongP@ssw0rd!
+          username:
+            type: string
+            description: >
+              Unique username. 3-32 characters, letters and digits only.
+            example: johndoe123
           role:
             type: string
             description: The role assigned to the registering user.

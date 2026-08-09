@@ -15,8 +15,8 @@ service UserService {
   // CreateUser registers a new user.
   //
   // Errors:
-  //   ALREADY_EXISTS      — email is already taken
-  //   INVALID_ARGUMENT    — password does not meet requirements
+  //   ALREADY_EXISTS      — email or username is already taken
+  //   INVALID_ARGUMENT    — password does not meet requirements, or username is invalid
   rpc CreateUser(CreateUserRequest) returns (CreateUserResponse);
 
   // GetMyUser returns the authenticated user.
@@ -51,6 +51,9 @@ service UserService {
 message CreateUserRequest {
   // Valid email address. Must be unique across all users.
   string email = 1;
+
+  // Unique username. 3-32 characters, letters and digits only.
+  string username = 2;
 
   // Password. 8–32 characters, must contain at least one uppercase letter,
   // one lowercase letter, one digit and one special character (-.!#$%&?,@).

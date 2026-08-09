@@ -26,6 +26,8 @@ type CreateUserRequest struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// Valid email address. Must be unique across all users.
 	Email string `protobuf:"bytes,1,opt,name=email,proto3" json:"email,omitempty"`
+	// Unique username. 3-32 characters, letters and digits only.
+	Username string `protobuf:"bytes,2,opt,name=username,proto3" json:"username,omitempty"`
 	// Password. 8–32 characters, must contain at least one uppercase letter,
 	// one lowercase letter, one digit and one special character (-.!#$%&?,@).
 	Password      string `protobuf:"bytes,3,opt,name=password,proto3" json:"password,omitempty"`
@@ -66,6 +68,13 @@ func (*CreateUserRequest) Descriptor() ([]byte, []int) {
 func (x *CreateUserRequest) GetEmail() string {
 	if x != nil {
 		return x.Email
+	}
+	return ""
+}
+
+func (x *CreateUserRequest) GetUsername() string {
+	if x != nil {
+		return x.Username
 	}
 	return ""
 }
@@ -376,9 +385,10 @@ var File_user_proto protoreflect.FileDescriptor
 const file_user_proto_rawDesc = "" +
 	"\n" +
 	"\n" +
-	"user.proto\x12\aauth.v1\x1a\fcommon.proto\x1a\x1bgoogle/protobuf/empty.proto\"E\n" +
+	"user.proto\x12\aauth.v1\x1a\fcommon.proto\x1a\x1bgoogle/protobuf/empty.proto\"a\n" +
 	"\x11CreateUserRequest\x12\x14\n" +
 	"\x05email\x18\x01 \x01(\tR\x05email\x12\x1a\n" +
+	"\busername\x18\x02 \x01(\tR\busername\x12\x1a\n" +
 	"\bpassword\x18\x03 \x01(\tR\bpassword\"7\n" +
 	"\x12CreateUserResponse\x12!\n" +
 	"\x04user\x18\x01 \x01(\v2\r.auth.v1.UserR\x04user\"\x12\n" +

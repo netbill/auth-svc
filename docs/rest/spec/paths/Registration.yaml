@@ -15,7 +15,7 @@ post:
 
     '409':
       description: >
-        Conflict: An user with this email or phone number already exists.
+        Conflict: A user with this email or username already exists.
         Check the 'detail' field in the response for more information.
       content:
         application/json:

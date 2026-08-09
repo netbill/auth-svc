@@ -23,7 +23,7 @@ paths:
           description: User successfully registered
         '409':
           description: |
-            Conflict: An user with this email or phone number already exists. Check the 'detail' field in the response for more information.
+            Conflict: A user with this email or username already exists. Check the 'detail' field in the response for more information.
           content:
             application/json:
               schema:
@@ -72,7 +72,7 @@ paths:
                 $ref: '#/components/schemas/Errors'
         '409':
           description: |
-            Conflict. Email is already taken. Check the `detail` field in the response for more information.
+            Conflict. Email or username is already taken. Check the `detail` field in the response for more information.
           content:
             application/json:
               schema:
@@ -920,6 +920,7 @@ components:
               required:
                 - email
                 - password
+                - username
               properties:
                 email:
                   type: string
@@ -931,6 +932,11 @@ components:
                   format: password
                   description: The user's password.
                   example: StrongP@ssw0rd!
+                username:
+                  type: string
+                  description: |
+                    Unique username. 3-32 characters, letters and digits only.
+                  example: johndoe123
     RegistrationAdmin:
       type: object
       required:
@@ -951,6 +957,7 @@ components:
               required:
                 - email
                 - password
+                - username
                 - role
               properties:
                 email:
@@ -963,6 +970,11 @@ components:
                   format: password
                   description: The user's password.
                   example: StrongP@ssw0rd!
+                username:
+                  type: string
+                  description: |
+                    Unique username. 3-32 characters, letters and digits only.
+                  example: johndoe123
                 role:
                   type: string
                   description: The role assigned to the registering user.

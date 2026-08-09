@@ -11,7 +11,8 @@ docs
 
 observability
 
-.env.example
+deployment/.env
+deployment/.env.example
 
 .gitignore
 CLAUDE.md

@@ -24,6 +24,7 @@ func Registration(r *http.Request) (req oapi.Registration, err error) {
 		"data/attributes/email": validation.Validate(
 			req.Data.Attributes.Email, validation.Required, validation.Length(5, 255),
 		),
+		"data/attributes/username": validation.Validate(req.Data.Attributes.Username, validation.Required),
 	}
 
 	return req, errs.Filter()
@@ -42,6 +43,7 @@ func RegistrationAdmin(r *http.Request) (req oapi.RegistrationAdmin, err error) 
 		"data/attributes": validation.Validate(req.Data.Attributes, validation.Required),
 		"data/attributes/email": validation.Validate(
 			req.Data.Attributes.Email, validation.Required, validation.Length(5, 255), is.Email),
+		"data/attributes/username": validation.Validate(req.Data.Attributes.Username, validation.Required),
 		"data/attributes/role": validation.Validate(
 			req.Data.Attributes.Role, validation.Required, validation.In(tokens.GetAllSystemUserRoles())),
 	}

@@ -24,8 +24,9 @@ func TestUserRepo_Create(t *testing.T) {
 	ctx := context.Background()
 
 	acc, err := repo.Create(ctx, user.RegistrationParams{
-		Role: "user",
-	}, testutil.UniqueUsername())
+		Role:     "user",
+		Username: testutil.UniqueUsername(),
+	})
 	require.NoError(t, err)
 	assert.Equal(t, "user", acc.Role)
 	assert.NotEmpty(t, acc.ID)
@@ -36,7 +37,7 @@ func TestUserRepo_GetByID(t *testing.T) {
 	repo := newUserRepo(t)
 	ctx := context.Background()
 
-	created, err := repo.Create(ctx, user.RegistrationParams{Role: "user"}, testutil.UniqueUsername())
+	created, err := repo.Create(ctx, user.RegistrationParams{Role: "user", Username: testutil.UniqueUsername()})
 	require.NoError(t, err)
 
 	got, err := repo.GetByID(ctx, created.ID)
@@ -55,7 +56,7 @@ func TestUserRepo_Delete(t *testing.T) {
 	repo := newUserRepo(t)
 	ctx := context.Background()
 
-	created, err := repo.Create(ctx, user.RegistrationParams{Role: "user"}, testutil.UniqueUsername())
+	created, err := repo.Create(ctx, user.RegistrationParams{Role: "user", Username: testutil.UniqueUsername()})
 	require.NoError(t, err)
 
 	deleted, err := repo.Delete(ctx, created.ID)
@@ -71,7 +72,7 @@ func TestUserRepo_Delete_AlreadyDeleted(t *testing.T) {
 	repo := newUserRepo(t)
 	ctx := context.Background()
 
-	created, err := repo.Create(ctx, user.RegistrationParams{Role: "user"}, testutil.UniqueUsername())
+	created, err := repo.Create(ctx, user.RegistrationParams{Role: "user", Username: testutil.UniqueUsername()})
 	require.NoError(t, err)
 
 	_, err = repo.Delete(ctx, created.ID)

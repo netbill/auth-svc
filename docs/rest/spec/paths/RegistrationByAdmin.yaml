@@ -41,7 +41,7 @@ post:
 
     '409':
       description: >
-        Conflict. Email is already taken.
+        Conflict. Email or username is already taken.
         Check the `detail` field in the response for more information.
       content:
         application/json:

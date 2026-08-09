@@ -28,6 +28,7 @@ func registerAndLogin(
 	acc, err := userSvc.Registration(ctx, user.RegistrationParams{
 		Email:    email,
 		Password: testutil.TestPassword,
+		Username: testutil.UniqueUsername(),
 		Role:     "user",
 	})
 	require.NoError(t, err)
@@ -47,6 +48,7 @@ func TestSessionService_LoginByEmail(t *testing.T) {
 	_, err := userSvc.Registration(ctx, user.RegistrationParams{
 		Email:    email,
 		Password: testutil.TestPassword,
+		Username: testutil.UniqueUsername(),
 		Role:     "user",
 	})
 	require.NoError(t, err)
@@ -67,6 +69,7 @@ func TestSessionService_LoginByEmail_WrongPassword(t *testing.T) {
 	_, err := userSvc.Registration(ctx, user.RegistrationParams{
 		Email:    email,
 		Password: testutil.TestPassword,
+		Username: testutil.UniqueUsername(),
 		Role:     "user",
 	})
 	require.NoError(t, err)

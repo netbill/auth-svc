@@ -38,6 +38,7 @@ docs/RegistrationAdmin.md
 docs/RegistrationAdminData.md
 docs/RegistrationAdminDataAttributes.md
 docs/RegistrationData.md
+docs/RegistrationDataAttributes.md
 docs/SessionsAPI.md
 docs/TokensPair.md
 docs/TokensPairData.md
@@ -98,6 +99,7 @@ model_registration_admin.go
 model_registration_admin_data.go
 model_registration_admin_data_attributes.go
 model_registration_data.go
+model_registration_data_attributes.go
 model_tokens_pair.go
 model_tokens_pair_data.go
 model_tokens_pair_data_attributes.go

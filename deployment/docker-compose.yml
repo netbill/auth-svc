@@ -5,7 +5,7 @@ services:
       dockerfile: deployment/Dockerfile
     container_name: auth-svc
     env_file:
-      - ../.env
+      - .env
     environment:
       - DATABASE_SQL_URL=postgres://postgres:postgres@auth-svc-postgres:5432/postgres
       - REDIS_ADDR=auth-svc-redis:6379

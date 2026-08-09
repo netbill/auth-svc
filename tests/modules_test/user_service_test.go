@@ -20,6 +20,7 @@ func TestUserService_Registration(t *testing.T) {
 	acc, err := userSvc.Registration(ctx, user.RegistrationParams{
 		Email:    testutil.UniqueEmail(),
 		Password: testutil.TestPassword,
+		Username: testutil.UniqueUsername(),
 		Role:     "user",
 	})
 	require.NoError(t, err)
@@ -37,6 +38,7 @@ func TestUserService_Registration_DuplicateEmail(t *testing.T) {
 	_, err := userSvc.Registration(ctx, user.RegistrationParams{
 		Email:    email,
 		Password: testutil.TestPassword,
+		Username: testutil.UniqueUsername(),
 		Role:     "user",
 	})
 	require.NoError(t, err)
@@ -44,6 +46,7 @@ func TestUserService_Registration_DuplicateEmail(t *testing.T) {
 	_, err = userSvc.Registration(ctx, user.RegistrationParams{
 		Email:    email,
 		Password: testutil.TestPassword,
+		Username: testutil.UniqueUsername(),
 		Role:     "user",
 	})
 	assert.ErrorIs(t, err, errx.ErrorEmailAlreadyExist)
@@ -57,6 +60,7 @@ func TestUserService_Registration_WeakPassword(t *testing.T) {
 	_, err := userSvc.Registration(ctx, user.RegistrationParams{
 		Email:    testutil.UniqueEmail(),
 		Password: "weak",
+		Username: testutil.UniqueUsername(),
 		Role:     "user",
 	})
 	assert.ErrorIs(t, err, errx.ErrorPasswordIsNotAllowed)
@@ -70,6 +74,7 @@ func TestUserService_GetMyUserByID(t *testing.T) {
 	created, err := userSvc.Registration(ctx, user.RegistrationParams{
 		Email:    testutil.UniqueEmail(),
 		Password: testutil.TestPassword,
+		Username: testutil.UniqueUsername(),
 		Role:     "user",
 	})
 	require.NoError(t, err)
@@ -90,6 +95,7 @@ func TestUserService_UpdatePassword(t *testing.T) {
 	created, err := userSvc.Registration(ctx, user.RegistrationParams{
 		Email:    email,
 		Password: testutil.TestPassword,
+		Username: testutil.UniqueUsername(),
 		Role:     "user",
 	})
 	require.NoError(t, err)

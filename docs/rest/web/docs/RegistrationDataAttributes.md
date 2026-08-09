@@ -1,4 +1,4 @@
-# RegistrationAdminDataAttributes
+# RegistrationDataAttributes
 
 ## Properties
 
@@ -7,105 +7,84 @@ Name | Type | Description | Notes
 **Email** | **string** | The user&#39;s email address. | 
 **Password** | **string** | The user&#39;s password. | 
 **Username** | **string** | Unique username. 3-32 characters, letters and digits only.  | 
-**Role** | **string** | The role assigned to the registering user. | 
 
 ## Methods
 
-### NewRegistrationAdminDataAttributes
+### NewRegistrationDataAttributes
 
-`func NewRegistrationAdminDataAttributes(email string, password string, username string, role string, ) *RegistrationAdminDataAttributes`
+`func NewRegistrationDataAttributes(email string, password string, username string, ) *RegistrationDataAttributes`
 
-NewRegistrationAdminDataAttributes instantiates a new RegistrationAdminDataAttributes object
+NewRegistrationDataAttributes instantiates a new RegistrationDataAttributes object
 This constructor will assign default values to properties that have it defined,
 and makes sure properties required by API are set, but the set of arguments
 will change when the set of required properties is changed
 
-### NewRegistrationAdminDataAttributesWithDefaults
+### NewRegistrationDataAttributesWithDefaults
 
-`func NewRegistrationAdminDataAttributesWithDefaults() *RegistrationAdminDataAttributes`
+`func NewRegistrationDataAttributesWithDefaults() *RegistrationDataAttributes`
 
-NewRegistrationAdminDataAttributesWithDefaults instantiates a new RegistrationAdminDataAttributes object
+NewRegistrationDataAttributesWithDefaults instantiates a new RegistrationDataAttributes object
 This constructor will only assign default values to properties that have it defined,
 but it doesn't guarantee that properties required by API are set
 
 ### GetEmail
 
-`func (o *RegistrationAdminDataAttributes) GetEmail() string`
+`func (o *RegistrationDataAttributes) GetEmail() string`
 
 GetEmail returns the Email field if non-nil, zero value otherwise.
 
 ### GetEmailOk
 
-`func (o *RegistrationAdminDataAttributes) GetEmailOk() (*string, bool)`
+`func (o *RegistrationDataAttributes) GetEmailOk() (*string, bool)`
 
 GetEmailOk returns a tuple with the Email field if it's non-nil, zero value otherwise
 and a boolean to check if the value has been set.
 
 ### SetEmail
 
-`func (o *RegistrationAdminDataAttributes) SetEmail(v string)`
+`func (o *RegistrationDataAttributes) SetEmail(v string)`
 
 SetEmail sets Email field to given value.
 
 
 ### GetPassword
 
-`func (o *RegistrationAdminDataAttributes) GetPassword() string`
+`func (o *RegistrationDataAttributes) GetPassword() string`
 
 GetPassword returns the Password field if non-nil, zero value otherwise.
 
 ### GetPasswordOk
 
-`func (o *RegistrationAdminDataAttributes) GetPasswordOk() (*string, bool)`
+`func (o *RegistrationDataAttributes) GetPasswordOk() (*string, bool)`
 
 GetPasswordOk returns a tuple with the Password field if it's non-nil, zero value otherwise
 and a boolean to check if the value has been set.
 
 ### SetPassword
 
-`func (o *RegistrationAdminDataAttributes) SetPassword(v string)`
+`func (o *RegistrationDataAttributes) SetPassword(v string)`
 
 SetPassword sets Password field to given value.
 
 
 ### GetUsername
 
-`func (o *RegistrationAdminDataAttributes) GetUsername() string`
+`func (o *RegistrationDataAttributes) GetUsername() string`
 
 GetUsername returns the Username field if non-nil, zero value otherwise.
 
 ### GetUsernameOk
 
-`func (o *RegistrationAdminDataAttributes) GetUsernameOk() (*string, bool)`
+`func (o *RegistrationDataAttributes) GetUsernameOk() (*string, bool)`
 
 GetUsernameOk returns a tuple with the Username field if it's non-nil, zero value otherwise
 and a boolean to check if the value has been set.
 
 ### SetUsername
 
-`func (o *RegistrationAdminDataAttributes) SetUsername(v string)`
+`func (o *RegistrationDataAttributes) SetUsername(v string)`
 
 SetUsername sets Username field to given value.
-
-
-### GetRole
-
-`func (o *RegistrationAdminDataAttributes) GetRole() string`
-
-GetRole returns the Role field if non-nil, zero value otherwise.
-
-### GetRoleOk
-
-`func (o *RegistrationAdminDataAttributes) GetRoleOk() (*string, bool)`
-
-GetRoleOk returns a tuple with the Role field if it's non-nil, zero value otherwise
-and a boolean to check if the value has been set.
-
-### SetRole
-
-`func (o *RegistrationAdminDataAttributes) SetRole(v string)`
-
-SetRole sets Role field to given value.
 
 
 

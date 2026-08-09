@@ -2,7 +2,6 @@ package username
 
 import (
 	"fmt"
-	"math/rand/v2"
 	"regexp"
 
 	"github.com/netbill/auth-svc/internal/errx"
@@ -36,24 +35,4 @@ func (v *Validator) Validate(username string) error {
 	}
 
 	return nil
-}
-
-var adjectives = []string{
-	"Swift", "Brave", "Calm", "Eager", "Fuzzy", "Gentle", "Happy", "Jolly",
-	"Keen", "Lively", "Mighty", "Nimble", "Proud", "Quiet", "Rapid", "Sharp",
-	"Tidy", "Vivid", "Witty", "Zesty",
-}
-
-var nouns = []string{
-	"Falcon", "Otter", "Tiger", "Panda", "Eagle", "Wolf", "Fox", "Bear",
-	"Hawk", "Lynx", "Raven", "Shark", "Whale", "Heron", "Cobra", "Puma",
-	"Ibex", "Moose", "Crane", "Viper",
-}
-
-func (v *Validator) Generate() string {
-	adjective := adjectives[rand.IntN(len(adjectives))]
-	noun := nouns[rand.IntN(len(nouns))]
-	suffix := rand.IntN(1_000_000)
-
-	return fmt.Sprintf("%s%s%06d", adjective, noun, suffix)
 }

@@ -61,13 +61,13 @@ func nullIfEmpty(v *string) *string {
 	return v
 }
 
-func (r *UserRepo) Create(ctx context.Context, params user.RegistrationParams, username string) (models.User, error) {
+func (r *UserRepo) Create(ctx context.Context, params user.RegistrationParams) (models.User, error) {
 	const query = `
 		INSERT INTO ` + usersTable + ` (role, username)
 		VALUES ($1, $2)
 		RETURNING ` + usersCols
 
-	res, err := scanUser(r.db.QueryRow(ctx, query, params.Role, username))
+	res, err := scanUser(r.db.QueryRow(ctx, query, params.Role, params.Username))
 	if err != nil {
 		var pgErr *pgconn.PgError
 		if errors.As(err, &pgErr) && pgErr.Code == "23505" && pgErr.ConstraintName != "users_pkey" {

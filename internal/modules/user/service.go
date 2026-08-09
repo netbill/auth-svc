@@ -66,7 +66,7 @@ type Service struct {
 	messenger messenger
 
 	bucket   media
-	username usernameGenerator
+	username usernameValidator
 }
 
 type ServiceDeps struct {
@@ -89,7 +89,7 @@ type ServiceDeps struct {
 	Messenger messenger
 
 	Bucket   media
-	Username usernameGenerator
+	Username usernameValidator
 }
 
 func New(deps ServiceDeps) *Service {
@@ -127,6 +127,7 @@ type messenger interface {
 type RegistrationParams struct {
 	Email    string
 	Password string
+	Username string
 	Role     string
 }
 
@@ -142,19 +143,21 @@ func (s *Service) Registration(
 		return models.User{}, err
 	}
 
+	if err := s.username.Validate(params.Username); err != nil {
+		return models.User{}, err
+	}
+
 	hash, err := s.passManager.GenerateHash(params.Password)
 	if err != nil {
 		return models.User{}, err
 	}
-
-	candidate := s.username.Generate()
 
 	var user models.User
 	var email models.UserEmail
 	var password models.UserPassword
 
 	if err = s.tx.Transaction(ctx, func(ctx context.Context) error {
-		user, err = s.userRepo.Create(ctx, params, candidate)
+		user, err = s.userRepo.Create(ctx, params)
 		if err != nil {
 			return err
 		}

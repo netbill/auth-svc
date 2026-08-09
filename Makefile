@@ -30,15 +30,15 @@ build:
 
 migrate-up:
 	go build -o ./cmd/auth-svc/main ./cmd/auth-svc/main.go
-	set -a && . ./.env && set +a && ./cmd/auth-svc/main migrate up
+	set -a && . ./deployment/.env && set +a && ./cmd/auth-svc/main migrate up
 
 migrate-down:
 	go build -o ./cmd/auth-svc/main ./cmd/auth-svc/main.go
-	set -a && . ./.env && set +a && ./cmd/auth-svc/main migrate down
+	set -a && . ./deployment/.env && set +a && ./cmd/auth-svc/main migrate down
 
 run-server:
 	go build -o ./cmd/auth-svc/main ./cmd/auth-svc/main.go
-	set -a && . ./.env && set +a && ./cmd/auth-svc/main run service
+	set -a && . ./deployment/.env && set +a && ./cmd/auth-svc/main run service
 
 docker-up:
 	docker compose -f deployment/docker-compose.yml up -d --build

@@ -24,7 +24,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/Errors"
           description: |
-            Conflict: An user with this email or phone number already exists. Check the 'detail' field in the response for more information.
+            Conflict: A user with this email or username already exists. Check the 'detail' field in the response for more information.
         "500":
           content:
             application/json:
@@ -71,7 +71,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/Errors"
           description: |
-            Conflict. Email is already taken. Check the `detail` field in the response for more information.
+            Conflict. Email or username is already taken. Check the `detail` field in the response for more information.
         "500":
           content:
             application/json:
@@ -929,6 +929,7 @@ components:
           attributes:
             email: example@gmail.com
             password: StrongP@ssw0rd!
+            username: johndoe123
       properties:
         data:
           $ref: "#/components/schemas/Registration_data"
@@ -941,6 +942,7 @@ components:
           attributes:
             email: example1312@gmail.com
             password: StrongP@ssw0rd!
+            username: johndoe123
             role: admin
       properties:
         data:
@@ -1431,19 +1433,45 @@ components:
       required:
       - attributes
       - type
+    Registration_data_attributes:
+      example:
+        email: example@gmail.com
+        password: StrongP@ssw0rd!
+        username: johndoe123
+      properties:
+        email:
+          description: The user's email address.
+          example: example@gmail.com
+          format: email
+          type: string
+        password:
+          description: The user's password.
+          example: StrongP@ssw0rd!
+          format: password
+          type: string
+        username:
+          description: |
+            Unique username. 3-32 characters, letters and digits only.
+          example: johndoe123
+          type: string
+      required:
+      - email
+      - password
+      - username
     Registration_data:
       example:
         type: user
         attributes:
           email: example@gmail.com
           password: StrongP@ssw0rd!
+          username: johndoe123
       properties:
         type:
           enum:
           - user
           type: string
         attributes:
-          $ref: "#/components/schemas/LoginByEmail_data_attributes"
+          $ref: "#/components/schemas/Registration_data_attributes"
       required:
       - attributes
       - type
@@ -1451,6 +1479,7 @@ components:
       example:
         email: example1312@gmail.com
         password: StrongP@ssw0rd!
+        username: johndoe123
         role: admin
       properties:
         email:
@@ -1463,6 +1492,11 @@ components:
           example: StrongP@ssw0rd!
           format: password
           type: string
+        username:
+          description: |
+            Unique username. 3-32 characters, letters and digits only.
+          example: johndoe123
+          type: string
         role:
           description: The role assigned to the registering user.
           enum:
@@ -1474,12 +1508,14 @@ components:
       - email
       - password
       - role
+      - username
     RegistrationAdmin_data:
       example:
         type: user
         attributes:
           email: example1312@gmail.com
           password: StrongP@ssw0rd!
+          username: johndoe123
           role: admin
       properties:
         type:

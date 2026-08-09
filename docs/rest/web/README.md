@@ -124,6 +124,7 @@ Class | Method | HTTP request | Description
  - [RegistrationAdminData](docs/RegistrationAdminData.md)
  - [RegistrationAdminDataAttributes](docs/RegistrationAdminDataAttributes.md)
  - [RegistrationData](docs/RegistrationData.md)
+ - [RegistrationDataAttributes](docs/RegistrationDataAttributes.md)
  - [TokensPair](docs/TokensPair.md)
  - [TokensPairData](docs/TokensPairData.md)
  - [TokensPairDataAttributes](docs/TokensPairDataAttributes.md)

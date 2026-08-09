@@ -209,7 +209,7 @@ Postgres `wal_level=logical`) и публикует в Kafka. **В этом ре
 Обязательные (паника при отсутствии): `DATABASE_SQL_URL`, `REDIS_ADDR`,
 `AUTH_TOKENS_USER_ACCESS_SECRET_KEY`, `AUTH_TOKENS_USER_REFRESH_SECRET_KEY`,
 `AUTH_TOKENS_USER_REFRESH_HASH_KEY`. Всё остальное — опционально, дефолты и полный
-список — в `.env.example`.
+список — в `deployment/.env.example`.
 
 ## Известные пробелы (актуально на момент написания)
 
@@ -225,7 +225,7 @@ Postgres `wal_level=logical`) и публикует в Kafka. **В этом ре
 ## Как поднять локально
 
 ```
-cp .env.example .env      # заполнить секреты
+cp deployment/.env.example deployment/.env      # заполнить секреты
 make docker-up             # postgres + redis + auth-svc + swagger-ui + grpc-doc
 # или без докера:
 make migrate-up

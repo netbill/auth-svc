@@ -47,15 +47,22 @@ func (s *UserServer) CreateUser(ctx context.Context, req *pb.CreateUserRequest) 
 	acc, err := s.users.Registration(ctx, user.RegistrationParams{
 		Email:    req.Email,
 		Password: req.Password,
+		Username: req.Username,
 		Role:     tokens.RoleSystemUser,
 	})
 	switch {
 	case errors.Is(err, errx.ErrorEmailAlreadyExist):
 		log.Warn("email already exists", "error", err)
 		return nil, status.Error(codes.AlreadyExists, "email already exists")
+	case errors.Is(err, errx.ErrorUsernameTaken):
+		log.Warn("username already exists", "error", err)
+		return nil, status.Error(codes.AlreadyExists, "username already exists")
 	case errors.Is(err, errx.ErrorPasswordIsNotAllowed):
 		log.Warn("password is not allowed", "error", err)
 		return nil, status.Error(codes.InvalidArgument, "password is not allowed")
+	case errors.Is(err, errx.ErrorUsernameNotValid):
+		log.Warn("username is not valid", "error", err)
+		return nil, status.Error(codes.InvalidArgument, "username is not valid")
 	case err != nil:
 		log.Error("unexpected error", "error", err)
 		return nil, status.Error(codes.Internal, "internal error")

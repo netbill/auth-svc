@@ -19,6 +19,7 @@ type registerRequest struct {
 		Attributes struct {
 			Email    string `json:"email"`
 			Password string `json:"password"`
+			Username string `json:"username"`
 		} `json:"attributes"`
 	} `json:"data"`
 }
@@ -76,6 +77,7 @@ func register(t *testing.T, base, email string) {
 	body.Data.Type = "user"
 	body.Data.Attributes.Email = email
 	body.Data.Attributes.Password = testPassword
+	body.Data.Attributes.Username = "testuser" + uuid.New().String()[:8]
 
 	resp := do(t, http.MethodPost, base+"/auth-svc/v1/registration", body)
 	defer resp.Body.Close()

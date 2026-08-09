@@ -25,8 +25,9 @@ func newSessionRepos(t *testing.T) (*pg.UserRepo, *pg.SessionRepo) {
 func createUserForSession(t *testing.T, accRepo *pg.UserRepo) uuid.UUID {
 	t.Helper()
 	acc, err := accRepo.Create(context.Background(), user.RegistrationParams{
-		Role: "user",
-	}, testutil.UniqueUsername())
+		Role:     "user",
+		Username: testutil.UniqueUsername(),
+	})
 	require.NoError(t, err)
 	return acc.ID
 }

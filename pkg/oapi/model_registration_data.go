@@ -22,7 +22,7 @@ var _ MappedNullable = &RegistrationData{}
 // RegistrationData struct for RegistrationData
 type RegistrationData struct {
 	Type       string                     `json:"type"`
-	Attributes LoginByEmailDataAttributes `json:"attributes"`
+	Attributes RegistrationDataAttributes `json:"attributes"`
 }
 
 type _RegistrationData RegistrationData
@@ -31,7 +31,7 @@ type _RegistrationData RegistrationData
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewRegistrationData(type_ string, attributes LoginByEmailDataAttributes) *RegistrationData {
+func NewRegistrationData(type_ string, attributes RegistrationDataAttributes) *RegistrationData {
 	this := RegistrationData{}
 	this.Type = type_
 	this.Attributes = attributes
@@ -71,9 +71,9 @@ func (o *RegistrationData) SetType(v string) {
 }
 
 // GetAttributes returns the Attributes field value
-func (o *RegistrationData) GetAttributes() LoginByEmailDataAttributes {
+func (o *RegistrationData) GetAttributes() RegistrationDataAttributes {
 	if o == nil {
-		var ret LoginByEmailDataAttributes
+		var ret RegistrationDataAttributes
 		return ret
 	}
 
@@ -82,7 +82,7 @@ func (o *RegistrationData) GetAttributes() LoginByEmailDataAttributes {
 
 // GetAttributesOk returns a tuple with the Attributes field value
 // and a boolean to check if the value has been set.
-func (o *RegistrationData) GetAttributesOk() (*LoginByEmailDataAttributes, bool) {
+func (o *RegistrationData) GetAttributesOk() (*RegistrationDataAttributes, bool) {
 	if o == nil {
 		return nil, false
 	}
@@ -90,7 +90,7 @@ func (o *RegistrationData) GetAttributesOk() (*LoginByEmailDataAttributes, bool)
 }
 
 // SetAttributes sets field value
-func (o *RegistrationData) SetAttributes(v LoginByEmailDataAttributes) {
+func (o *RegistrationData) SetAttributes(v RegistrationDataAttributes) {
 	o.Attributes = v
 }
 

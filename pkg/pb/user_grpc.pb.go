@@ -41,8 +41,8 @@ type UserServiceClient interface {
 	//
 	// Errors:
 	//
-	//	ALREADY_EXISTS      — email is already taken
-	//	INVALID_ARGUMENT    — password does not meet requirements
+	//	ALREADY_EXISTS      — email or username is already taken
+	//	INVALID_ARGUMENT    — password does not meet requirements, or username is invalid
 	CreateUser(ctx context.Context, in *CreateUserRequest, opts ...grpc.CallOption) (*CreateUserResponse, error)
 	// GetMyUser returns the authenticated user.
 	//
@@ -146,8 +146,8 @@ type UserServiceServer interface {
 	//
 	// Errors:
 	//
-	//	ALREADY_EXISTS      — email is already taken
-	//	INVALID_ARGUMENT    — password does not meet requirements
+	//	ALREADY_EXISTS      — email or username is already taken
+	//	INVALID_ARGUMENT    — password does not meet requirements, or username is invalid
 	CreateUser(context.Context, *CreateUserRequest) (*CreateUserResponse, error)
 	// GetMyUser returns the authenticated user.
 	//

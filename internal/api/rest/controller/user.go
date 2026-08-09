@@ -74,6 +74,7 @@ func (c *UserController) Registration(w http.ResponseWriter, r *http.Request) {
 	_, err = c.users.Registration(r.Context(), user.RegistrationParams{
 		Email:    req.Data.Attributes.Email,
 		Password: req.Data.Attributes.Password,
+		Username: req.Data.Attributes.Username,
 		Role:     tokens.RoleSystemUser,
 	})
 	switch {
@@ -85,6 +86,14 @@ func (c *UserController) Registration(w http.ResponseWriter, r *http.Request) {
 		render.ResponseError(w, problems.BadRequest(validation.Errors{
 			"data/attributes/password": err,
 		})...)
+	case errors.Is(err, errx.ErrorUsernameNotValid):
+		log.WithError(err).Warn("username is invalid")
+		render.ResponseError(w, problems.BadRequest(validation.Errors{
+			"data/attributes/username": err,
+		})...)
+	case errors.Is(err, errx.ErrorUsernameTaken):
+		log.WithError(err).Warn("username is already taken")
+		render.ResponseError(w, problems.Conflict("username is already taken"))
 	case err != nil:
 		log.WithError(err).Error("unexpected error")
 		render.ResponseError(w, problems.InternalError())
@@ -115,6 +124,7 @@ func (c *UserController) RegistrationByAdmin(w http.ResponseWriter, r *http.Requ
 	u, err := c.users.Registration(r.Context(), user.RegistrationParams{
 		Email:    req.Data.Attributes.Email,
 		Password: req.Data.Attributes.Password,
+		Username: req.Data.Attributes.Username,
 		Role:     req.Data.Attributes.Role,
 	})
 	switch {
@@ -126,6 +136,14 @@ func (c *UserController) RegistrationByAdmin(w http.ResponseWriter, r *http.Requ
 		render.ResponseError(w, problems.BadRequest(validation.Errors{
 			"data/attributes/password": err,
 		})...)
+	case errors.Is(err, errx.ErrorUsernameNotValid):
+		log.WithError(err).Warn("username is invalid")
+		render.ResponseError(w, problems.BadRequest(validation.Errors{
+			"data/attributes/username": err,
+		})...)
+	case errors.Is(err, errx.ErrorUsernameTaken):
+		log.WithError(err).Warn("username is already taken")
+		render.ResponseError(w, problems.Conflict("username is already taken"))
 	case errors.Is(err, errx.ErrorRoleNotSupported):
 		log.WithError(err).Warn("role is not supported")
 		render.ResponseError(w, problems.BadRequest(validation.Errors{

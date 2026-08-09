@@ -15,7 +15,7 @@ type transaction interface {
 
 //go:generate mockery --name=userRepo --inpackage
 type userRepo interface {
-	Create(ctx context.Context, params RegistrationParams, username string) (models.User, error)
+	Create(ctx context.Context, params RegistrationParams) (models.User, error)
 	GetByID(ctx context.Context, userID uuid.UUID) (models.User, error)
 	GetByUsername(ctx context.Context, username string) (models.User, error)
 	ExistByUsername(ctx context.Context, username string) (bool, error)
@@ -51,10 +51,9 @@ type media interface {
 	) (string, error)
 }
 
-//go:generate mockery --name=usernameGenerator --inpackage
-type usernameGenerator interface {
+//go:generate mockery --name=usernameValidator --inpackage
+type usernameValidator interface {
 	Validate(username string) error
-	Generate() string
 }
 
 //go:generate mockery --name=emailRepo --inpackage

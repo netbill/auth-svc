@@ -16,6 +16,7 @@ properties:
         required:
           - email
           - password
+          - username
         properties:
           email:
             type: string
@@ -27,3 +28,8 @@ properties:
             format: password
             description: The user's password.
             example: StrongP@ssw0rd!
+          username:
+            type: string
+            description: >
+              Unique username. 3-32 characters, letters and digits only.
+            example: johndoe123

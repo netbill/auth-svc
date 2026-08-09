@@ -18,9 +18,9 @@ type mockUserRepo struct {
 	mock.Mock
 }
 
-// Create provides a mock function with given fields: ctx, params, username
-func (_m *mockUserRepo) Create(ctx context.Context, params RegistrationParams, username string) (models.User, error) {
-	ret := _m.Called(ctx, params, username)
+// Create provides a mock function with given fields: ctx, params
+func (_m *mockUserRepo) Create(ctx context.Context, params RegistrationParams) (models.User, error) {
+	ret := _m.Called(ctx, params)
 
 	if len(ret) == 0 {
 		panic("no return value specified for Create")
@@ -28,17 +28,17 @@ func (_m *mockUserRepo) Create(ctx context.Context, params RegistrationParams, u
 
 	var r0 models.User
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, RegistrationParams, string) (models.User, error)); ok {
-		return rf(ctx, params, username)
+	if rf, ok := ret.Get(0).(func(context.Context, RegistrationParams) (models.User, error)); ok {
+		return rf(ctx, params)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, RegistrationParams, string) models.User); ok {
-		r0 = rf(ctx, params, username)
+	if rf, ok := ret.Get(0).(func(context.Context, RegistrationParams) models.User); ok {
+		r0 = rf(ctx, params)
 	} else {
 		r0 = ret.Get(0).(models.User)
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, RegistrationParams, string) error); ok {
-		r1 = rf(ctx, params, username)
+	if rf, ok := ret.Get(1).(func(context.Context, RegistrationParams) error); ok {
+		r1 = rf(ctx, params)
 	} else {
 		r1 = ret.Error(1)
 	}
