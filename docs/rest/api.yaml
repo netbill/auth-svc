@@ -69,8 +69,8 @@ components:
       $ref: './spec/components/schemas/requests/RefreshSession.yaml'
     UpdatePassword:
       $ref: './spec/components/schemas/requests/UpdatePassword.yaml'
-    UpdateProfile:
-      $ref: './spec/components/schemas/requests/UpdateProfile.yaml'
+    UpdateUser:
+      $ref: './spec/components/schemas/requests/UpdateUser.yaml'
     UpdateUsername:
       $ref: './spec/components/schemas/requests/UpdateUsername.yaml'
     DeleteUploadUserAvatar:

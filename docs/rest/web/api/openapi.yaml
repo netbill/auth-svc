@@ -306,12 +306,12 @@ paths:
       - users
     patch:
       description: |
-        Updates the profile fields (pseudonym, description, avatar) of the authenticated user. The request body must contain the same `data.id` as the authenticated user id.
+        Updates the fields (pseudonym, description, avatar) of the authenticated user. The request body must contain the same `data.id` as the authenticated user id.
       requestBody:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/UpdateProfile"
+              $ref: "#/components/schemas/UpdateUser"
         required: true
       responses:
         "200":
@@ -319,7 +319,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/User"
-          description: User profile successfully updated
+          description: User successfully updated
         "400":
           content:
             application/json:
@@ -348,7 +348,7 @@ paths:
           description: Internal Server Error
       security:
       - BearerAuth: []
-      summary: Update my user profile
+      summary: Update my user
       tags:
       - users
   /auth-svc/v1/me/logout:
@@ -970,18 +970,18 @@ components:
           $ref: "#/components/schemas/UpdatePassword_data"
       required:
       - data
-    UpdateProfile:
+    UpdateUser:
       example:
         data:
           id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
-          type: user_profile
+          type: user
           attributes:
             pseudonym: pseudonym
             description: description
             avatar_key: avatar_key
       properties:
         data:
-          $ref: "#/components/schemas/UpdateProfile_data"
+          $ref: "#/components/schemas/UpdateUser_data"
       required:
       - data
     UpdateUsername:
@@ -1550,7 +1550,7 @@ components:
       required:
       - attributes
       - type
-    UpdateProfile_data_attributes:
+    UpdateUser_data_attributes:
       example:
         pseudonym: pseudonym
         description: description
@@ -1565,10 +1565,10 @@ components:
         avatar_key:
           description: avatar media key
           type: string
-    UpdateProfile_data:
+    UpdateUser_data:
       example:
         id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
-        type: user_profile
+        type: user
         attributes:
           pseudonym: pseudonym
           description: description
@@ -1580,10 +1580,10 @@ components:
           type: string
         type:
           enum:
-          - user_profile
+          - user
           type: string
         attributes:
-          $ref: "#/components/schemas/UpdateProfile_data_attributes"
+          $ref: "#/components/schemas/UpdateUser_data_attributes"
       required:
       - attributes
       - id

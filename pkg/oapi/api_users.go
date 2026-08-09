@@ -659,13 +659,13 @@ func (a *UsersAPIService) AuthSvcV1MePasswordPatchExecute(r ApiAuthSvcV1MePasswo
 }
 
 type ApiAuthSvcV1MePatchRequest struct {
-	ctx           context.Context
-	ApiService    *UsersAPIService
-	updateProfile *UpdateProfile
+	ctx        context.Context
+	ApiService *UsersAPIService
+	updateUser *UpdateUser
 }
 
-func (r ApiAuthSvcV1MePatchRequest) UpdateProfile(updateProfile UpdateProfile) ApiAuthSvcV1MePatchRequest {
-	r.updateProfile = &updateProfile
+func (r ApiAuthSvcV1MePatchRequest) UpdateUser(updateUser UpdateUser) ApiAuthSvcV1MePatchRequest {
+	r.updateUser = &updateUser
 	return r
 }
 
@@ -674,9 +674,9 @@ func (r ApiAuthSvcV1MePatchRequest) Execute() (*User, *http.Response, error) {
 }
 
 /*
-AuthSvcV1MePatch Update my user profile
+AuthSvcV1MePatch Update my user
 
-Updates the profile fields (pseudonym, description, avatar) of the authenticated user. The request body must contain the same `data.id` as the authenticated user id.
+Updates the fields (pseudonym, description, avatar) of the authenticated user. The request body must contain the same `data.id` as the authenticated user id.
 
 	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
 	@return ApiAuthSvcV1MePatchRequest
@@ -709,8 +709,8 @@ func (a *UsersAPIService) AuthSvcV1MePatchExecute(r ApiAuthSvcV1MePatchRequest) 
 	localVarHeaderParams := make(map[string]string)
 	localVarQueryParams := url.Values{}
 	localVarFormParams := url.Values{}
-	if r.updateProfile == nil {
-		return localVarReturnValue, nil, reportError("updateProfile is required and must be specified")
+	if r.updateUser == nil {
+		return localVarReturnValue, nil, reportError("updateUser is required and must be specified")
 	}
 
 	// to determine the Content-Type header
@@ -731,7 +731,7 @@ func (a *UsersAPIService) AuthSvcV1MePatchExecute(r ApiAuthSvcV1MePatchRequest) 
 		localVarHeaderParams["Accept"] = localVarHTTPHeaderAccept
 	}
 	// body params
-	localVarPostBody = r.updateProfile
+	localVarPostBody = r.updateUser
 	req, err := a.client.prepareRequest(r.ctx, localVarPath, localVarHTTPMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, formFiles)
 	if err != nil {
 		return localVarReturnValue, nil, err

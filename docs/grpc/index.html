@@ -839,7 +839,7 @@ one lowercase letter, one digit and one special character (-.!#$%&amp;?,@). </p>
 
       
         <h3 id="auth.v1.UserService">UserService</h3>
-        <p>UserService manages users: registration, profile, credentials.</p><p>All methods except CreateUser require authentication via metadata:</p><p>authorization: Bearer <access_token></p>
+        <p>UserService manages users: registration, data, credentials.</p><p>All methods except CreateUser require authentication via metadata:</p><p>authorization: Bearer <access_token></p>
         <table class="enum-table">
           <thead>
             <tr><td>Method Name</td><td>Request Type</td><td>Response Type</td><td>Description</td></tr>
@@ -861,7 +861,7 @@ Errors:
                 <td>GetMyUser</td>
                 <td><a href="#auth.v1.GetMyUserRequest">GetMyUserRequest</a></td>
                 <td><a href="#auth.v1.GetMyUserResponse">GetMyUserResponse</a></td>
-                <td><p>GetMyUser returns the authenticated user&#39;s profile.
+                <td><p>GetMyUser returns the authenticated user.
 
 Errors:
   NOT_FOUND           — user does not exist or was deleted</p></td>

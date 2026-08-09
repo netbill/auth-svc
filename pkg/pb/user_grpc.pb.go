@@ -31,7 +31,7 @@ const (
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 //
-// UserService manages users: registration, profile, credentials.
+// UserService manages users: registration, data, credentials.
 //
 // All methods except CreateUser require authentication via metadata:
 //
@@ -44,7 +44,7 @@ type UserServiceClient interface {
 	//	ALREADY_EXISTS      — email is already taken
 	//	INVALID_ARGUMENT    — password does not meet requirements
 	CreateUser(ctx context.Context, in *CreateUserRequest, opts ...grpc.CallOption) (*CreateUserResponse, error)
-	// GetMyUser returns the authenticated user's profile.
+	// GetMyUser returns the authenticated user.
 	//
 	// Errors:
 	//
@@ -136,7 +136,7 @@ func (c *userServiceClient) DeleteMyUser(ctx context.Context, in *DeleteMyUserRe
 // All implementations must embed UnimplementedUserServiceServer
 // for forward compatibility.
 //
-// UserService manages users: registration, profile, credentials.
+// UserService manages users: registration, data, credentials.
 //
 // All methods except CreateUser require authentication via metadata:
 //
@@ -149,7 +149,7 @@ type UserServiceServer interface {
 	//	ALREADY_EXISTS      — email is already taken
 	//	INVALID_ARGUMENT    — password does not meet requirements
 	CreateUser(context.Context, *CreateUserRequest) (*CreateUserResponse, error)
-	// GetMyUser returns the authenticated user's profile.
+	// GetMyUser returns the authenticated user.
 	//
 	// Errors:
 	//

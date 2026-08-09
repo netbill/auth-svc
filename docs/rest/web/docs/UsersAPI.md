@@ -9,7 +9,7 @@ Method | HTTP request | Description
 [**AuthSvcV1MeMediaDelete**](UsersAPI.md#AuthSvcV1MeMediaDelete) | **Delete** /auth-svc/v1/me/media | Delete uploaded user media
 [**AuthSvcV1MeMediaPost**](UsersAPI.md#AuthSvcV1MeMediaPost) | **Post** /auth-svc/v1/me/media | Create user avatar upload media link
 [**AuthSvcV1MePasswordPatch**](UsersAPI.md#AuthSvcV1MePasswordPatch) | **Patch** /auth-svc/v1/me/password | Update password
-[**AuthSvcV1MePatch**](UsersAPI.md#AuthSvcV1MePatch) | **Patch** /auth-svc/v1/me | Update my user profile
+[**AuthSvcV1MePatch**](UsersAPI.md#AuthSvcV1MePatch) | **Patch** /auth-svc/v1/me | Update my user
 [**AuthSvcV1MeUsernamePatch**](UsersAPI.md#AuthSvcV1MeUsernamePatch) | **Patch** /auth-svc/v1/me/username | Update my username
 [**AuthSvcV1UsersGet**](UsersAPI.md#AuthSvcV1UsersGet) | **Get** /auth-svc/v1/users/ | Filter users
 [**AuthSvcV1UsersUserIdGet**](UsersAPI.md#AuthSvcV1UsersUserIdGet) | **Get** /auth-svc/v1/users/{user_id} | Get user by id
@@ -333,9 +333,9 @@ Name | Type | Description  | Notes
 
 ## AuthSvcV1MePatch
 
-> User AuthSvcV1MePatch(ctx).UpdateProfile(updateProfile).Execute()
+> User AuthSvcV1MePatch(ctx).UpdateUser(updateUser).Execute()
 
-Update my user profile
+Update my user
 
 
 
@@ -352,11 +352,11 @@ import (
 )
 
 func main() {
-	updateProfile := *openapiclient.NewUpdateProfile(*openapiclient.NewUpdateProfileData("TODO", "Type_example", *openapiclient.NewUpdateProfileDataAttributes())) // UpdateProfile | 
+	updateUser := *openapiclient.NewUpdateUser(*openapiclient.NewUpdateUserData("TODO", "Type_example", *openapiclient.NewUpdateUserDataAttributes())) // UpdateUser | 
 
 	configuration := openapiclient.NewConfiguration()
 	apiClient := openapiclient.NewAPIClient(configuration)
-	resp, r, err := apiClient.UsersAPI.AuthSvcV1MePatch(context.Background()).UpdateProfile(updateProfile).Execute()
+	resp, r, err := apiClient.UsersAPI.AuthSvcV1MePatch(context.Background()).UpdateUser(updateUser).Execute()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error when calling `UsersAPI.AuthSvcV1MePatch``: %v\n", err)
 		fmt.Fprintf(os.Stderr, "Full HTTP response: %v\n", r)
@@ -377,7 +377,7 @@ Other parameters are passed through a pointer to a apiAuthSvcV1MePatchRequest st
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **updateProfile** | [**UpdateProfile**](UpdateProfile.md) |  | 
+ **updateUser** | [**UpdateUser**](UpdateUser.md) |  | 
 
 ### Return type
 

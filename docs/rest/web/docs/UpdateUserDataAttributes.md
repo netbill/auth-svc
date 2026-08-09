@@ -1,4 +1,4 @@
-# UpdateProfileDataAttributes
+# UpdateUserDataAttributes
 
 ## Properties
 
@@ -10,95 +10,95 @@ Name | Type | Description | Notes
 
 ## Methods
 
-### NewUpdateProfileDataAttributes
+### NewUpdateUserDataAttributes
 
-`func NewUpdateProfileDataAttributes() *UpdateProfileDataAttributes`
+`func NewUpdateUserDataAttributes() *UpdateUserDataAttributes`
 
-NewUpdateProfileDataAttributes instantiates a new UpdateProfileDataAttributes object
+NewUpdateUserDataAttributes instantiates a new UpdateUserDataAttributes object
 This constructor will assign default values to properties that have it defined,
 and makes sure properties required by API are set, but the set of arguments
 will change when the set of required properties is changed
 
-### NewUpdateProfileDataAttributesWithDefaults
+### NewUpdateUserDataAttributesWithDefaults
 
-`func NewUpdateProfileDataAttributesWithDefaults() *UpdateProfileDataAttributes`
+`func NewUpdateUserDataAttributesWithDefaults() *UpdateUserDataAttributes`
 
-NewUpdateProfileDataAttributesWithDefaults instantiates a new UpdateProfileDataAttributes object
+NewUpdateUserDataAttributesWithDefaults instantiates a new UpdateUserDataAttributes object
 This constructor will only assign default values to properties that have it defined,
 but it doesn't guarantee that properties required by API are set
 
 ### GetPseudonym
 
-`func (o *UpdateProfileDataAttributes) GetPseudonym() string`
+`func (o *UpdateUserDataAttributes) GetPseudonym() string`
 
 GetPseudonym returns the Pseudonym field if non-nil, zero value otherwise.
 
 ### GetPseudonymOk
 
-`func (o *UpdateProfileDataAttributes) GetPseudonymOk() (*string, bool)`
+`func (o *UpdateUserDataAttributes) GetPseudonymOk() (*string, bool)`
 
 GetPseudonymOk returns a tuple with the Pseudonym field if it's non-nil, zero value otherwise
 and a boolean to check if the value has been set.
 
 ### SetPseudonym
 
-`func (o *UpdateProfileDataAttributes) SetPseudonym(v string)`
+`func (o *UpdateUserDataAttributes) SetPseudonym(v string)`
 
 SetPseudonym sets Pseudonym field to given value.
 
 ### HasPseudonym
 
-`func (o *UpdateProfileDataAttributes) HasPseudonym() bool`
+`func (o *UpdateUserDataAttributes) HasPseudonym() bool`
 
 HasPseudonym returns a boolean if a field has been set.
 
 ### GetDescription
 
-`func (o *UpdateProfileDataAttributes) GetDescription() string`
+`func (o *UpdateUserDataAttributes) GetDescription() string`
 
 GetDescription returns the Description field if non-nil, zero value otherwise.
 
 ### GetDescriptionOk
 
-`func (o *UpdateProfileDataAttributes) GetDescriptionOk() (*string, bool)`
+`func (o *UpdateUserDataAttributes) GetDescriptionOk() (*string, bool)`
 
 GetDescriptionOk returns a tuple with the Description field if it's non-nil, zero value otherwise
 and a boolean to check if the value has been set.
 
 ### SetDescription
 
-`func (o *UpdateProfileDataAttributes) SetDescription(v string)`
+`func (o *UpdateUserDataAttributes) SetDescription(v string)`
 
 SetDescription sets Description field to given value.
 
 ### HasDescription
 
-`func (o *UpdateProfileDataAttributes) HasDescription() bool`
+`func (o *UpdateUserDataAttributes) HasDescription() bool`
 
 HasDescription returns a boolean if a field has been set.
 
 ### GetAvatarKey
 
-`func (o *UpdateProfileDataAttributes) GetAvatarKey() string`
+`func (o *UpdateUserDataAttributes) GetAvatarKey() string`
 
 GetAvatarKey returns the AvatarKey field if non-nil, zero value otherwise.
 
 ### GetAvatarKeyOk
 
-`func (o *UpdateProfileDataAttributes) GetAvatarKeyOk() (*string, bool)`
+`func (o *UpdateUserDataAttributes) GetAvatarKeyOk() (*string, bool)`
 
 GetAvatarKeyOk returns a tuple with the AvatarKey field if it's non-nil, zero value otherwise
 and a boolean to check if the value has been set.
 
 ### SetAvatarKey
 
-`func (o *UpdateProfileDataAttributes) SetAvatarKey(v string)`
+`func (o *UpdateUserDataAttributes) SetAvatarKey(v string)`
 
 SetAvatarKey sets AvatarKey field to given value.
 
 ### HasAvatarKey
 
-`func (o *UpdateProfileDataAttributes) HasAvatarKey() bool`
+`func (o *UpdateUserDataAttributes) HasAvatarKey() bool`
 
 HasAvatarKey returns a boolean if a field has been set.
 

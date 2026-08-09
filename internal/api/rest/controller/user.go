@@ -267,7 +267,7 @@ const operationUpdateMyUser = "update_my_user"
 func (c *UserController) UpdateMyUser(w http.ResponseWriter, r *http.Request) {
 	log := scope.Log(r).WithOperation(operationUpdateMyUser)
 
-	req, err := requests.UpdateProfile(r)
+	req, err := requests.UpdateUser(r)
 	if err != nil {
 		log.WithError(err).Warn("invalid request body")
 		render.ResponseError(w, problems.BadRequest(err)...)
@@ -289,10 +289,10 @@ func (c *UserController) UpdateMyUser(w http.ResponseWriter, r *http.Request) {
 			"avatar": err,
 		})...)
 	case err != nil:
-		log.WithError(err).Error("failed to update user profile")
+		log.WithError(err).Error("failed to update user")
 		render.ResponseError(w, problems.InternalError())
 	default:
-		log.Debug("user profile updated")
+		log.Debug("user updated")
 		render.Response(w, http.StatusOK, responses.User(r, res))
 	}
 }

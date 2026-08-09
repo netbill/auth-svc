@@ -17,41 +17,41 @@ import (
 	"github.com/google/uuid"
 )
 
-// checks if the UpdateProfileData type satisfies the MappedNullable interface at compile time
-var _ MappedNullable = &UpdateProfileData{}
+// checks if the UpdateUserData type satisfies the MappedNullable interface at compile time
+var _ MappedNullable = &UpdateUserData{}
 
-// UpdateProfileData struct for UpdateProfileData
-type UpdateProfileData struct {
+// UpdateUserData struct for UpdateUserData
+type UpdateUserData struct {
 	// user id
-	Id         uuid.UUID                   `json:"id"`
-	Type       string                      `json:"type"`
-	Attributes UpdateProfileDataAttributes `json:"attributes"`
+	Id         uuid.UUID                `json:"id"`
+	Type       string                   `json:"type"`
+	Attributes UpdateUserDataAttributes `json:"attributes"`
 }
 
-type _UpdateProfileData UpdateProfileData
+type _UpdateUserData UpdateUserData
 
-// NewUpdateProfileData instantiates a new UpdateProfileData object
+// NewUpdateUserData instantiates a new UpdateUserData object
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewUpdateProfileData(id uuid.UUID, type_ string, attributes UpdateProfileDataAttributes) *UpdateProfileData {
-	this := UpdateProfileData{}
+func NewUpdateUserData(id uuid.UUID, type_ string, attributes UpdateUserDataAttributes) *UpdateUserData {
+	this := UpdateUserData{}
 	this.Id = id
 	this.Type = type_
 	this.Attributes = attributes
 	return &this
 }
 
-// NewUpdateProfileDataWithDefaults instantiates a new UpdateProfileData object
+// NewUpdateUserDataWithDefaults instantiates a new UpdateUserData object
 // This constructor will only assign default values to properties that have it defined,
 // but it doesn't guarantee that properties required by API are set
-func NewUpdateProfileDataWithDefaults() *UpdateProfileData {
-	this := UpdateProfileData{}
+func NewUpdateUserDataWithDefaults() *UpdateUserData {
+	this := UpdateUserData{}
 	return &this
 }
 
 // GetId returns the Id field value
-func (o *UpdateProfileData) GetId() uuid.UUID {
+func (o *UpdateUserData) GetId() uuid.UUID {
 	if o == nil {
 		var ret uuid.UUID
 		return ret
@@ -62,7 +62,7 @@ func (o *UpdateProfileData) GetId() uuid.UUID {
 
 // GetIdOk returns a tuple with the Id field value
 // and a boolean to check if the value has been set.
-func (o *UpdateProfileData) GetIdOk() (*uuid.UUID, bool) {
+func (o *UpdateUserData) GetIdOk() (*uuid.UUID, bool) {
 	if o == nil {
 		return nil, false
 	}
@@ -70,12 +70,12 @@ func (o *UpdateProfileData) GetIdOk() (*uuid.UUID, bool) {
 }
 
 // SetId sets field value
-func (o *UpdateProfileData) SetId(v uuid.UUID) {
+func (o *UpdateUserData) SetId(v uuid.UUID) {
 	o.Id = v
 }
 
 // GetType returns the Type field value
-func (o *UpdateProfileData) GetType() string {
+func (o *UpdateUserData) GetType() string {
 	if o == nil {
 		var ret string
 		return ret
@@ -86,7 +86,7 @@ func (o *UpdateProfileData) GetType() string {
 
 // GetTypeOk returns a tuple with the Type field value
 // and a boolean to check if the value has been set.
-func (o *UpdateProfileData) GetTypeOk() (*string, bool) {
+func (o *UpdateUserData) GetTypeOk() (*string, bool) {
 	if o == nil {
 		return nil, false
 	}
@@ -94,14 +94,14 @@ func (o *UpdateProfileData) GetTypeOk() (*string, bool) {
 }
 
 // SetType sets field value
-func (o *UpdateProfileData) SetType(v string) {
+func (o *UpdateUserData) SetType(v string) {
 	o.Type = v
 }
 
 // GetAttributes returns the Attributes field value
-func (o *UpdateProfileData) GetAttributes() UpdateProfileDataAttributes {
+func (o *UpdateUserData) GetAttributes() UpdateUserDataAttributes {
 	if o == nil {
-		var ret UpdateProfileDataAttributes
+		var ret UpdateUserDataAttributes
 		return ret
 	}
 
@@ -110,7 +110,7 @@ func (o *UpdateProfileData) GetAttributes() UpdateProfileDataAttributes {
 
 // GetAttributesOk returns a tuple with the Attributes field value
 // and a boolean to check if the value has been set.
-func (o *UpdateProfileData) GetAttributesOk() (*UpdateProfileDataAttributes, bool) {
+func (o *UpdateUserData) GetAttributesOk() (*UpdateUserDataAttributes, bool) {
 	if o == nil {
 		return nil, false
 	}
@@ -118,11 +118,11 @@ func (o *UpdateProfileData) GetAttributesOk() (*UpdateProfileDataAttributes, boo
 }
 
 // SetAttributes sets field value
-func (o *UpdateProfileData) SetAttributes(v UpdateProfileDataAttributes) {
+func (o *UpdateUserData) SetAttributes(v UpdateUserDataAttributes) {
 	o.Attributes = v
 }
 
-func (o UpdateProfileData) MarshalJSON() ([]byte, error) {
+func (o UpdateUserData) MarshalJSON() ([]byte, error) {
 	toSerialize, err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
@@ -130,7 +130,7 @@ func (o UpdateProfileData) MarshalJSON() ([]byte, error) {
 	return json.Marshal(toSerialize)
 }
 
-func (o UpdateProfileData) ToMap() (map[string]interface{}, error) {
+func (o UpdateUserData) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
 	toSerialize["id"] = o.Id
 	toSerialize["type"] = o.Type
@@ -138,7 +138,7 @@ func (o UpdateProfileData) ToMap() (map[string]interface{}, error) {
 	return toSerialize, nil
 }
 
-func (o *UpdateProfileData) UnmarshalJSON(data []byte) (err error) {
+func (o *UpdateUserData) UnmarshalJSON(data []byte) (err error) {
 	// This validates that all required properties are included in the JSON object
 	// by unmarshalling the object into a generic map with string keys and checking
 	// that every required field exists as a key in the generic map.
@@ -162,53 +162,53 @@ func (o *UpdateProfileData) UnmarshalJSON(data []byte) (err error) {
 		}
 	}
 
-	varUpdateProfileData := _UpdateProfileData{}
+	varUpdateUserData := _UpdateUserData{}
 
 	decoder := json.NewDecoder(bytes.NewReader(data))
 	decoder.DisallowUnknownFields()
-	err = decoder.Decode(&varUpdateProfileData)
+	err = decoder.Decode(&varUpdateUserData)
 
 	if err != nil {
 		return err
 	}
 
-	*o = UpdateProfileData(varUpdateProfileData)
+	*o = UpdateUserData(varUpdateUserData)
 
 	return err
 }
 
-type NullableUpdateProfileData struct {
-	value *UpdateProfileData
+type NullableUpdateUserData struct {
+	value *UpdateUserData
 	isSet bool
 }
 
-func (v NullableUpdateProfileData) Get() *UpdateProfileData {
+func (v NullableUpdateUserData) Get() *UpdateUserData {
 	return v.value
 }
 
-func (v *NullableUpdateProfileData) Set(val *UpdateProfileData) {
+func (v *NullableUpdateUserData) Set(val *UpdateUserData) {
 	v.value = val
 	v.isSet = true
 }
 
-func (v NullableUpdateProfileData) IsSet() bool {
+func (v NullableUpdateUserData) IsSet() bool {
 	return v.isSet
 }
 
-func (v *NullableUpdateProfileData) Unset() {
+func (v *NullableUpdateUserData) Unset() {
 	v.value = nil
 	v.isSet = false
 }
 
-func NewNullableUpdateProfileData(val *UpdateProfileData) *NullableUpdateProfileData {
-	return &NullableUpdateProfileData{value: val, isSet: true}
+func NewNullableUpdateUserData(val *UpdateUserData) *NullableUpdateUserData {
+	return &NullableUpdateUserData{value: val, isSet: true}
 }
 
-func (v NullableUpdateProfileData) MarshalJSON() ([]byte, error) {
+func (v NullableUpdateUserData) MarshalJSON() ([]byte, error) {
 	return json.Marshal(v.value)
 }
 
-func (v *NullableUpdateProfileData) UnmarshalJSON(src []byte) error {
+func (v *NullableUpdateUserData) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }

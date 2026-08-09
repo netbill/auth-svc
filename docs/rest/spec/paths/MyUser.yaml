@@ -56,9 +56,9 @@ get:
 patch:
   tags:
     - users
-  summary: Update my user profile
+  summary: Update my user
   description: >
-    Updates the profile fields (pseudonym, description, avatar) of the authenticated user.
+    Updates the fields (pseudonym, description, avatar) of the authenticated user.
     The request body must contain the same `data.id` as the authenticated user id.
 
   security:
@@ -68,10 +68,10 @@ patch:
     content:
       application/json:
         schema:
-          $ref: '../components/schemas/requests/UpdateProfile.yaml'
+          $ref: '../components/schemas/requests/UpdateUser.yaml'
   responses:
     '200':
-      description: User profile successfully updated
+      description: User successfully updated
       content:
         application/json:
           schema:

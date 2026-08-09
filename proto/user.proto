@@ -7,7 +7,7 @@ option go_package = "github.com/netbill/auth-svc/proto/pb;pb";
 import "common.proto";
 import "google/protobuf/empty.proto";
 
-// UserService manages users: registration, profile, credentials.
+// UserService manages users: registration, data, credentials.
 //
 // All methods except CreateUser require authentication via metadata:
 //   authorization: Bearer <access_token>
@@ -19,7 +19,7 @@ service UserService {
   //   INVALID_ARGUMENT    — password does not meet requirements
   rpc CreateUser(CreateUserRequest) returns (CreateUserResponse);
 
-  // GetMyUser returns the authenticated user's profile.
+  // GetMyUser returns the authenticated user.
   //
   // Errors:
   //   NOT_FOUND           — user does not exist or was deleted

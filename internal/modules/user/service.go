@@ -181,6 +181,7 @@ func (s *Service) Registration(
 	}
 
 	detached := context.WithoutCancel(ctx)
+
 	go s.userCache.Set(detached, user)
 	go s.emailCache.Set(detached, email)
 	go s.passwordCache.Set(detached, password)
@@ -224,7 +225,7 @@ func (s *Service) GetMyEmailByID(
 	return email, nil
 }
 
-// GetUserByID is the public (non-"me") lookup used for profile pages —
+// GetUserByID is the public (non-"me") lookup used for user pages —
 // unlike GetMyUserByID it is not cached under the actor's session.
 func (s *Service) GetUserByID(
 	ctx context.Context,

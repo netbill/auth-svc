@@ -89,7 +89,7 @@ Class | Method | HTTP request | Description
 *UsersAPI* | [**AuthSvcV1MeMediaDelete**](docs/UsersAPI.md#authsvcv1memediadelete) | **Delete** /auth-svc/v1/me/media | Delete uploaded user media
 *UsersAPI* | [**AuthSvcV1MeMediaPost**](docs/UsersAPI.md#authsvcv1memediapost) | **Post** /auth-svc/v1/me/media | Create user avatar upload media link
 *UsersAPI* | [**AuthSvcV1MePasswordPatch**](docs/UsersAPI.md#authsvcv1mepasswordpatch) | **Patch** /auth-svc/v1/me/password | Update password
-*UsersAPI* | [**AuthSvcV1MePatch**](docs/UsersAPI.md#authsvcv1mepatch) | **Patch** /auth-svc/v1/me | Update my user profile
+*UsersAPI* | [**AuthSvcV1MePatch**](docs/UsersAPI.md#authsvcv1mepatch) | **Patch** /auth-svc/v1/me | Update my user
 *UsersAPI* | [**AuthSvcV1MeUsernamePatch**](docs/UsersAPI.md#authsvcv1meusernamepatch) | **Patch** /auth-svc/v1/me/username | Update my username
 *UsersAPI* | [**AuthSvcV1UsersGet**](docs/UsersAPI.md#authsvcv1usersget) | **Get** /auth-svc/v1/users/ | Filter users
 *UsersAPI* | [**AuthSvcV1UsersUserIdGet**](docs/UsersAPI.md#authsvcv1usersuseridget) | **Get** /auth-svc/v1/users/{user_id} | Get user by id
@@ -130,9 +130,9 @@ Class | Method | HTTP request | Description
  - [UpdatePassword](docs/UpdatePassword.md)
  - [UpdatePasswordData](docs/UpdatePasswordData.md)
  - [UpdatePasswordDataAttributes](docs/UpdatePasswordDataAttributes.md)
- - [UpdateProfile](docs/UpdateProfile.md)
- - [UpdateProfileData](docs/UpdateProfileData.md)
- - [UpdateProfileDataAttributes](docs/UpdateProfileDataAttributes.md)
+ - [UpdateUser](docs/UpdateUser.md)
+ - [UpdateUserData](docs/UpdateUserData.md)
+ - [UpdateUserDataAttributes](docs/UpdateUserDataAttributes.md)
  - [UpdateUsername](docs/UpdateUsername.md)
  - [UpdateUsernameData](docs/UpdateUsernameData.md)
  - [UpdateUsernameDataAttributes](docs/UpdateUsernameDataAttributes.md)

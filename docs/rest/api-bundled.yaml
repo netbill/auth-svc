@@ -271,9 +271,9 @@ paths:
     patch:
       tags:
         - users
-      summary: Update my user profile
+      summary: Update my user
       description: |
-        Updates the profile fields (pseudonym, description, avatar) of the authenticated user. The request body must contain the same `data.id` as the authenticated user id.
+        Updates the fields (pseudonym, description, avatar) of the authenticated user. The request body must contain the same `data.id` as the authenticated user id.
       security:
         - BearerAuth: []
       requestBody:
@@ -281,10 +281,10 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/UpdateProfile'
+              $ref: '#/components/schemas/UpdateUser'
       responses:
         '200':
-          description: User profile successfully updated
+          description: User successfully updated
           content:
             application/json:
               schema:
@@ -1025,7 +1025,7 @@ components:
                   format: password
                   description: The user's password.
                   example: StrongP@ssw0rd!
-    UpdateProfile:
+    UpdateUser:
       type: object
       required:
         - data
@@ -1044,7 +1044,7 @@ components:
             type:
               type: string
               enum:
-                - user_profile
+                - user
             attributes:
               type: object
               properties:

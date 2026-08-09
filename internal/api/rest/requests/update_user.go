@@ -9,14 +9,14 @@ import (
 	"github.com/netbill/restkit"
 )
 
-func UpdateProfile(r *http.Request) (req oapi.UpdateProfile, err error) {
+func UpdateUser(r *http.Request) (req oapi.UpdateUser, err error) {
 	if err = json.NewDecoder(r.Body).Decode(&req); err != nil {
 		err = restkit.NewDecodeError("body", err)
 		return
 	}
 
 	errs := validation.Errors{
-		"data/type":       validation.Validate(req.Data.Type, validation.Required, validation.In("user_profile")),
+		"data/type":       validation.Validate(req.Data.Type, validation.Required, validation.In("user")),
 		"data/attributes": validation.Validate(req.Data.Attributes, validation.Required),
 	}
 
@@ -30,7 +30,7 @@ func UpdateUsername(r *http.Request) (req oapi.UpdateUsername, err error) {
 	}
 
 	errs := validation.Errors{
-		"data/type":                validation.Validate(req.Data.Type, validation.Required, validation.In("user_username")),
+		"data/type":                validation.Validate(req.Data.Type, validation.Required, validation.In("user")),
 		"data/attributes/username": validation.Validate(req.Data.Attributes.Username, validation.Required),
 	}
 
